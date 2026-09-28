@@ -472,3 +472,222 @@ p { margin: 0; }
   .heroi-acoes .btn, .fecho .btn { width: 100%; }
   .fecho { display: grid; }
 }
+
+/* =============================================================
+   MOTION
+   -------------------------------------------------------------
+   Quatro peças, e todas com a mesma regra: existem para provar
+   alguma coisa que uma imagem parada não prova. Nenhuma é enfeite,
+   e nenhuma se mexe embaixo de um texto que está sendo lido.
+
+   Tudo aqui morre em prefers-reduced-motion, no fim do arquivo.
+   ============================================================= */
+
+/* ---------------- o hello ----------------
+   Um traço só, escrito do começo ao fim, como no OAZE 1. Aqui ele é
+   menor e verde-água: lá era ouro sobre preto e tomava a tela
+   inteira; nesta página é uma saudação antes da manchete, e quem
+   manda é a manchete. */
+
+.hello-linha { margin: 0 0 -6px; }
+.hello { display: block; width: clamp(190px, 26vw, 300px); height: auto; overflow: visible; }
+.hello-traco {
+  fill: none; stroke: url(#hello-tinta);
+  stroke-width: 11; stroke-linecap: round; stroke-linejoin: round;
+  /* pathLength normaliza o traço no site.js: o tracejado deixa de
+     depender do comprimento real do caminho, que muda se alguém
+     redesenhar a letra. */
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+}
+.anima .hello-traco { animation: escrever 2.1s var(--curva) .25s forwards; }
+@keyframes escrever { to { stroke-dashoffset: 0; } }
+
+/* ---------------- o palco do herói ---------------- */
+
+.heroi-palco { position: relative; justify-self: center; width: min(100%, 400px); }
+
+.heroi-tela {
+  position: relative; margin: 0 auto; width: min(100%, 380px);
+  aspect-ratio: 820 / 1728;
+}
+.heroi-tela .quadro {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  border-radius: 26px; opacity: 0;
+  transition: opacity .6s var(--curva);
+}
+.heroi-tela .quadro.is-ativo { opacity: 1; }
+
+/* A COCO NÃO SOME AO ROLAR
+   Ela fica acenando enquanto o herói passa. Antes era um desenho
+   parado que o primeiro gesto de rolagem levava embora — a primeira
+   coisa que o produto tem de própria saía de cena antes de ser
+   vista. */
+.coco-acena {
+  position: absolute; left: -14%; bottom: -6%; width: 44%; margin: 0;
+  z-index: 2; pointer-events: none;
+  transform-origin: 62% 88%;
+}
+.coco-acena img { display: block; width: 100%; height: auto; }
+.coco-acena::before {
+  content: ''; position: absolute; inset: 14% 6% 2% 6%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(95, 169, 155, .3), rgba(233, 135, 94, .1) 55%, transparent 72%);
+  filter: blur(20px);
+}
+.anima .coco-acena { animation: acenar 2.6s ease-in-out infinite; }
+@keyframes acenar {
+  0%, 62%, 100% { transform: rotate(0deg); }
+  70% { transform: rotate(-7deg); }
+  78% { transform: rotate(5deg); }
+  86% { transform: rotate(-5deg); }
+  94% { transform: rotate(2deg); }
+}
+
+/* ---------------- os cartões entrando no OAZE ----------------
+   Rodapé do primeiro quadro, por baixo do texto, opacidade baixa. O
+   ciclo é longo de propósito: a 14% e quinze segundos por volta ele é
+   percebido sem disputar a leitura. */
+
+.fundindo {
+  position: absolute; left: 0; right: 0; bottom: 0; height: clamp(180px, 22vw, 280px);
+  z-index: -1; opacity: .14; overflow: hidden; pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 38%, #000 76%, transparent);
+          mask-image: linear-gradient(to bottom, transparent, #000 38%, #000 76%, transparent);
+}
+.fundindo .carta {
+  position: absolute; left: 50%; top: 42%;
+  width: clamp(112px, 13vw, 168px); aspect-ratio: 1.585;
+  margin-left: calc(clamp(112px, 13vw, 168px) / -2);
+  border-radius: 12px; border: 1px solid rgba(240, 229, 207, .22);
+  transform: translate(var(--x), var(--y)) rotate(var(--r));
+}
+/* Mesma conta do app: matiz da marca, saturação e claridade do OAZE.
+   Aqui os valores são fixos porque o site não tem os bancos de
+   ninguém — é uma cena, não a carteira de uma pessoa. */
+.fundindo .itau   { background: linear-gradient(135deg, hsl(28 34% 72%), hsl(28 31% 60%)); }
+.fundindo .nubank { background: linear-gradient(135deg, hsl(276 34% 72%), hsl(276 31% 60%)); }
+.fundindo .inter  { background: linear-gradient(135deg, hsl(29 34% 72%), hsl(29 31% 60%)); }
+.fundindo .c6     { background: linear-gradient(135deg, hsl(202 16% 72%), hsl(202 15% 60%)); }
+.fundindo .bb     { background: linear-gradient(135deg, hsl(51 34% 72%), hsl(51 31% 60%)); }
+.fundindo .oaze {
+  background: linear-gradient(135deg, var(--teal), var(--mineral));
+  display: grid; place-items: center; opacity: 0;
+  border-color: rgba(240, 229, 207, .4);
+  --x: 0%; --y: 0%; --r: 0deg;
+}
+.fundindo .oaze b {
+  font: 500 clamp(13px, 1.5vw, 19px)/1 var(--fonte-titulo);
+  color: var(--night); letter-spacing: -.02em;
+}
+
+.fundindo .c1 { --x: -190%; --y: -52%; --r: -17deg; }
+.fundindo .c2 { --x: -88%;  --y: 34%;  --r: 9deg; }
+.fundindo .c3 { --x: 12%;   --y: -46%; --r: -6deg; }
+.fundindo .c4 { --x: 104%;  --y: 30%;  --r: 14deg; }
+.fundindo .c5 { --x: 196%;  --y: -30%; --r: -11deg; }
+
+/* Cada cartão sai do seu lugar e some no centro; o OAZE aparece
+   quando o último chega. Os atrasos são escalonados para a fusão ter
+   direção: os de fora entram por último. */
+.anima .fundindo .carta:not(.oaze) { animation: convergir 15s var(--curva) infinite; }
+.anima .fundindo .c1 { animation-delay: 0s; }
+.anima .fundindo .c2 { animation-delay: .5s; }
+.anima .fundindo .c3 { animation-delay: 1s; }
+.anima .fundindo .c4 { animation-delay: 1.5s; }
+.anima .fundindo .c5 { animation-delay: 2s; }
+.anima .fundindo .oaze { animation: virar-oaze 15s var(--curva) infinite; }
+
+@keyframes convergir {
+  0%, 12%   { transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1); opacity: 1; }
+  34%, 60%  { transform: translate(0, 0) rotate(0deg) scale(.92); opacity: 0; }
+  74%       { transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1); opacity: 0; }
+  86%, 100% { transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1); opacity: 1; }
+}
+@keyframes virar-oaze {
+  0%, 26%   { opacity: 0; transform: translate(0, 0) scale(.86); }
+  38%, 58%  { opacity: 1; transform: translate(0, 0) scale(1); }
+  70%, 100% { opacity: 0; transform: translate(0, 0) scale(.86); }
+}
+
+/* ---------------- a cena dos aparelhos ----------------
+   O motion do OAZE 1, de volta. A rolagem alimenta --a (o notebook
+   abrindo) e --b (o celular chegando); o site.js só escreve os
+   números, quem desenha é o CSS. Parada, a cena fica na composição
+   final, com --a e --b valendo 1. */
+
+.cena {
+  position: relative; aspect-ratio: 4 / 3; --a: 1; --b: 1;
+}
+.cena-luz {
+  position: absolute; inset: 6% 0 12%; z-index: 0; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(95, 169, 155, .26), transparent 72%);
+  filter: blur(26px);
+}
+.cena .aparelho { position: absolute; }
+.cena .aparelho-tela { display: block; overflow: hidden; background: var(--night); }
+.cena .aparelho-tela img { display: block; width: 100%; height: auto; }
+
+.cena .notebook {
+  width: 84%; left: 8%; top: 14%;
+  opacity: var(--a);
+  transform: translateY(calc((1 - var(--a)) * 28px));
+}
+.cena .notebook-tampa {
+  position: relative; border: 1px solid var(--linha-forte); border-radius: 12px 12px 3px 3px;
+  background: #0A141C; padding: 9px 9px 7px;
+  transform-origin: 50% 100%;
+  /* fechada a 76 graus, aberta a zero: é o gesto de levantar a tampa. */
+  transform: perspective(1100px) rotateX(calc((1 - var(--a)) * 76deg));
+}
+.cena .notebook-camera {
+  position: absolute; left: 50%; top: 3px; width: 4px; height: 4px; margin-left: -2px;
+  border-radius: 50%; background: rgba(240, 229, 207, .3);
+}
+.cena .notebook-tampa .aparelho-tela { border-radius: 5px; }
+.cena .notebook-base {
+  display: block; height: 9px; margin: 0 -5%; border-radius: 0 0 9px 9px;
+  background: linear-gradient(#1A2C38, #0C1820);
+  border: 1px solid var(--linha-forte); border-top: 0;
+}
+
+.cena .celular {
+  width: 21%; right: 2%; bottom: 2%; z-index: 2;
+  opacity: var(--b);
+  transform: translateY(calc((1 - var(--b)) * 46px));
+}
+.cena .celular .aparelho-tela {
+  position: relative; border: 1px solid var(--linha-forte); border-radius: 18px; padding: 4px;
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, .85);
+}
+.cena .celular .aparelho-tela { aspect-ratio: 820 / 1728; }
+.cena .celular .quadro {
+  position: absolute; inset: 4px; width: auto; height: auto;
+  border-radius: 14px; opacity: 0;
+  transition: opacity .55s var(--curva);
+}
+.cena .celular .quadro.is-ativo { opacity: 1; }
+.cena .celular-ilha {
+  position: absolute; left: 50%; top: 9px; width: 26%; height: 5px; margin-left: -13%;
+  border-radius: 3px; background: #0A141C; z-index: 3;
+}
+
+@media (max-width: 860px) {
+  .heroi-palco { width: min(100%, 340px); }
+  .coco-acena { left: -8%; width: 38%; }
+  .cena { aspect-ratio: 5 / 4; }
+  .cena .celular { width: 26%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Parado, tudo fica no estado final: o hello escrito, a Coco de pé
+     com a pata levantada, a cena montada, e o fundo dos cartões sem
+     ciclo nenhum. */
+  .hello-traco { stroke-dashoffset: 0; }
+  .anima .hello-traco,
+  .anima .coco-acena,
+  .anima .fundindo .carta,
+  .anima .fundindo .oaze { animation: none; }
+  .fundindo .carta:not(.oaze) { opacity: 1; }
+  .fundindo .oaze { opacity: 0; }
+  .heroi-tela .quadro:not(.is-ativo), .cena .celular .quadro:not(.is-ativo) { opacity: 0; }
+  .cena { --a: 1; --b: 1; }
+}
