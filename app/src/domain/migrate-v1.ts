@@ -99,22 +99,22 @@ function convertProfile(p: Raw, owner: string, report: MigrationReport): Workspa
     ? rawCats.map((c) => ({ id: str(c.id, uid('cat')), name: str(c.name, 'Categoria'), kind: c.kind === 'income' ? 'income' : 'expense', icon: iconFor(str(c.name)) }))
     : defaultCategories();
 
-  const accounts: Account[] = (Array.isArray(p.accounts) ? p.accounts : []).map((a: Raw, i: number) => {
+  const accounts: Account[] = (Array.isArray(p.accounts) ? p.accounts : []).map((a: Raw) => {
     const conv = toBRL(cents(a.openingBalance), a.moeda, a.cotacao);
     if (conv.foreign) report.foreignConverted++;
     const last4 = str(String(a.last4 ?? '')).replace(/\D/g, '').slice(-4);
     return {
-      id: str(a.id, uid('acc')), name: str(a.name, 'Conta'), bank: bankKey(a.bank || a.name), tint: i,
+      id: str(a.id, uid('acc')), name: str(a.name, 'Conta'), bank: bankKey(a.bank || a.name),
       debitCard: last4 ? { last4, network: '', validThru: '' } : undefined,
       openingBalance: conv.value, openedAt: iso(a.openedAt), archived: !!a.archived, counted: a.considerado !== false,
     };
   });
 
-  const cards: Card[] = (Array.isArray(p.cards) ? p.cards : []).map((c: Raw, i: number) => {
+  const cards: Card[] = (Array.isArray(p.cards) ? p.cards : []).map((c: Raw) => {
     const conv = toBRL(cents(c.limit), c.moeda, c.cotacao);
     if (conv.foreign) report.foreignConverted++;
     return {
-      id: str(c.id, uid('card')), name: str(c.name, 'Cartão'), bank: bankKey(c.bank || c.name), tint: accounts.length + i,
+      id: str(c.id, uid('card')), name: str(c.name, 'Cartão'), bank: bankKey(c.bank || c.name),
       last4: str(String(c.last4 ?? '')).replace(/\D/g, '').slice(-4) || '····', network: '', validThru: '', holder: owner.toUpperCase(),
       limit: conv.value, closingDay: Math.min(31, Math.max(1, Number(c.closingDay) || 1)), dueDay: Math.min(31, Math.max(1, Number(c.dueDay) || 10)),
       accountId: str(c.accountId) || undefined, counted: c.considerado !== false,

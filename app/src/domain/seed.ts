@@ -47,12 +47,12 @@ export function demoWorkspace(): Workspace {
   const today = todayISO();
   const past = (days: number) => addDaysISO(today, -days);
 
-  const itau = { id: 'acc_itau', name: 'Itaú', bank: 'itau', tint: 0, debitCard: { last4: '0917', network: 'Visa' as const, validThru: '09/29' }, openingBalance: 0, openedAt: dayOf(-6, 1) };
-  const nuConta = { id: 'acc_nubank', name: 'Nubank', bank: 'nubank', tint: 1, debitCard: { last4: '2204', network: 'Mastercard' as const, validThru: '03/30' }, openingBalance: 0, openedAt: dayOf(-6, 1) };
+  const itau = { id: 'acc_itau', name: 'Itaú', bank: 'itau', debitCard: { last4: '0917', network: 'Visa' as const, validThru: '09/29' }, openingBalance: 0, openedAt: dayOf(-6, 1) };
+  const nuConta = { id: 'acc_nubank', name: 'Nubank', bank: 'nubank', debitCard: { last4: '2204', network: 'Mastercard' as const, validThru: '03/30' }, openingBalance: 0, openedAt: dayOf(-6, 1) };
   w.accounts.push(itau, nuConta);
   w.cards.push(
-    { id: 'card_inter', name: 'Inter', bank: 'inter', tint: 2, last4: '1130', network: 'Mastercard', validThru: '11/28', holder: 'ANA SOUZA', limit: 350000, closingDay: 2, dueDay: 10, accountId: itau.id },
-    { id: 'card_nubank', name: 'Nubank', bank: 'nubank', tint: 3, last4: '4821', network: 'Mastercard', validThru: '06/31', holder: 'ANA SOUZA', limit: 600000, closingDay: 28, dueDay: 5, accountId: itau.id },
+    { id: 'card_inter', name: 'Inter', bank: 'inter', last4: '1130', network: 'Mastercard', validThru: '11/28', holder: 'ANA SOUZA', limit: 350000, closingDay: 2, dueDay: 10, accountId: itau.id },
+    { id: 'card_nubank', name: 'Nubank', bank: 'nubank', last4: '4821', network: 'Mastercard', validThru: '06/31', holder: 'ANA SOUZA', limit: 600000, closingDay: 28, dueDay: 5, accountId: itau.id },
   );
 
   const tx = (p: Partial<Transaction> & { description: string; amount: Cents; date: ISODate; method: Method; kind?: Transaction['kind'] }): Transaction => ({

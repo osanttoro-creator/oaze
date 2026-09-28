@@ -1,4 +1,4 @@
-import type { Account, Card, Cents, ID, ISODate, Method, Transaction, Workspace, YM } from '../domain/types';
+import type { Account, Card, Cents, ID, InvestmentType, ISODate, Method, Transaction, Workspace, YM } from '../domain/types';
 import { uid } from '../domain/ids';
 import { splitInstallments } from '../domain/money';
 import { addMonths, clampDay, isoOf, todayISO, ymOf, ymParts } from '../domain/dates';
@@ -6,7 +6,7 @@ import { invoiceKey } from '../domain/calc';
 import { normalizeMerchant } from '../domain/merchant';
 import type { Entry } from '../domain/calc';
 import type { RecurrenceCandidate } from '../domain/recurrence';
-import { getState, mutateWorkspace, setState } from './store';
+import { coconutzDoPlano, getState, mutateWorkspace, setState } from './store';
 
 /** Toda ação desfazível devolve a própria volta. */
 export type Undo = () => void;
@@ -23,6 +23,10 @@ export interface NewEntry {
   accountId?: ID;
   toAccountId?: ID;
   cardId?: ID;
+  /** Só no aporte. */
+  investmentType?: InvestmentType;
+  /** Só no aporte: % ao ano. */
+  annualRate?: number;
   installments: number;
   paid: boolean;
   fixed: boolean;
@@ -35,7 +39,7 @@ export function addEntry(e: NewEntry): { ids: ID[]; undo: Undo } {
   mutateWorkspace((w) => {
     if (e.type === 'aporte') {
       const id = uid('inv');
-      w.investments.push({ id, name: e.description || 'Aporte', type: 'tesouro', amount: e.amount, date: e.date, annualRate: 10, accountId: e.accountId });
+      w.investments.push({ id, name: e.description || 'Aporte', type: e.investmentType ?? 'tesouro', amount: e.amount, date: e.date, annualRate: e.annualRate ?? 10, accountId: e.accountId });
       ids.push(id);
       return;
     }
@@ -116,13 +120,13 @@ export function setCardLimit(cardId: ID, limit: Cents): void {
 
 export function addAccount(a: Omit<Account, 'id'>): ID {
   const id = uid('acc');
-  mutateWorkspace((w) => void w.accounts.push({ ...a, id, tint: a.tint ?? w.accounts.length + w.cards.length }));
+  mutateWorkspace((w) => void w.accounts.push({ ...a, id }));
   return id;
 }
 
 export function addCard(c: Omit<Card, 'id'>): ID {
   const id = uid('card');
-  mutateWorkspace((w) => void w.cards.push({ ...c, id, tint: c.tint ?? w.accounts.length + w.cards.length }));
+  mutateWorkspace((w) => void w.cards.push({ ...c, id }));
   return id;
 }
 
@@ -219,4 +223,35 @@ export function decideCoco(id: string, decision: 'done' | 'dismissed' | null): v
     else delete next[id];
     return { ...s, cocoDecisions: next };
   });
+}
+
+/* ------------------------------------------------------------ coconutz */
+
+export interface SaldoCoconutz {
+  usados: number;
+  total: number;
+  restam: number;
+}
+
+/** Saldo do mês corrente, já virado se o mês mudou. */
+export function saldoCoconutz(): SaldoCoconutz {
+  const s = getState();
+  const total = coconutzDoPlano(s.plan);
+  const usados = s.coconutz.mes === todayISO().slice(0, 7) ? s.coconutz.usados : 0;
+  return { usados, total, restam: Math.max(0, total - usados) };
+}
+
+/**
+ * Cobra um coconut. Devolve false quando o mês acabou — e aí quem
+ * chamou não manda o pedido: cobrar primeiro e falhar depois seria
+ * queimar o coconut de alguém por nada.
+ */
+export function gastarCoconut(): boolean {
+  const mes = todayISO().slice(0, 7);
+  const s = getState();
+  const total = coconutzDoPlano(s.plan);
+  const usados = s.coconutz.mes === mes ? s.coconutz.usados : 0;
+  if (usados >= total) return false;
+  setState((x) => ({ ...x, coconutz: { mes, usados: usados + 1 } }));
+  return true;
 }

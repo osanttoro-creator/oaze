@@ -31,9 +31,32 @@ export interface AppState {
   security: { pin: PinRecord | null; failed: number; lockedUntil: number | null };
   /** Decisões sobre as sugestões da Coco em "Agora": some quando aceita ou dispensa. */
   cocoDecisions: Record<string, 'done' | 'dismissed'>;
+  /** Consumo de coconutz no mês corrente; `mes` é AAAA-MM e zera a contagem na virada. */
+  coconutz: { mes: string; usados: number };
 }
 
 export const COCO_CONSENT_VERSION = 1;
+
+/* ---------------------------------------------------------------
+   COCONUTZ
+   ---------------------------------------------------------------
+   Cada pedido à Coco custa um coconut. O nome não é enfeite: "pedido"
+   e "token" são a mesma palavra que todo mundo já usa para outra
+   coisa, e ninguém sabe se um pedido são cinco palavras ou cinco
+   parágrafos. Coconut é uma unidade do OAZE, contada de um em um —
+   uma pergunta, um coconut — e por isso dá para mostrar o saldo do
+   mês sem explicar nada.
+
+   Fica à vista dentro da conversa, como nas outras IAs: quem gasta
+   precisa ver o que sobrou ANTES de digitar, não descobrir no
+   bloqueio.
+
+   O plano grátis continua existindo e é o padrão (plan: null). */
+export const COCONUTZ: Record<'gratis' | 'mensal' | 'anual', number> = { gratis: 10, mensal: 200, anual: 200 };
+
+export function coconutzDoPlano(plan: AppState['plan']): number {
+  return COCONUTZ[plan ?? 'gratis'];
+}
 
 export function initialState(): AppState {
   return {
@@ -53,6 +76,7 @@ export function initialState(): AppState {
     },
     security: { pin: null, failed: 0, lockedUntil: null },
     cocoDecisions: {},
+    coconutz: { mes: '', usados: 0 },
   };
 }
 

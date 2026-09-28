@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp, useWorkspace, updateSettings, getState } from '../state/store';
 import { closeCoco, go, patchUI, toast, useUI } from '../state/route';
-import { acceptRecurrence, addEntry, decideCoco, depositToGoal, dismissRecurrence, forgetMemory, rememberFact, setCategories, type Undo } from '../state/actions';
+import { acceptRecurrence, addEntry, decideCoco, depositToGoal, dismissRecurrence, forgetMemory, rememberFact, setCategories, type Undo, gastarCoconut, saldoCoconutz } from '../state/actions';
 import { reply, sourceLabel, suggestions, countWord, type Draft, type Suggestion, type SuggestionAction } from '../coco/engine';
 import { detectRecurrences } from '../domain/recurrence';
 import { brl } from '../domain/money';
@@ -150,12 +150,20 @@ function Conversa({ w }: { w: Workspace }) {
   const [msgs, setMsgs] = useState<Msg[]>(history);
   const [draft, setDraft] = useState('');
   const [typing, setTyping] = useState(false);
+  const [saldo, setSaldo] = useState(saldoCoconutz);
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { history = msgs; end.current?.scrollIntoView({ block: 'end' }); }, [msgs, typing]);
 
   const send = (text: string) => {
     const t = text.trim();
     if (!t || typing) return;
+    /* Cobra ANTES de mandar. Se o mês acabou, o pedido não sai e o
+       coconut não é queimado à toa. */
+    if (!gastarCoconut()) {
+      toast('Seus coconutz do mês acabaram. Eles voltam na virada do mês.');
+      return;
+    }
+    setSaldo(saldoCoconutz());
     setMsgs((m) => [...m, { id: seq++, from: 'me', text: t }]);
     setDraft('');
     setTyping(true);
@@ -222,7 +230,9 @@ function Conversa({ w }: { w: Workspace }) {
         <input className="input" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Peça para lançar ou planejar" aria-label="Mensagem para a Coco" />
         <button type="submit" className="icon-btn" style={{ background: 'var(--teal)', color: 'var(--night)' }} aria-label="Enviar" disabled={!draft.trim()}><Icon name="send" size={20} /></button>
       </form>
-      <p className="small muted" style={{ textAlign: 'center', margin: '0 0 10px' }}>Nesta versão a Coco responde no aparelho: nada sai daqui.</p>
+      <p className="small muted" style={{ textAlign: 'center', margin: '0 0 10px' }}>
+        <span className="mono">{saldo.restam}</span> de {saldo.total} coconutz neste mês · nesta versão a Coco responde no aparelho: nada sai daqui.
+      </p>
     </>
   );
 }

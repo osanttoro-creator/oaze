@@ -3,9 +3,10 @@ import { useApp, useWorkspace } from '../state/store';
 import { closeNovo, toast, useUI } from '../state/route';
 import { addEntry, type EntryType } from '../state/actions';
 import { suggestCategory } from '../domain/categorize';
-import { num, parseBRL } from '../domain/money';
+import { brl, num, parseBRL } from '../domain/money';
+import { compound } from '../domain/calc';
 import { addDaysISO, todayISO } from '../domain/dates';
-import type { ID, Method } from '../domain/types';
+import type { ID, InvestmentType, Method } from '../domain/types';
 import { Icon } from '../ui/Icon';
 import { CocoFace, Seg, Sheet, Toggle } from '../ui/bits';
 import { CardThumb, walletItems } from '../ui/Cards';
@@ -17,6 +18,17 @@ const LABEL: Record<Method, string> = {
   pix: 'Pix', cartao_fisico: 'Cartão físico', cartao_virtual: 'Cartão virtual', dinheiro: 'Dinheiro', boleto: 'Boleto',
   debito_automatico: 'Débito automático', transferencia: 'Transferência', deposito: 'Depósito', nao_informado: 'Não informado',
 };
+/* O aporte guardava tipo 'tesouro' e 10% ao ano no escuro, sempre, para
+   todo mundo. Era a tela mais crua do app: você lançava R$ 500 e não
+   ficava sabendo em que, nem a quanto rende, nem quanto vira. Agora as
+   três coisas são escolhidas e a conta aparece enquanto você mexe —
+   que era o que o OAZE 1 fazia no formulário de investimento. */
+const INVEST: [InvestmentType, string][] = [['tesouro', 'Tesouro'], ['cdb', 'CDB'], ['fii', 'FII'], ['acoes', 'Ações'], ['outros', 'Outros']];
+/* Referências de setembro de 2026, só como ponto de partida: quem lança
+   digita a taxa do papel que comprou. */
+const TAXA_SUGERIDA: Record<InvestmentType, number> = { tesouro: 10.5, cdb: 11, fii: 8, acoes: 9, outros: 10 };
+const PRAZOS: [number, string][] = [[12, '1 ano'], [24, '2 anos'], [60, '5 anos'], [120, '10 anos']];
+
 const TYPES: [EntryType, string][] = [['despesa', 'Despesa'], ['receita', 'Receita'], ['transf', 'Transferir'], ['aporte', 'Aporte']];
 
 export function NewEntry({ desktop }: { desktop: boolean }) {
@@ -37,6 +49,10 @@ export function NewEntry({ desktop }: { desktop: boolean }) {
   const [paid, setPaid] = useState(true);
   const [fixed, setFixed] = useState(false);
   const [date, setDate] = useState(todayISO());
+  const [invType, setInvType] = useState<InvestmentType>('tesouro');
+  const [rate, setRate] = useState(TAXA_SUGERIDA.tesouro);
+  const [prazo, setPrazo] = useState(24);
+  const [mensal, setMensal] = useState(false);
 
   const isR = type === 'receita';
   const amount = desktop ? parseBRL(typed) ?? 0 : Number(cents || '0');
@@ -55,6 +71,13 @@ export function NewEntry({ desktop }: { desktop: boolean }) {
   const sug = useMemo(() => (type === 'despesa' || isR) && desc.trim().length > 2 ? suggestCategory(w, desc, isR ? 'income' : 'expense') : null, [w, desc, type, isR]);
   const sugCat = sug?.categoryId && sug.categoryId !== catId ? w.categories.find((c) => c.id === sug.categoryId) : undefined;
 
+  /* Aporte único: o valor rende sozinho. Repetindo todo mês: o
+     primeiro já está na conta e os outros entram mês a mês. */
+  const projecao = useMemo(
+    () => (mensal ? compound(amount, rate, prazo, amount) : compound(0, rate, prazo, amount)),
+    [mensal, amount, rate, prazo],
+  );
+
   const press = (k: string) => setCents((c) => (k === '⌫' ? c.slice(0, -1) : (c + k).replace(/^0+/, '').slice(0, 9)));
 
   const save = () => {
@@ -66,6 +89,7 @@ export function NewEntry({ desktop }: { desktop: boolean }) {
       method: type === 'transf' || type === 'aporte' ? 'transferencia' : method,
       accountId: isCredit ? undefined : src?.id, toAccountId: type === 'transf' ? toAcc : undefined,
       cardId: isCredit ? src?.id : undefined, installments: isCredit ? parc : 1, paid, fixed: fixed && parc === 1,
+      ...(type === 'aporte' ? { investmentType: invType, annualRate: rate } : {}),
     });
     closeNovo();
     toast('Pronto. Ficou organizado e você pode desfazer se precisar.', undo);
@@ -100,6 +124,64 @@ export function NewEntry({ desktop }: { desktop: boolean }) {
           <span>{type === 'aporte' ? 'onde vai investir' : 'descrição'}</span>
           <input className="input" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder={type === 'aporte' ? 'Tesouro Selic, CDB…' : isR ? 'Salário, freela…' : 'Mercado, Uber…'} maxLength={80} />
         </label>
+      )}
+
+
+      {type === 'aporte' && (
+        <section className="aporte" aria-label="Rendimento do aporte">
+          <div className="eyebrow" style={{ marginBottom: 10 }}>em que</div>
+          <div className="chips" style={{ marginBottom: 16 }}>
+            {INVEST.map(([k, rotulo]) => (
+              <button key={k} type="button" className="chip teal" aria-pressed={invType === k}
+                onClick={() => { setInvType(k); setRate(TAXA_SUGERIDA[k]); }}>{rotulo}</button>
+            ))}
+          </div>
+
+          <label className="field" style={{ marginBottom: 16 }}>
+            <span>rende quanto ao ano</span>
+            <div className="row" style={{ gap: 10, alignItems: 'center' }}>
+              <input className="input mono" style={{ width: 96 }} inputMode="decimal" value={String(rate).replace('.', ',')}
+                onChange={(e) => { const v = parseFloat(e.target.value.replace(',', '.')); setRate(Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 0); }}
+                aria-label="Taxa ao ano, em porcento" />
+              <span className="mono muted">% ao ano</span>
+            </div>
+          </label>
+
+          <div className="eyebrow" style={{ marginBottom: 10 }}>daqui a</div>
+          <div className="chips" style={{ marginBottom: 14 }}>
+            {PRAZOS.map(([m, rotulo]) => (
+              <button key={m} type="button" className="chip" aria-pressed={prazo === m} onClick={() => setPrazo(m)}>{rotulo}</button>
+            ))}
+          </div>
+
+          <div className="list-row" style={{ borderTop: '1px solid var(--line)' }}>
+            <div className="grow">
+              <div style={{ fontWeight: 600 }}>Repetir esse valor todo mês</div>
+              <div className="small muted">só muda a conta abaixo; o lançamento continua sendo um só</div>
+            </div>
+            <Toggle on={mensal} onChange={setMensal} label="Repetir esse valor todo mês" />
+          </div>
+
+          {/* A conta só aparece quando há valor. Um "R$ 0,00 vira R$ 0,00"
+              não informa nada e ainda ocupa a altura da folha. */}
+          {amount > 0 ? (
+            <div className="grid-2" style={{ marginTop: 14 }}>
+              <div className="kpi">
+                <span className="eyebrow">vira</span>
+                <span className="mono">{brl(projecao.value)}</span>
+              </div>
+              <div className="kpi">
+                <span className="eyebrow">de juros</span>
+                <span className="mono in">{brl(projecao.interest)}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="small muted" style={{ marginTop: 14 }}>Digite o valor para ver quanto rende.</p>
+          )}
+          <p className="small muted" style={{ marginTop: 10 }}>
+            Estimativa com juros compostos e a taxa acima parada. A taxa real muda, e o OAZE não promete rendimento.
+          </p>
+        </section>
       )}
 
       {sugCat && (

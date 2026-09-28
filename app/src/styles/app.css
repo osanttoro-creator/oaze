@@ -191,7 +191,7 @@ input[type='range'] { accent-color: var(--teal); width: 100%; }
 .card-nfc { position: absolute; left: 76px; top: 66px; opacity: .8; }
 .card-number { position: absolute; left: 20px; right: 20px; top: 110px; font: 500 15px/1 var(--f-mono); letter-spacing: .16em; white-space: nowrap; }
 .card-foot { position: absolute; left: 20px; right: 20px; bottom: 14px; display: flex; align-items: flex-end; gap: 22px; }
-.card-foot small { display: block; font: 500 9.5px/1 var(--f-mono); letter-spacing: .14em; color: rgba(240, 229, 207, .7); margin-bottom: 5px; }
+.card-foot small { display: block; font: 500 9.5px/1 var(--f-mono); letter-spacing: .14em; color: currentColor; opacity: .7; margin-bottom: 5px; }
 .card-foot b { font: 500 13px/1 var(--f-mono); letter-spacing: .08em; white-space: nowrap; }
 .card-net { margin-left: auto; font: italic 700 15px/1 var(--f-ui); letter-spacing: -.01em; opacity: .9; }
 .card-wave { position: absolute; left: 0; right: 0; bottom: 30px; width: 100%; height: 60px; opacity: .35; }
