@@ -15,12 +15,8 @@ import type { SecureStore } from './index';
   Resultado: o arquivo no disco é AES-GCM sem a chave ao lado, e a chave está
   onde o sistema sabe proteger.
 
-  Os plugins são lidos de `Capacitor.Plugins`, e não por `import`, porque este
-  arquivo precisa compilar no build da web, onde os pacotes nativos não existem.
-  Instalar de verdade:
-
-      npm i capacitor-secure-storage-plugin @capacitor/preferences
-      npx cap sync
+  Os módulos são carregados apenas no app nativo. Seus pacotes precisam estar
+  nas dependências para o Capacitor registrar as implementações de cada SO.
 */
 
 interface SecureStoragePlugin {
@@ -35,16 +31,7 @@ interface PreferencesPlugin {
   remove(o: { key: string }): Promise<void>;
 }
 
-interface Plugins {
-  SecureStoragePlugin?: SecureStoragePlugin;
-  Preferences?: PreferencesPlugin;
-}
-
 const KEY_NAME = 'oaze.dek.v1';
-
-function plugins(): Plugins {
-  return ((globalThis as { Capacitor?: { Plugins?: Plugins } }).Capacitor?.Plugins ?? {}) as Plugins;
-}
 
 async function keyMaterial(vault: SecureStoragePlugin): Promise<string> {
   try {
@@ -59,12 +46,12 @@ async function keyMaterial(vault: SecureStoragePlugin): Promise<string> {
 }
 
 export async function create(): Promise<SecureStore> {
-  const { SecureStoragePlugin: vault, Preferences: prefs } = plugins();
-  if (!vault || !prefs) {
-    throw new Error(
-      'Cofre do aparelho indisponível: instale capacitor-secure-storage-plugin e @capacitor/preferences e rode `npx cap sync`.',
-    );
-  }
+  const [secure, preferences] = await Promise.all([
+    import('capacitor-secure-storage-plugin'),
+    import('@capacitor/preferences'),
+  ]);
+  const vault = secure.SecureStoragePlugin as SecureStoragePlugin;
+  const prefs = preferences.Preferences as PreferencesPlugin;
   const material = await keyMaterial(vault);
 
   return {

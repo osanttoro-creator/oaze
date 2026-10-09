@@ -18,7 +18,7 @@ O login web usa Supabase Auth, mas Google/Apple e links de retorno dependem da c
 
 ## Builds e publicação
 
-- Android/iOS: projetos e CI preparados; plugins, SDKs, assinaturas e fluxo real em aparelho ainda não verificados.
+- Android/iOS: projetos e CI preparados; pacotes de cofre, biometria, preferências, compartilhamento e clipboard declarados e ligados por import dinâmico. Ainda faltam `npx cap sync`, SDKs, assinaturas e teste real em aparelho.
 - Windows/macOS: código Rust e CI preparados; Rust não compilado nesta máquina. Assinatura e notarização pendentes.
 - Push e demais recursos nativos exigem testes reais antes de promessa pública.
 - `docs/12-PUBLICACAO.md` lista decisões de lojas e negócio ainda abertas.

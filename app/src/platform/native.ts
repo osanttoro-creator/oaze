@@ -5,12 +5,8 @@ import { reportHandled } from '../core/telemetry';
 /*
   Ligar o que é nativo — P3 e P12 da auditoria.
 
-  Nenhum `import` estático de pacote nativo: este arquivo entra no build da web,
-  onde esses pacotes não existem. Os plugins do Capacitor são lidos de
-  `Capacitor.Plugins`, que é onde o próprio Capacitor os registra; o Tauri
-  responde por `invoke`. Quando o plugin não está instalado, a capacidade fica
-  indisponível e a interface ESCONDE o interruptor — melhor do que oferecer um
-  botão que não faz nada, que é exatamente o defeito que estamos corrigindo.
+  Imports dinâmicos só carregam plugins no celular. O Tauri responde por
+  `invoke`; o navegador mantém seus próprios adaptadores.
 */
 
 type Invoke = <T>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
@@ -23,40 +19,9 @@ interface BiometricAuthPlugin {
 interface LocalNotificationsPlugin {
   requestPermissions(): Promise<{ display: string }>;
   checkPermissions(): Promise<{ display: string }>;
-  schedule(o: { notifications: ScheduledNotification[] }): Promise<void>;
+  schedule(o: { notifications: ScheduledNotification[] }): Promise<unknown>;
   cancel(o: { notifications: { id: number }[] }): Promise<void>;
   getPending(): Promise<{ notifications: { id: number }[] }>;
-}
-
-interface SharePlugin {
-  share(o: { title?: string; text?: string; url?: string; dialogTitle?: string }): Promise<void>;
-}
-
-interface ClipboardPlugin {
-  write(o: { string?: string; url?: string }): Promise<void>;
-  read(): Promise<{ value: string; type: string }>;
-}
-
-interface AppPlugin {
-  addListener(event: 'appUrlOpen', cb: (data: { url: string }) => void): Promise<{ remove: () => void }>;
-}
-
-interface HapticsPlugin {
-  impact(o: { style: 'LIGHT' | 'MEDIUM' | 'HEAVY' }): Promise<void>;
-  notification(o: { type: 'SUCCESS' | 'WARNING' | 'ERROR' }): Promise<void>;
-}
-
-interface CapPlugins {
-  BiometricAuth?: BiometricAuthPlugin;
-  LocalNotifications?: LocalNotificationsPlugin;
-  Share?: SharePlugin;
-  Clipboard?: ClipboardPlugin;
-  App?: AppPlugin;
-  Haptics?: HapticsPlugin;
-}
-
-function caps(): CapPlugins {
-  return ((globalThis as { Capacitor?: { Plugins?: CapPlugins } }).Capacitor?.Plugins ?? {}) as CapPlugins;
 }
 
 function invoker(): Invoke | null {
@@ -200,9 +165,9 @@ function webNotifier(): Notifier {
 /* ------------------------------------------------- compartilhar, área, toque */
 
 export async function share(payload: { title?: string; text?: string; url?: string }): Promise<boolean> {
-  const { Share } = caps();
   try {
-    if (Share) {
+    if (platform() === 'ios' || platform() === 'android') {
+      const { Share } = await import('@capacitor/share');
       await Share.share({ ...payload, dialogTitle: payload.title });
       return true;
     }
@@ -219,9 +184,9 @@ export async function share(payload: { title?: string; text?: string; url?: stri
 }
 
 export async function copyText(text: string): Promise<boolean> {
-  const { Clipboard } = caps();
   try {
-    if (Clipboard) {
+    if (platform() === 'ios' || platform() === 'android') {
+      const { Clipboard } = await import('@capacitor/clipboard');
       await Clipboard.write({ string: text });
       return true;
     }
@@ -233,9 +198,11 @@ export async function copyText(text: string): Promise<boolean> {
 }
 
 export async function readClipboard(): Promise<string | null> {
-  const { Clipboard } = caps();
   try {
-    if (Clipboard) return (await Clipboard.read()).value;
+    if (platform() === 'ios' || platform() === 'android') {
+      const { Clipboard } = await import('@capacitor/clipboard');
+      return (await Clipboard.read()).value;
+    }
     return await navigator.clipboard.readText();
   } catch {
     /* sem permissão: ler a área de transferência é opcional em todo lugar */
@@ -247,13 +214,15 @@ export type HapticKind = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 
 
 /** Vibração curta na confirmação. Silencioso onde não existe. */
 export async function haptic(kind: HapticKind = 'light'): Promise<void> {
-  const { Haptics } = caps();
-  if (!Haptics) return;
+  if (platform() !== 'ios' && platform() !== 'android') return;
   try {
+    const { Haptics, ImpactStyle, NotificationType } = await import('@capacitor/haptics');
     if (kind === 'success' || kind === 'warning' || kind === 'error') {
-      await Haptics.notification({ type: kind.toUpperCase() as 'SUCCESS' | 'WARNING' | 'ERROR' });
+      const type = kind === 'success' ? NotificationType.Success : kind === 'warning' ? NotificationType.Warning : NotificationType.Error;
+      await Haptics.notification({ type });
     } else {
-      await Haptics.impact({ style: kind.toUpperCase() as 'LIGHT' | 'MEDIUM' | 'HEAVY' });
+      const style = kind === 'light' ? ImpactStyle.Light : kind === 'medium' ? ImpactStyle.Medium : ImpactStyle.Heavy;
+      await Haptics.impact({ style });
     }
   } catch {
     /* aparelho sem motor de vibração */
@@ -281,8 +250,8 @@ async function installDeepLinks(): Promise<void> {
     }
   };
 
-  const { App } = caps();
-  if (App) {
+  if (platform() === 'ios' || platform() === 'android') {
+    const { App } = await import('@capacitor/app');
     await App.addListener('appUrlOpen', ({ url }) => void handle(url));
     return;
   }
@@ -306,15 +275,18 @@ export async function installNative(): Promise<void> {
   const label = p === 'ios' ? 'Face ID' : p === 'macos' ? 'Touch ID' : p === 'windows' ? 'Windows Hello' : 'biometria';
 
   try {
-    const { BiometricAuth, LocalNotifications } = caps();
     const invoke = invoker();
-
-    if (BiometricAuth) registerBiometrics(mobileBiometrics(BiometricAuth, label));
-    else if (isDesktopShell() && invoke) registerBiometrics(desktopBiometrics(invoke, label));
-
-    if (LocalNotifications) notifier = mobileNotifier(LocalNotifications);
-    else if (isDesktopShell() && invoke) notifier = desktopNotifier(invoke);
-    else notifier = webNotifier();
+    if (p === 'ios' || p === 'android') {
+      const [biometric, localNotifications] = await Promise.all([
+        import('@aparajita/capacitor-biometric-auth'),
+        import('@capacitor/local-notifications'),
+      ]);
+      registerBiometrics(mobileBiometrics(biometric.BiometricAuth as BiometricAuthPlugin, label));
+      notifier = mobileNotifier(localNotifications.LocalNotifications as LocalNotificationsPlugin);
+    } else if (isDesktopShell() && invoke) {
+      registerBiometrics(desktopBiometrics(invoke, label));
+      notifier = desktopNotifier(invoke);
+    } else notifier = webNotifier();
 
     await installDeepLinks();
   } catch (err) {
