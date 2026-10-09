@@ -1,0 +1,144 @@
+/* ============================================================================
+   Cascas de navegação. Todo valor vem de design-system/tokens.css.
+   ========================================================================== */
+
+.oz-app { height: 100%; background: var(--bg-glow); background-attachment: fixed; }
+.ds-row { display: inline-flex; align-items: center; gap: var(--space-4); }
+
+/* ------------------------------------------------------- celular e tablet */
+.oz-m-shell { position: relative; height: 100%; max-width: 760px; margin: 0 auto; overflow: hidden; }
+.oz-m-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* o respiro de baixo conta a ilha, o botão "+" que sobe, o campo de
+     partículas e a área segura — o último cartão da lista precisa ficar
+     alcançável com o polegar, não embaixo da navegação */
+  padding: calc(var(--safe-top) + var(--space-9)) var(--space-9) calc(var(--safe-bottom) + 236px);
+  padding-left: max(var(--space-9), var(--safe-left));
+  padding-right: max(var(--space-9), var(--safe-right));
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+}
+.oz-m-scroll::-webkit-scrollbar { width: 0; }
+
+.oz-island-plus {
+  width: 72px; height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand-milk);
+  color: var(--text-on-accent);
+  /* o anel da cor do fundo separa o botão da barra sem desenhar borda */
+  box-shadow: 0 0 0 8px var(--bg), var(--shadow-float);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.oz-island-plus:active { transform: scale(.94); }
+.oz-island-plus:focus-visible { outline: var(--focus-ring); outline-offset: 4px; }
+
+/* O campo de partículas flutuante.
+   A altura não é estética: a ilha tem 78 px e o botão "+" sobe metade da sua
+   altura acima dela. Abaixo de ~150 px o campo encosta no "+", e dois alvos de
+   toque colados no canto do polegar é como se toca no errado. */
+.oz-field-fab {
+  position: absolute;
+  right: var(--space-8);
+  bottom: calc(var(--safe-bottom) + 152px);
+  z-index: var(--z-fab);
+  width: 76px; height: 76px;
+}
+.oz-field-count { position: absolute; top: -2px; right: -2px; box-shadow: 0 0 0 3px var(--bg); }
+
+/* ------------------------------------------------------------- desktop */
+.oz-d-shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); height: 100%; }
+.oz-d-shell.is-wide { grid-template-columns: 264px minmax(0, 1fr) 300px; }
+
+.oz-logo { height: 28px; width: auto; margin: var(--space-2) var(--space-4) var(--space-10); }
+.oz-side-new { justify-content: space-between; margin-bottom: var(--space-8); min-height: 50px; padding: 0 var(--space-8); }
+.oz-side-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--r-m);
+  background: var(--fill);
+}
+.oz-side-name { font-weight: 600; text-transform: lowercase; }
+
+.oz-d-main { position: relative; overflow-y: auto; }
+.oz-d-page { max-width: 1240px; margin: 0 auto; padding: var(--space-10) var(--space-11) 120px; }
+
+.oz-context {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-10) var(--space-9);
+  border-left: 1px solid var(--line);
+  background: var(--sidebar);
+  overflow-y: auto;
+}
+.oz-context p { margin: 0; }
+
+.oz-field-pill {
+  position: absolute;
+  right: var(--space-11);
+  bottom: var(--space-11);
+  z-index: var(--z-fab);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 68px;
+  padding: 0 var(--space-10) 0 var(--space-5);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font: var(--t-body-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent), var(--shadow-float);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+.oz-field-pill:hover { box-shadow: 0 0 0 2px var(--accent), var(--shadow-over); }
+.oz-field-pill:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* ------------------------------------------------------- paleta de comandos */
+.oz-palette {
+  position: fixed;
+  left: 50%;
+  top: 14vh;
+  transform: translateX(-50%);
+  z-index: var(--z-overlay);
+  width: min(620px, calc(100% - var(--space-11)));
+  max-height: 64vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-l);
+  background: var(--surface-3);
+  box-shadow: var(--shadow-over);
+  overflow: hidden;
+  animation: dsPop var(--dur-base) var(--ease-out);
+}
+.oz-palette-input {
+  min-height: 60px;
+  padding: 0 var(--space-9);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: var(--t-body);
+  font-size: 1.0625rem;
+  outline: none;
+}
+.oz-palette-list { margin: 0; padding: var(--space-3); list-style: none; overflow-y: auto; }
+.oz-palette-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-7);
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 0 var(--space-6);
+  border-radius: var(--r-s);
+  text-align: left;
+  font: var(--t-body);
+}
+.oz-palette-item .ds-eyebrow { flex: none; width: 76px; }
+.oz-palette-item.is-active { background: var(--fill-2); }
+.oz-palette-empty { padding: var(--space-9); color: var(--text-2); font: var(--t-small); }

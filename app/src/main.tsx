@@ -1,25 +1,34 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import './design-system';
 import './styles/app.css';
 import { App } from './App';
-import { installPrivacyCurtain } from './platform';
-import { installAutoLock, unlock } from './state/session';
-import { flushSave, getState, setState } from './state/store';
-import { demoWorkspace } from './domain/seed';
+import { boot } from './core/boot';
 
-installPrivacyCurtain();
-installAutoLock();
-window.addEventListener('pagehide', flushSave);
+/*
+  O arranque é assíncrono porque o cofre nativo é assíncrono: ler os dados antes
+  de renderizar evita o piscar de "sem nada" seguido de "tudo aqui", e evita
+  pior — gravar em cima do que estava guardado.
 
-// "Experimentar" no site abre o exemplo direto — só em aparelho sem nenhum dado.
-if (new URLSearchParams(location.search).has('demo') && getState().workspaces.length === 0) {
-  const w = demoWorkspace();
-  setState((s) => ({ ...s, owner: { name: 'Ana Souza' }, plan: 'mensal', workspaces: [w], activeId: w.id }));
-  unlock();
-}
+  Se o arranque falhar, a tela diz o que falhou. Um painel financeiro que abre
+  vazio sem explicação faz a pessoa achar que perdeu tudo.
+*/
 
-createRoot(document.getElementById('root') as HTMLElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+const root = createRoot(document.getElementById('root') as HTMLElement);
+
+boot().then(
+  ({ storageProblem }) => {
+    root.render(
+      <StrictMode>
+        <App storageProblem={storageProblem} />
+      </StrictMode>,
+    );
+  },
+  (err: unknown) => {
+    root.render(
+      <StrictMode>
+        <App storageProblem={err instanceof Error ? err : new Error(String(err))} />
+      </StrictMode>,
+    );
+  },
 );

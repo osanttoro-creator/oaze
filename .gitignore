@@ -2,3 +2,28 @@ node_modules/
 dist/
 .DS_Store
 *.tsbuildinfo
+app/.claude/
+app/.impeccable/
+
+# Ambiente: só o exemplo vai para o repositório.
+.env
+.env.*
+!.env.example
+
+# Rust (Tauri)
+app/src-tauri/target/
+app/src-tauri/gen/
+
+# Nativos gerados a cada build
+app/android/app/build/
+app/android/.gradle/
+app/ios/App/Pods/
+app/ios/App/App/public/
+app/android/app/src/main/assets/public/
+
+# Nunca: material de assinatura de loja
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision

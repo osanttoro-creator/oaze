@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { ID, Workspace } from '../domain/types';
-import { loadState, saveState } from './persist';
+import { savePersisted } from './persist';
 
 export type LockAfter = 0 | 1 | 5 | 15;
 export type NotifPrivacy = 'sem' | 'valores' | 'generico';
@@ -80,23 +80,47 @@ export function initialState(): AppState {
   };
 }
 
-let state: AppState = loadState() ?? initialState();
+let state: AppState = initialState();
+let hydrated = false;
+
+/**
+ * Troca o estado inicial pelo que estava guardado. Chamado uma vez por
+ * `main.tsx`, depois de o cofre abrir — a leitura do cofre nativo é assíncrona,
+ * então não dá para fazer isto na carga do módulo. Não grava de volta: hidratar
+ * não é mudança do usuário.
+ */
+export function hydrate(next: AppState | null): void {
+  if (hydrated) return;
+  hydrated = true;
+  if (next) state = next;
+  listeners.forEach((l) => l());
+}
 const listeners = new Set<() => void>();
+const changeListeners = new Set<(before: AppState, after: AppState) => void>();
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 
 function emit() {
   listeners.forEach((l) => l());
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveState(state), 150);
+  saveTimer = setTimeout(() => savePersisted(state), 150);
 }
 
 export function getState(): AppState {
   return state;
 }
 
-export function setState(fn: (s: AppState) => AppState): void {
+export function setState(fn: (s: AppState) => AppState, source: 'local' | 'remote' = 'local'): void {
+  const before = state;
   state = fn(state);
+  if (state === before) return;
+  if (source === 'local') changeListeners.forEach((listener) => listener(before, state));
   emit();
+}
+
+/** A sincronização observa mutações locais, sem entrar em ciclo ao adotar dados remotos. */
+export function subscribeChanges(listener: (before: AppState, after: AppState) => void): () => void {
+  changeListeners.add(listener);
+  return () => changeListeners.delete(listener);
 }
 
 export function subscribe(l: () => void): () => void {
@@ -138,5 +162,5 @@ export function updateSettings(patch: Partial<Settings>): void {
 
 export function flushSave(): void {
   clearTimeout(saveTimer);
-  saveState(state);
+  savePersisted(state);
 }

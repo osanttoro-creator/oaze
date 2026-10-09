@@ -29,7 +29,12 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["msi", "nsis", "app", "dmg"],
+    "targets": [
+      "msi",
+      "nsis",
+      "app",
+      "dmg"
+    ],
     "category": "Finance",
     "publisher": "OAZE",
     "shortDescription": "Todos os seus cartões em um só lugar.",
@@ -46,7 +51,18 @@
       "entitlements": "Entitlements.plist"
     },
     "windows": {
-      "webviewInstallMode": { "type": "embedBootstrapper" }
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      }
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "oaze"
+        ]
+      }
     }
   }
 }

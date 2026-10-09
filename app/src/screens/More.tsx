@@ -6,7 +6,7 @@ import { addDaysISO, todayISO } from '../domain/dates';
 import { brl } from '../domain/money';
 import { Icon } from '../ui/Icon';
 import { ScreenHead } from '../ui/bits';
-import { MORE_ITEMS } from '../Shell';
+import { MORE_ITEMS } from '../ui/nav';
 
 export function More() {
   const desktop = useDesktop();
@@ -27,7 +27,7 @@ export function More() {
     <>
       <ScreenHead desktop={desktop} title="mais" />
       <section className="panel">
-        {MORE_ITEMS.map(([id, label, icon]) => (
+        {MORE_ITEMS.map(({ id, label, icon }) => (
           <button key={id} type="button" className="list-row" onClick={() => go(id)}>
             <span className="list-icon"><Icon name={icon} /></span>
             <span className="grow">

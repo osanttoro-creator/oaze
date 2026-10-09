@@ -1,4 +1,5 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
+import { atLeast, useBreakpoint } from '../design-system/breakpoints';
 import { getState } from './store';
 
 /* Estado de sessão: nunca vai para o disco. Recarregar o app sempre trava. */
@@ -44,14 +45,11 @@ export function installAutoLock(): () => void {
   return () => document.removeEventListener('visibilitychange', onVis);
 }
 
+/**
+ * Mantido como atalho: as telas perguntam "sou desktop?" para escolher folha ou
+ * janela, e isso é legítimo. O que saiu daqui foi o 900 px solto — a faixa agora
+ * vem de design-system/breakpoints.ts, e o degrau é 1024 px.
+ */
 export function useDesktop(): boolean {
-  const q = '(min-width: 900px)';
-  const [d, setD] = useState(() => matchMedia(q).matches);
-  useEffect(() => {
-    const m = matchMedia(q);
-    const on = () => setD(m.matches);
-    m.addEventListener('change', on);
-    return () => m.removeEventListener('change', on);
-  }, []);
-  return d;
+  return atLeast(useBreakpoint(), 'desktop');
 }

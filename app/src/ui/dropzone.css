@@ -1,0 +1,33 @@
+/* Área de soltar arquivo. Só existe onde há ponteiro fino — num celular
+   ninguém arrasta arquivo, e a mesma tela oferece o botão de escolher. */
+
+.oz-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 112px;
+  padding: var(--space-9);
+  border: 1.5px dashed var(--line-2);
+  border-radius: var(--r-m);
+  background: var(--fill);
+  color: var(--text-2);
+  text-align: center;
+  transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
+}
+
+.oz-drop:hover { background: var(--fill-2); }
+.oz-drop:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* O realce precisa ser inequívoco: quem está arrastando não olha devagar. */
+.oz-drop.is-over {
+  border-color: var(--accent);
+  border-style: solid;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text);
+  transform: scale(1.01);
+}
+
+.oz-drop-title { font: var(--t-body-strong); color: var(--text); }

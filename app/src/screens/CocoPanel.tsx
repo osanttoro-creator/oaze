@@ -8,6 +8,7 @@ import { brl } from '../domain/money';
 import { dayMonth } from '../domain/dates';
 import type { Workspace } from '../domain/types';
 import { Icon } from '../ui/Icon';
+import { EmptyState, Tabs } from '../design-system';
 import { CocoFace, SidePanel, Sheet, Toggle } from '../ui/bits';
 
 interface Msg {
@@ -42,16 +43,19 @@ export function CocoPanel({ desktop }: { desktop: boolean }) {
           <div className="h2" style={{ fontSize: 22 }}>coco</div>
           <div className="coco-status"><i style={{ background: learning ? 'var(--teal)' : 'var(--text-2)' }} />{learning ? `aprendendo com você · ${patterns} ${patterns === 1 ? 'padrão' : 'padrões'}` : 'aprendizado pausado'}</div>
         </div>
-        <button type="button" className="icon-btn" style={{ width: 40, height: 40 }} onClick={closeCoco} aria-label="Fechar a Coco"><Icon name="x" size={20} /></button>
+        <button type="button" className="ds-icon-btn" style={{ width: 40, height: 40 }} onClick={closeCoco} aria-label="Fechar a Coco"><Icon name="x" size={20} /></button>
       </div>
       <div style={{ padding: '0 20px 12px' }}>
-        <div className="seg" role="tablist">
-          {(['agora', 'conversa', 'memoria'] as const).map((t) => (
-            <button key={t} type="button" role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => setTab(t)}>
-              {t === 'agora' ? 'Agora' : t === 'conversa' ? 'Conversa' : 'Memória'}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          label="Coco"
+          current={tab}
+          onSelect={setTab}
+          tabs={[
+            { id: 'agora', label: 'Agora' },
+            { id: 'conversa', label: 'Conversa' },
+            { id: 'memoria', label: 'Memória' },
+          ]}
+        />
       </div>
       {tab === 'agora' && <Agora w={w} />}
       {tab === 'conversa' && <Conversa w={w} />}
@@ -62,7 +66,7 @@ export function CocoPanel({ desktop }: { desktop: boolean }) {
   if (desktop) return <SidePanel onClose={closeCoco} label="Coco">{body}</SidePanel>;
   return (
     <Sheet onClose={closeCoco} desktop={false} label="Coco">
-      <div style={{ margin: '-16px -20px -24px', display: 'flex', flexDirection: 'column', minHeight: '78vh' }}>{body}</div>
+      <div style={{ margin: '0 -20px -24px', display: 'flex', flexDirection: 'column', minHeight: '78vh' }}>{body}</div>
     </Sheet>
   );
 }
@@ -117,10 +121,14 @@ function Agora({ w }: { w: Workspace }) {
   };
 
   return (
-    <div className="sheet-body" style={{ paddingTop: 4 }}>
+    <div className="coco-tab-body" style={{ paddingTop: 4 }}>
       <h3 className="h2" style={{ margin: '4px 0 14px' }}>{open.length ? `${countWord(open.length)} ${open.length === 1 ? 'coisa esperando' : 'coisas esperando'} por você.` : 'tudo em dia por aqui.'}</h3>
       {open.length === 0 && done.length === 0 && (
-        <div className="empty"><CocoFace mood="calma" size={110} /><p>Quando eu notar um padrão, uma fatura fechando ou uma meta fora do ritmo, aparece aqui.</p></div>
+        <EmptyState
+          art={<CocoFace mood="calma" size={110} />}
+          title="Nada pedindo atenção"
+          message="Quando eu notar um padrão, uma fatura fechando ou uma meta fora do ritmo, aparece aqui."
+        />
       )}
       {open.map((s) => (
         <article key={s.id} className="act">
@@ -187,7 +195,7 @@ function Conversa({ w }: { w: Workspace }) {
 
   return (
     <>
-      <div className="sheet-body" style={{ paddingTop: 4, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div className="coco-tab-body" style={{ paddingTop: 4, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {msgs.map((m) => (
           <div key={m.id}>
             <div className={m.from === 'coco' ? 'msg coco' : 'msg me'}>{m.text}</div>
@@ -252,7 +260,7 @@ function Memoria({ w }: { w: Workspace }) {
     ...w.automation.categoryRules.map((r) => ({ id: r.id, title: r.merchantKey.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase()), detail: `vira ${catName(r.categoryId)} · regra confirmada por você` })),
   ];
   return (
-    <div className="sheet-body" style={{ paddingTop: 4 }}>
+    <div className="coco-tab-body" style={{ paddingTop: 4 }}>
       <div className="list-row" style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="grow">
           <div style={{ fontWeight: 600 }}>Aprender com meus lançamentos</div>

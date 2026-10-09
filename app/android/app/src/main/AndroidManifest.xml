@@ -22,6 +22,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Esquema próprio: é por aqui que o login com Google e com a Apple
+                 volta para o app depois de passar pelo navegador do sistema. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="oaze" />
+            </intent-filter>
+
+            <!-- App Links: https://oaze.site/app/... abre o app instalado em vez
+                 do navegador. `autoVerify` exige o assetlinks.json publicado em
+                 https://oaze.site/.well-known/ — sem ele o Android ignora a
+                 verificação e cai no seletor de aplicativo. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="oaze.site" android:pathPrefix="/app" />
+            </intent-filter>
+
         </activity>
 
         <provider
@@ -38,4 +58,12 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Biometria: desbloqueia a chave local, nunca substitui o PIN. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Lembretes de fatura e de lançamento fixo. Pedida em tempo de execução,
+         e só quando a pessoa liga um lembrete — nunca no primeiro arranque. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- O app funciona em aparelho sem leitor biométrico: a pessoa usa o PIN. -->
+    <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
 </manifest>

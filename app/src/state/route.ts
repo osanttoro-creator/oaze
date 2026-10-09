@@ -61,7 +61,12 @@ export function go(screen: Screen, walletPick: ID | null = null): void {
   ui = { ...ui, screen, walletPick };
   if (fromHash() !== screen) location.hash = '/' + screen;
   emit();
-  document.querySelector('[data-scroll]')?.scrollTo({ top: 0 });
+  /* `Element.scrollTo` não existe em todo WebView antigo de Android, e cair no
+     topo da lista não vale derrubar a navegação. O `?.` do seletor não cobria
+     isso: ele guarda o elemento ausente, não o método ausente. */
+  const scroller = document.querySelector('[data-scroll]');
+  if (scroller && typeof scroller.scrollTo === 'function') scroller.scrollTo({ top: 0 });
+  else if (scroller) scroller.scrollTop = 0;
 }
 
 export function openNovo(type: EntryType = 'despesa'): void {

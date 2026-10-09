@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { EmptyState, Layer, Segmented, SidePanel as DsSidePanel } from '../design-system';
 import { brl } from '../domain/money';
 import type { Cents } from '../domain/types';
 import { useApp } from '../state/store';
@@ -7,6 +7,16 @@ import { Icon } from './Icon';
 
 /* =============================================================
    Peças pequenas que todas as telas usam.
+
+   `Seg`, `Toggle`, `Sheet`, `SidePanel` e `Empty` viviam aqui como
+   implementações próprias — e o design system passou a ter as mesmas
+   peças, melhores. Duas implementações do mesmo componente divergem
+   no primeiro ajuste, então estas aqui viraram ADAPTADORES: mantêm a
+   assinatura que as catorze telas já usam e delegam o comportamento.
+
+   O que as telas ganharam sem mudar uma linha: foco preso e devolvido
+   nas camadas, rolagem do fundo travada, arrastar para fechar no
+   celular, e setas de teclado no controle segmentado.
    ============================================================= */
 
 /**
@@ -43,7 +53,7 @@ export function ScreenHead({ title, eyebrow, desktop, onBack, right }: {
     <header className={desktop ? 'd-head' : 'm-head'}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         {!desktop && onBack && (
-          <button type="button" className="icon-btn" onClick={onBack} aria-label="Voltar">
+          <button type="button" className="ds-icon-btn" style={{ width: 44, height: 44 }} onClick={onBack} aria-label="Voltar">
             <Icon name="chevron-left" />
           </button>
         )}
@@ -58,9 +68,9 @@ export function ScreenHead({ title, eyebrow, desktop, onBack, right }: {
 }
 
 /**
- * Escolha entre poucas opções, todas visíveis. É um grupo de botões
- * com aria-pressed e não um <select>: com três rótulos curtos, o menu
- * esconderia as alternativas atrás de um toque a mais sem ganhar nada.
+ * Escolha entre poucas opções, todas visíveis. Delega ao `Segmented` do
+ * design system, que é um `radiogroup` de verdade: as setas percorrem e só a
+ * opção ativa entra na ordem do Tab.
  */
 export function Seg<T extends string>({ label, value, options, onChange }: {
   label: string;
@@ -71,35 +81,42 @@ export function Seg<T extends string>({ label, value, options, onChange }: {
   return (
     <div className="field">
       <span>{label}</span>
-      <div className="seg" role="group" aria-label={label}>
-        {options.map(([v, t]) => (
-          <button key={v} type="button" aria-pressed={value === v} onClick={() => onChange(v)}>{t}</button>
-        ))}
-      </div>
+      <Segmented
+        label={label}
+        value={value}
+        onChange={onChange}
+        options={options.map(([v, t]) => ({ value: v, label: t }))}
+      />
     </div>
   );
 }
 
-/** Liga/desliga. O estado vai em aria-checked, não só na cor. */
+/**
+ * Liga/desliga. O estado vai em aria-checked, não só na cor.
+ *
+ * Aqui é só a chave, com a aparência do design system: o `Toggle` de lá monta a
+ * linha inteira (rótulo + dica + chave), e as telas que usam isto já têm a
+ * própria linha. Reaproveitar a linha de lá significaria desmontar a daqui.
+ */
 export function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
-    <button type="button" className="toggle" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} />
+    <button
+      type="button"
+      className="ds-toggle"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      onClick={() => onChange(!on)}
+    />
   );
 }
 
-/** Esc fecha qualquer camada sobreposta — folha, modal ou painel. */
-function useEscape(onClose: () => void) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-}
-
 /**
- * Folha que sobe da base no celular. No computador a mesma coisa vira
- * modal centralizado — quem decide é o `desktop`, e não duas
- * implementações paralelas que um dia divergem.
+ * Folha que sobe da base no celular; no computador, janela centralizada. Quem
+ * decide é o `desktop`, e não duas implementações paralelas que um dia divergem.
+ *
+ * `hideHeader` porque cada tela já escreve o próprio título dentro do corpo —
+ * o `label` segue valendo como nome da camada para o leitor de tela.
  */
 export function Sheet({ label, desktop, onClose, children }: {
   label: string;
@@ -107,37 +124,25 @@ export function Sheet({ label, desktop, onClose, children }: {
   onClose: () => void;
   children: ReactNode;
 }) {
-  useEscape(onClose);
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className={desktop ? 'modal' : 'sheet'} role="dialog" aria-modal="true" aria-label={label}>
-        {!desktop && <div className="sheet-grip" aria-hidden="true" />}
-        <div className="sheet-body">{children}</div>
-      </div>
-    </>
+    <Layer desktop={desktop} open onClose={onClose} title={label} hideHeader>
+      {children}
+    </Layer>
   );
 }
 
 /** Painel lateral: é assim que a Coco aparece no computador. */
 export function SidePanel({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
-  useEscape(onClose);
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="side-panel" role="dialog" aria-modal="true" aria-label={label}>{children}</div>
-    </>
+    <DsSidePanel open onClose={onClose} title={label} hideHeader>
+      {children}
+    </DsSidePanel>
   );
 }
 
 /** Lista vazia. A Coco aparece calma: vazio não é erro. */
 export function Empty({ text }: { text: string }) {
-  return (
-    <div className="empty">
-      <img src="/coco/corpo-neutra_acolhedora.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
-      <p>{text}</p>
-    </div>
-  );
+  return <EmptyState title={text} art={<CocoBody pose="neutra_acolhedora" width={140} />} />;
 }
 
 /* ---------------- a Coco ----------------
@@ -145,7 +150,11 @@ export function Empty({ text }: { text: string }) {
    rostos e dez corpos, e improvisar anatomia quebra a personagem. Os
    nomes abaixo são exatamente os arquivos que existem em public/coco,
    então um humor inventado não compila. O alt fica vazio de propósito:
-   nesses lugares ela acompanha um texto que já diz tudo. */
+   nesses lugares ela acompanha um texto que já diz tudo.
+
+   A Coco é personagem de MARCA — acolhe em boas-vindas e em tela vazia.
+   Quem mostra "estou pensando" é o campo de partículas do design system
+   (decisão D3 em docs/11-ARQUITETURA.md). */
 
 export type CocoMood =
   | 'aliviada' | 'animada' | 'calma' | 'curiosa' | 'feliz'

@@ -1,0 +1,49 @@
+/* Campo de partículas — só o contêiner. O desenho é canvas (field.ts). */
+
+.oz-field {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  /* o canvas pinta em 'lighter'; isolar evita que a composição escape para o
+     pai e lave a cor de um cartão atrás */
+  isolation: isolate;
+}
+
+.oz-field canvas {
+  display: block;
+}
+
+/* O estado também precisa chegar a quem não distingue movimento. O anel fino
+   responde ao data-state e é a leitura de reserva quando o campo está parado. */
+.oz-field::after {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  transition: border-color var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  pointer-events: none;
+}
+
+.oz-field[data-state='thinking']::after,
+.oz-field[data-state='processing']::after { border-color: color-mix(in srgb, var(--accent) 34%, transparent); }
+.oz-field[data-state='listening']::after { border-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+.oz-field[data-state='success']::after { border-color: color-mix(in srgb, var(--ok) 48%, transparent); transform: scale(1.06); }
+.oz-field[data-state='error']::after { border-color: color-mix(in srgb, var(--danger) 55%, transparent); }
+
+/* Botão de inteligência: o campo dentro de um alvo de toque honesto. */
+.oz-trigger {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: var(--touch-comfort);
+  min-height: var(--touch-comfort);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent), var(--shadow-float);
+  transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+
+.oz-trigger:hover { box-shadow: 0 0 0 2px var(--accent), var(--shadow-over); }
+.oz-trigger:active { transform: scale(.96); }

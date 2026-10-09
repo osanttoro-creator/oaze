@@ -1,0 +1,277 @@
+/* ============================================================================
+   OAZE · Design System — tokens
+   ----------------------------------------------------------------------------
+   Esta é a ÚNICA folha onde um valor visual pode nascer. Qualquer outro arquivo
+   consome `var(--…)`; cor, raio, sombra ou duração escritos à mão em componente
+   ou em `style={{}}` são bug, e `tests/tokens.test.ts` falha quando aparecem.
+
+   Direção: Night Ocean (kit V2.1). Decisão D9 em docs/11-ARQUITETURA.md.
+   Os números de breakpoint e de movimento têm espelho tipado em `tokens.ts`;
+   `tests/tokens.test.ts` compara os dois e falha se divergirem.
+   ========================================================================== */
+
+:root {
+  /* --- marca --------------------------------------------------------------
+     Os cinco hexes do kit. Nada mais entra aqui: tudo abaixo deriva deles. */
+  --brand-night: #0D1821;
+  --brand-milk: #F0E5CF;
+  /* o leite um passo mais claro, para o hover do botão principal */
+  --brand-milk-hi: #FFF6E2;
+  --brand-mineral: #355565;
+  --brand-teal: #5FA99B;
+  --brand-tangerine: #E9875E;
+
+  /* --- superfície (tema escuro, o padrão) -------------------------------- */
+  --bg: var(--brand-night);
+  --bg-glow: radial-gradient(120% 60% at 50% -10%, #173244 0%, #0D1821 55%);
+  --surface: #13232F;
+  --surface-2: #1A2E3C;
+  --surface-3: #102029;           /* folhas, janelas e painéis que flutuam */
+  --surface-grad: linear-gradient(180deg, #162936 0%, #101F2A 100%);
+  --sidebar: #0F1C26;
+
+  --line: rgba(240, 229, 207, .07);
+  --line-2: rgba(240, 229, 207, .14);
+  --fill: rgba(240, 229, 207, .06);
+  --fill-2: rgba(240, 229, 207, .10);
+  --fill-3: rgba(240, 229, 207, .16);
+
+  /* --- texto -------------------------------------------------------------
+     Contraste medido contra --bg: milk 14,4:1 · text-2 6,1:1 · text-3 10,9:1 */
+  --text: #F0E5CF;
+  --text-2: #9DAFB5;
+  --text-3: #C9D3D6;
+  --text-on-accent: var(--brand-night);
+
+  /* --- papéis semânticos -------------------------------------------------
+     Cor nunca carrega o significado sozinha: receita vem com ▲ e sinal,
+     débito e crédito vêm com ícone e palavra. Ver docs/11-ARQUITETURA.md. */
+  --in: #5FA99B;                  /* receita, positivo, débito */
+  --out: #8FB0C0;                 /* despesa, negativo, crédito */
+  --accent: var(--brand-teal);
+  --warn: #E9B35E;
+  --danger: #E07A6A;
+  --ok: var(--brand-teal);
+
+  /* --- séries de categoria ----------------------------------------------
+     Dez matizes em ordem fixa, escolhidos para sobreviver aos dois temas.
+     Trocar um exige refazer a conta de contraste (tools/contraste.js). */
+  --series-1: #5FA99B;
+  --series-2: #8FB0C0;
+  --series-3: #E9B35E;
+  --series-4: #E9875E;
+  --series-5: #7F8CC4;
+  --series-6: #74B88F;
+  --series-7: #C48BA8;
+  --series-8: #5E8EA9;
+  --series-9: #BFA06A;
+  --series-10: #8E9AA0;
+
+  /* --- tipografia -------------------------------------------------------- */
+  --f-display: 'Unbounded', system-ui, sans-serif;
+  --f-ui: 'Instrument Sans', system-ui, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Escala: cada passo tem tamanho, entrelinha e tracking próprios, porque um
+     letter-spacing único está errado em algum tamanho.
+
+     Os tamanhos são em **rem**, não em px, e isso não é preferência de estilo:
+     é o que faz a pessoa que aumentou a fonte no Android, no iPhone ou no
+     navegador ver o app maior. Com px, a configuração de acessibilidade do
+     sistema simplesmente não tem efeito — e um app de finanças é lido por gente
+     que precisa aumentar a letra.
+
+     A referência é 16px = 1rem. Limite honesto: alturas de controle
+     (`--touch-comfort`, `.ds-input`) continuam em px, então acima de ~1,4× o
+     texto começa a apertar dentro do botão antes de quebrar. */
+  --t-hero: 500 clamp(1.875rem, 9.6vw, 2.75rem)/1.02 var(--f-display);
+  --t-hero-l: 500 clamp(2.125rem, 11vw, 3.5rem)/1 var(--f-display);
+  --t-title: 500 1.875rem/1.1 var(--f-display);
+  --t-h2: 500 1.1875rem/1.2 var(--f-display);
+  --t-body: 400 0.9375rem/1.45 var(--f-ui);
+  --t-body-strong: 600 0.9375rem/1.45 var(--f-ui);
+  --t-small: 400 0.8125rem/1.4 var(--f-ui);
+  --t-eyebrow: 500 0.75rem/1.2 var(--f-mono);
+  --t-mono: 500 0.875rem/1 var(--f-mono);
+
+  --tr-hero: -.035em;
+  --tr-title: -.02em;
+  --tr-eyebrow: .14em;
+  --tr-tag: .12em;
+
+  /* --- espaço · base 2 px, degraus usados de verdade -------------------- */
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-9: 20px;
+  --space-10: 24px;
+  --space-11: 32px;
+  --space-12: 40px;
+  --space-13: 56px;
+
+  /* --- raio -------------------------------------------------------------- */
+  --r-xs: 7px;
+  --r-s: 12px;
+  --r-m: 20px;
+  --r-l: 28px;
+  --r-xl: 34px;
+  --r-pill: 999px;
+
+  /* --- sombra e profundidade ------------------------------------------- */
+  --shadow-flat: 0 1px 0 rgba(255, 255, 255, .06);
+  --shadow-card: 0 16px 30px -12px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .14);
+  --shadow-float: 0 24px 50px -18px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .1);
+  --shadow-over: 0 28px 60px -16px rgba(0, 0, 0, .85);
+
+  /* --- vidro e transparência -------------------------------------------
+     Onde há número, o material é quase sólido. O vidro de verdade fica só na
+     camada que flutua: navegação e ações. */
+  --blur-s: 8px;
+  --blur-m: 18px;
+  --blur-l: 34px;
+  --glass-nav: rgba(19, 35, 47, .86);
+  --glass-scrim: rgba(5, 10, 14, .62);
+  --alpha-disabled: .45;
+  --alpha-ghost: .7;
+
+  /* --- movimento --------------------------------------------------------
+     Espelho tipado em tokens.ts. Trocar aqui exige trocar lá. */
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 380ms;
+  --dur-sheet: 420ms;
+  --dur-card: 550ms;
+  /* ciclo do esqueleto de carregamento; longo de propósito, para não pulsar */
+  --dur-shimmer: 1600ms;
+  --ease-out: cubic-bezier(.2, .9, .2, 1);
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+
+  /* --- camadas ---------------------------------------------------------- */
+  --z-nav: 40;
+  --z-fab: 45;
+  --z-scrim: 80;
+  --z-overlay: 90;
+  --z-lock: 200;
+  --z-toast: 300;
+
+  /* --- alvo de toque e foco -------------------------------------------- */
+  --touch-min: 44px;              /* nunca menor: é o mínimo confortável */
+  --touch-comfort: 48px;
+  --focus-ring: 2px solid var(--accent);
+  --focus-offset: 2px;
+
+  /* --- área segura ----------------------------------------------------- */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  color-scheme: dark;
+}
+
+/* ============================================================================
+   Tema claro — variante de tokens, não segunda identidade (decisão D9).
+
+   Só existe um seletor: `[data-theme="light"]`. A preferência "seguir o
+   sistema" é resolvida em JS (`design-system/theme.ts`), que escreve `light`
+   ou `dark` no atributo e reage à troca do sistema. Resolver em CSS exigiria
+   duplicar este bloco inteiro dentro de um @media — e duas cópias de uma
+   paleta divergem no primeiro ajuste.
+   ========================================================================== */
+:root[data-theme='light'] {
+  --bg: #F6EFE2;
+  --bg-glow: radial-gradient(120% 60% at 50% -10%, #FFFFFF 0%, #F6EFE2 55%);
+  --surface: #FFFBF2;
+  --surface-2: #F1E7D6;
+  --surface-3: #FFFDF7;
+  --surface-grad: linear-gradient(180deg, #FFFCF4 0%, #F6EFE2 100%);
+  --sidebar: #FFFBF2;
+
+  --line: rgba(13, 24, 33, .09);
+  --line-2: rgba(13, 24, 33, .16);
+  --fill: rgba(13, 24, 33, .05);
+  --fill-2: rgba(13, 24, 33, .09);
+  --fill-3: rgba(13, 24, 33, .14);
+
+  --text: #14242F;
+  --text-2: #55676F;
+  --text-3: #2C3F49;
+  --text-on-accent: #0D1821;
+
+  --in: #3C7F71;
+  --out: #4D7389;
+  --accent: #3C7F71;
+  --warn: #9A6B18;
+  --danger: #A8453A;
+
+  --series-1: #3C7F71;
+  --series-2: #4D7389;
+  --series-3: #9A6B18;
+  --series-4: #B65A2E;
+  --series-5: #52599C;
+  --series-6: #3D8158;
+  --series-7: #9A5272;
+  --series-8: #2F6184;
+  --series-9: #86693A;
+  --series-10: #5B666C;
+
+  --glass-nav: rgba(255, 251, 242, .88);
+  --glass-scrim: rgba(20, 36, 47, .38);
+  --shadow-card: 0 16px 30px -14px rgba(20, 36, 47, .26), inset 0 1px 0 rgba(255, 255, 255, .8);
+  --shadow-float: 0 24px 50px -20px rgba(20, 36, 47, .3), inset 0 1px 0 rgba(255, 255, 255, .7);
+  --shadow-over: 0 28px 60px -18px rgba(20, 36, 47, .34);
+
+  color-scheme: light;
+}
+
+/* ============================================================================
+   Estados e preferências — o acessível é o padrão, não um modo
+   ========================================================================== */
+
+/* Quem pediu menos movimento recebe menos movimento, não zero interface. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 1ms;
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+    --dur-sheet: 1ms;
+    --dur-card: 1ms;
+  }
+}
+
+/* Menos transparência: painel sólido, blur fora. Manter o blur só gastaria
+   bateria sem entregar o efeito. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --blur-s: 0px;
+    --blur-m: 0px;
+    --blur-l: 0px;
+    --glass-nav: var(--surface);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --line: rgba(240, 229, 207, .22);
+    --line-2: rgba(240, 229, 207, .4);
+    --text-2: #C3D0D4;
+    --blur-s: 0px;
+    --blur-m: 0px;
+    --blur-l: 0px;
+    --glass-nav: var(--surface);
+  }
+  :root[data-theme='light'] {
+    --line: rgba(13, 24, 33, .26);
+    --line-2: rgba(13, 24, 33, .44);
+    --text-2: #3C4C54;
+  }
+}

@@ -1,38 +1,38 @@
+import { store } from '../core/storage';
 import type { AppState } from './store';
 
 /*
-  Web: localStorage, como no OAZE 1. No app nativo esta camada troca para
-  armazenamento cifrado com a chave no Keychain/Keystore (ver docs/02-TRD.md);
-  o PIN protege a interface, não o arquivo — por isso a troca é obrigatória
-  antes de publicar nas lojas.
+  Persistência do espaço local.
+
+  O cofre (`core/storage`) decide ONDE: `localStorage` no navegador, cifrado com
+  chave no Keychain/Keystore/Credential Manager no app instalado. Esta camada só
+  sabe serializar — e é por isso que resolver o P2 da auditoria não exigiu tocar
+  em `state/store.ts`.
+
+  A leitura é assíncrona porque o cofre nativo é assíncrono. Quem orquestra é
+  `main.tsx`: abre o cofre, lê, hidrata a loja e só então renderiza.
 */
 const KEY = 'oaze.v2';
 
-export function loadState(): AppState | null {
+export async function readPersisted(): Promise<AppState | null> {
+  const raw = await store().get(KEY);
+  if (!raw) return null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
     const parsed = JSON.parse(raw) as AppState;
     return parsed && parsed.version === 2 ? parsed : null;
   } catch {
+    /* arquivo ilegível: começar vazio é melhor que travar no arranque. O backup
+       do usuário continua sendo o caminho de volta. */
     return null;
   }
 }
 
-export function saveState(s: AppState): void {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(s));
-  } catch {
-    // cota cheia ou modo privado: o app segue funcionando em memória
-  }
+export function savePersisted(s: AppState): void {
+  void store().set(KEY, JSON.stringify(s));
 }
 
-export function clearState(): void {
-  try {
-    localStorage.removeItem(KEY);
-  } catch {
-    /* nada a limpar */
-  }
+export async function clearPersisted(): Promise<void> {
+  await store().remove(KEY);
 }
 
 /** Backup: o espaço inteiro em JSON, sem o PIN. */

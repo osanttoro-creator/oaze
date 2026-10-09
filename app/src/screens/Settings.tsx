@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { getState, initialState, setState, updateSettings, useApp, type LockAfter } from '../state/store';
-import { clearState, exportBackup, parseBackup } from '../state/persist';
+import { clearPersisted, exportBackup, parseBackup } from '../state/persist';
 import { checkPin, isValidPin, setPin } from '../state/security';
 import { lockNow, useDesktop } from '../state/session';
 import { go, openCoco, toast } from '../state/route';
@@ -10,6 +10,10 @@ import { migrateV1 } from '../domain/migrate-v1';
 import { Icon } from '../ui/Icon';
 import { ScreenHead, Seg, Sheet, Toggle } from '../ui/bits';
 import { PinPad } from '../ui/PinPad';
+import { DropZone } from '../ui/DropZone';
+import { pickFile, saveFile, type PickedFile } from '../platform/files';
+import { useCoarsePointer } from '../design-system';
+import { Account } from './Account';
 
 const MAX_SPACES = 5;
 
@@ -18,19 +22,18 @@ export function Settings() {
   const s = useApp((x) => x);
   const [bio, setBio] = useState({ available: false, label: labelFor(platform()) });
   const [sheet, setSheet] = useState<'pin' | 'wipe' | 'space' | null>(null);
-  const file = useRef<HTMLInputElement>(null);
+  const toque = useCoarsePointer();
   useEffect(() => { void biometrics.info().then(setBio); }, []);
 
-  const backup = () => {
-    const blob = new Blob([exportBackup(getState())], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `oaze-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  /* No desktop isto abre o diálogo "salvar como" do sistema, pelo comando Rust;
+     no celular e no navegador, baixa. Uma função só para as quatro plataformas. */
+  const backup = async () => {
+    const nome = `oaze-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    const ok = await saveFile(nome, exportBackup(getState()));
+    if (!ok) toast('Não consegui salvar o arquivo agora.');
   };
 
-  const restore = async (f: File) => {
+  const restore = async (f: { text: () => Promise<string> }) => {
     const text = await f.text();
     try {
       const data = parseBackup(text);
@@ -50,6 +53,18 @@ export function Settings() {
     const add = old.workspaces.slice(0, room);
     setState((cur) => ({ ...cur, workspaces: [...cur.workspaces, ...add], activeId: add[0]?.id ?? cur.activeId }));
     toast(`Trouxe ${add.length} espaço(s) do OAZE 1, com ${old.report.transactions} lançamentos.`);
+  };
+
+  /* Um caminho só para escolher arquivo: no celular é o seletor nativo, no
+     desktop é o diálogo do sistema, no navegador é o <input type=file>.
+     `platform/files` decide; esta tela não pergunta onde está rodando. */
+  const escolherBackup = async () => {
+    try {
+      const f = await pickFile('application/json,.json');
+      if (f) await restore(f);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Não consegui ler esse arquivo.');
+    }
   };
 
   const section = (title: string, children: ReactNode) => (
@@ -107,9 +122,20 @@ export function Settings() {
       {row('Nome', s.owner.name || 'sem nome', <input className="input" style={{ width: 160, height: 40 }} value={s.owner.name} onChange={(e) => setState((x) => ({ ...x, owner: { name: e.target.value.slice(0, 40) } }))} aria-label="Seu nome" />)}
       {row('Notificações', 'o que avisar e quanto mostrar', <Icon name="chevron-right" />, () => go('lembretes'))}
       {row('Plano', s.plan ? `OAZE ${s.plan}` : 'sem plano ativo', <Icon name="chevron-right" />, () => go('plano'))}
-      {row('Fazer backup', 'arquivo JSON com todos os espaços, sem o PIN', <Icon name="download" />, backup)}
-      {row('Restaurar backup', 'do OAZE 2 substitui; do OAZE 1 soma aos espaços', <Icon name="upload" />, () => file.current?.click())}
-      <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void restore(f); e.target.value = ''; }} />
+      {row('Fazer backup', 'arquivo JSON com todos os espaços, sem o PIN', <Icon name="download" />, () => void backup())}
+      {row('Restaurar backup', 'do OAZE 2 substitui; do OAZE 1 soma aos espaços', <Icon name="upload" />, escolherBackup)}
+      {/* Arrastar só aparece onde existe ponteiro fino: ninguém arrasta arquivo
+          num celular, e a linha acima já dá o caminho por lá. */}
+      {!toque && (
+        <DropZone
+          label="Ou arraste o arquivo de backup aqui"
+          hint="JSON do OAZE 2 ou do OAZE 1"
+          accept={['application/json', 'text/plain']}
+          onBrowse={escolherBackup}
+          onFile={(f: PickedFile) => void restore(f)}
+          onError={toast}
+        />
+      )}
       {row('Apagar tudo deste aparelho', 'não dá para desfazer sem backup', <Icon name="trash" />, () => setSheet('wipe'))}
       <p className="small muted" style={{ marginBottom: 0 }}>OAZE 2.0 prévia · dados guardados só neste aparelho.</p>
     </>
@@ -118,7 +144,7 @@ export function Settings() {
   return (
     <>
       <ScreenHead desktop={desktop} eyebrow="segurança e dados" title="configurações" onBack={() => go('mais')} />
-      {desktop ? <div className="grid-2" style={{ alignItems: 'start' }}><div>{security}{coco}</div><div>{spaces}{data}</div></div> : <>{security}{coco}{spaces}{data}</>}
+      {desktop ? <div className="grid-2" style={{ alignItems: 'start' }}><div><Account />{security}{coco}</div><div>{spaces}{data}</div></div> : <><Account />{security}{coco}{spaces}{data}</>}
       {sheet === 'pin' && <PinSheet desktop={desktop} hasPin={!!s.security.pin} onClose={() => setSheet(null)} />}
       {sheet === 'space' && <SpaceSheet desktop={desktop} onClose={() => setSheet(null)} />}
       {sheet === 'wipe' && (
@@ -126,8 +152,8 @@ export function Settings() {
           <div className="stack">
             <h2 className="h2" style={{ fontSize: 22 }}>apagar tudo deste aparelho?</h2>
             <p className="muted" style={{ margin: 0 }}>Contas, lançamentos, metas, memória da Coco e o PIN saem deste aparelho. Faça um backup antes, se quiser guardar.</p>
-            <button type="button" className="btn btn-ghost btn-block" onClick={backup}><Icon name="download" size={18} />Fazer backup primeiro</button>
-            <button type="button" className="btn btn-milk btn-block" onClick={() => { clearState(); setState(() => initialState()); setSheet(null); }}>Apagar tudo</button>
+            <button type="button" className="btn btn-ghost btn-block" onClick={() => void backup()}><Icon name="download" size={18} />Fazer backup primeiro</button>
+            <button type="button" className="btn btn-milk btn-block" onClick={() => { void clearPersisted(); setState(() => initialState()); setSheet(null); }}>Apagar tudo</button>
           </div>
         </Sheet>
       )}
