@@ -23,6 +23,11 @@ jobs:
         os: [windows-latest, macos-15]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    env:
+      VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_OAZE_ENV: staging
+      VITE_OAZE_SYNC_ENABLED: "false"
     defaults:
       run:
         working-directory: app
@@ -37,6 +42,14 @@ jobs:
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: app/src-tauri
+      - name: Verifica configuração da conta
+        shell: bash
+        run: |
+          if { [ -n "$VITE_SUPABASE_URL" ] && [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; } ||
+             { [ -z "$VITE_SUPABASE_URL" ] && [ -n "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; }; then
+            echo "::error::Configure as duas variáveis públicas OAZE_SUPABASE_URL e OAZE_SUPABASE_PUBLISHABLE_KEY."
+            exit 1
+          fi
       - run: npm ci
       - run: npx tauri build
       - uses: actions/upload-artifact@v4
