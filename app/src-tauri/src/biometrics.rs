@@ -15,7 +15,7 @@ mod imp {
 
     pub fn available() -> bool {
         UserConsentVerifier::CheckAvailabilityAsync()
-            .and_then(|op| op.get())
+            .and_then(|op| op.join())
             .map(|a| a == UserConsentVerifierAvailability::Available)
             .unwrap_or(false)
     }
@@ -23,7 +23,7 @@ mod imp {
     pub fn verify(reason: &str) -> bool {
         let message = HSTRING::from(reason);
         UserConsentVerifier::RequestVerificationAsync(&message)
-            .and_then(|op| op.get())
+            .and_then(|op| op.join())
             .map(|r| r == UserConsentVerificationResult::Verified)
             .unwrap_or(false)
     }
@@ -35,10 +35,10 @@ mod imp {
     use std::sync::mpsc;
     use std::time::Duration;
 
-    use block2::StackBlock;
+    use block2::RcBlock;
     use objc2::rc::Retained;
     use objc2::runtime::Bool;
-    use objc2_foundation::NSString;
+    use objc2_foundation::{NSError, NSString};
     use objc2_local_authentication::{LAContext, LAPolicy};
 
     fn context() -> Retained<LAContext> {
@@ -56,11 +56,12 @@ mod imp {
     pub fn verify(reason: &str) -> bool {
         let (tx, rx) = mpsc::channel::<bool>();
         let message = NSString::from_str(reason);
-        let handler = StackBlock::new(move |ok: Bool, _err: *mut objc2::runtime::AnyObject| {
+        let handler = RcBlock::new(move |ok: Bool, _err: *mut NSError| {
             let _ = tx.send(ok.as_bool());
         });
+        let auth_context = context();
         unsafe {
-            context().evaluatePolicy_localizedReason_reply(
+            auth_context.evaluatePolicy_localizedReason_reply(
                 LAPolicy::DeviceOwnerAuthenticationWithBiometrics,
                 &message,
                 &handler,
