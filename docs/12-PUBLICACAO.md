@@ -10,6 +10,16 @@ O arquivo foi aberto como pacote ZIP/APK e contém os assets web apontando para 
 mesmo projeto Supabase. A instalação e os fluxos em aparelhos reais ainda não
 foram testados.
 
+## Arquivos de teste no Google Drive
+
+No celular ou computador, abra **Meu Drive → sites → oaze app → builds**. Arquivos verificados:
+
+- Android: `oaze-android-teste-4.apk` — SHA-256 `711B473226FD72DB6EE4D498E4840900805287F37319541E0D8CD5ECBC0BB701`.
+- Windows x64: `oaze-windows-teste-3.msi` — SHA-256 `6D9AB268ADBCF22D274A0D813174CA2171F8D03C698B24D2ADE277E055E32D98`; alternativa `oaze-windows-teste-3.exe` — SHA-256 `E1568A18541578CBD4EC354B29F60D0D3E1C796152A05455896D0A01D9B320B2`.
+- macOS Apple Silicon: `oaze-macos-teste-3.dmg` — SHA-256 `C249712E0A90B5C91F9012C9472E2604927882CE1FF337CF697450D037C86D02`.
+
+O [workflow desktop #3](https://github.com/osanttoro-creator/oaze/actions/runs/38063044007) passou em Windows e macOS. Os instaladores desktop são builds de teste sem assinatura de distribuição, e o DMG desta execução é apenas para Macs Apple Silicon. No iPhone ainda não há pacote instalável: a compilação iOS passou sem assinatura, mas TestFlight requer credenciais Apple.
+
 ## Testar no Android
 
 O workflow `.github/workflows/app-mobile-test.yml` gera um **APK de depuração** no GitHub Actions a cada alteração do app na branch `main` e também por execução manual. O APK usa o pacote `site.oaze.app.teste`, separado do futuro app de loja. O fluxo não precisa de keystore de publicação.
