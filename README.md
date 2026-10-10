@@ -30,6 +30,14 @@ cp .env.example .env.local   # opcional: sem isso o app roda sem conta
 npm run dev                  # http://localhost:5188  (?demo abre o exemplo)
 ```
 
+## Testar no celular
+
+O workflow [App · teste mobile](.github/workflows/app-mobile-test.yml) gera
+um APK Android instalável em **Actions → Artifacts** após cada mudança na
+`main`. No iPhone, o CI compila sem assinatura; instalação em aparelho exige
+TestFlight. O passo a passo e os limites da sincronização estão em
+[Teste mobile e lojas](docs/12-PUBLICACAO.md).
+
 | Comando | O que faz |
 |---|---|
 | `npm run dev` | servidor de desenvolvimento |

@@ -42,7 +42,7 @@ Status: 06/10/2026 · ✅ feito e verificado · 🟨 escrito, não verificado aq
 ```
 cd app
 npm ci
-npm run check       # tipos + 137 testes + build + segurança
+npm run check       # tipos + testes + build + segurança
 npm run dev         # http://localhost:5188  (?demo abre o exemplo)
 npx cap sync        # copia dist/ para android/ e ios/
 npx tauri build     # precisa de Rust (CI)

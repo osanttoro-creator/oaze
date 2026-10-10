@@ -1,0 +1,98 @@
+# Pacotes de teste: APK instalável no Android e compilação iOS sem assinatura.
+# O iPhone exige TestFlight/assinatura Apple para instalar em aparelho real.
+name: App · teste mobile
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".github/workflows/app-mobile-test.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifica:
+    uses: ./.github/workflows/app-ci.yml
+
+  android:
+    needs: verifica
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: app
+    env:
+      VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_OAZE_ENV: staging
+      VITE_OAZE_SYNC_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Verifica configuração da conta
+        shell: bash
+        run: |
+          if { [ -n "$VITE_SUPABASE_URL" ] && [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; } ||
+             { [ -z "$VITE_SUPABASE_URL" ] && [ -n "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; }; then
+            echo "::error::Configure as duas variáveis públicas OAZE_SUPABASE_URL e OAZE_SUPABASE_PUBLISHABLE_KEY, ou nenhuma para testar só offline."
+            exit 1
+          fi
+      - run: npm ci
+      - run: npm run build
+      - run: npm run verificar:seguranca
+      - run: npx cap sync android
+      - name: Gera APK de teste
+        working-directory: app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oaze-android-teste-${{ github.run_number }}
+          path: app/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    needs: verifica
+    runs-on: macos-26
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: app
+    env:
+      VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_OAZE_ENV: staging
+      VITE_OAZE_SYNC_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: xcodebuild -version
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync ios
+      - name: Compila para iPhone sem assinatura
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO build

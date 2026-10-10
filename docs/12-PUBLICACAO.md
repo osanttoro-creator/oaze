@@ -1,121 +1,45 @@
-# FASE 19 · Publicação
+# Teste mobile e preparação para lojas
 
-O que já está pronto, o que depende de uma máquina que esta sessão não tem, e o
-que depende de uma decisão de Jonatham. Nada aqui é marcado como feito sem prova.
+Estado verificado em 09/10/2026. Código em `G:\Meu Drive\sites\oaze app`. O identificador `site.oaze.app` ainda é uma proposta: confirmar antes de cadastrar o aplicativo nas lojas.
 
-## Versionamento e ambientes
+## Testar no Android
 
-| Ambiente | Onde | Como se marca |
-|---|---|---|
-| development | máquina de quem desenvolve | `VITE_OAZE_ENV=development` |
-| staging | projeto Supabase separado | `VITE_OAZE_ENV=staging` |
-| production | projeto Supabase de produção | `VITE_OAZE_ENV=production` |
+O workflow `.github/workflows/app-mobile-test.yml` gera um **APK de depuração** no GitHub Actions a cada alteração do app na branch `main` e também por execução manual. O APK usa o pacote `site.oaze.app.teste`, separado do futuro app de loja. O fluxo não precisa de keystore de publicação.
 
-Versão em `app/package.json` e em `app/src-tauri/tauri.conf.json` — **os dois
-precisam bater**. A tag `app-v*` dispara os três workflows de loja.
+1. Abra `https://github.com/osanttoro-creator/oaze/actions/workflows/app-mobile-test.yml` no celular com acesso ao repositório.
+2. Abra a execução mais recente que tenha os jobs verdes.
+3. Em **Artifacts**, baixe `oaze-android-teste-<número>`, extraia o ZIP e instale `app-debug.apk`.
+4. Se o Android solicitar permissão para instalar este arquivo, conceda apenas para o aplicativo usado no download. O APK vem do workflow do próprio repositório, não de um site de terceiros.
+5. Abra o OAZE e escolha **Ver com dados de exemplo**. Teste navegação, PIN, lançamentos, cartões, metas, tela bloqueada e uso sem rede.
 
-**Antes de qualquer tag**, `npm run check` precisa passar: tipos, 137 testes,
-build e a varredura de segurança. O CI repete tudo e ainda reprova o build se o
-JavaScript do primeiro carregamento passar de 184 KB comprimidos.
+Se as variáveis públicas `OAZE_SUPABASE_URL` e `OAZE_SUPABASE_PUBLISHABLE_KEY` estiverem cadastradas em **Settings → Secrets and variables → Actions → Variables**, o APK também oferece login na mesma conta Supabase do site. Sem ambas, ele é um teste local sem conta. `VITE_OAZE_SYNC_ENABLED` fica `false` no APK de teste: dados financeiros não aparecem automaticamente no outro aparelho. Não use o APK para validar sincronização antes da ativação controlada.
 
-## Android · Google Play
+Um APK de depuração não é o pacote da Play Store. A Google Play recebe um AAB de lançamento, assinado com a chave de upload.
 
-| Item | Estado |
-|---|---|
-| Projeto Capacitor gerado | ✅ |
-| `AndroidManifest`: esquema `oaze://`, App Links de `https://oaze.site/app`, biometria, notificação | ✅ nesta sessão |
-| Workflow que gera o AAB assinado | ✅ escrito · ⛔ nunca executado |
-| `assetlinks.json` em `https://oaze.site/.well-known/` | ⛔ precisa ser publicado, senão o App Link não verifica |
-| Keystore de upload nos segredos do GitHub | ⛔ |
-| Formulário **Segurança dos dados** e **Declaração de recursos financeiros** | ⛔ · material em `oaze mobile/02-android-samsung/` |
-| Plugins nativos instalados | ⛔ `npm i` + `npx cap sync` — lista abaixo |
+## Testar no iPhone
 
-**Plugins que o código já chama e que precisam entrar:**
+O mesmo workflow compila o projeto iOS com Xcode 26 ou superior e **sem assinatura**, para detectar falhas de build. Esse resultado não pode ser instalado num iPhone. Para testar no aparelho, é preciso cadastrar `site.oaze.app` na conta Apple Developer, configurar assinatura e distribuir um build pelo TestFlight. O workflow `app-ios.yml` já contém a etapa de arquivo e upload, mas ainda não foi executado com credenciais Apple verificadas.
 
-```bash
-npm i capacitor-secure-storage-plugin @capacitor/preferences \
-      @aparajita/capacitor-biometric-auth @capacitor/share @capacitor/clipboard \
-      @capacitor/camera @capawesome/capacitor-file-picker @capacitor/push-notifications
-npx cap sync
-```
+## Preparação da Google Play
 
-Cada um é lido de `Capacitor.Plugins` e **nenhum é importado estaticamente**: sem o
-plugin, a capacidade some da interface em vez de virar botão que não faz nada.
-A exceção é o cofre — sem ele o app **não abre e explica**, de propósito.
+- Android usa `targetSdkVersion 36`, exigido para novos envios no período atual.
+- `app-android.yml` gera AAB assinado quando as variáveis públicas do Supabase, a flag de sync validada e os quatro segredos da chave de upload estiverem configurados.
+- Segredos: `ANDROID_KEYSTORE_B64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Nunca gravar a chave ou senhas no Git.
+- Confirmar identificador, nome, política de privacidade, exclusão de conta, formulários de dados financeiros e de segurança de dados. Cadastrar o app na Play Console e fazer primeiro envio pelo canal de testes.
 
-**Push ainda não envia nada.** A tabela `oaze2_push_tokens` e o registro do
-aparelho existem; falta a função de servidor com a chave do FCM e o certificado
-da APNs. Até lá, os lembretes são locais e funcionam sem rede.
+## Preparação da App Store
 
-> Sem os plugins o app **abre e avisa** que o cofre do aparelho não respondeu —
-> de propósito. Ele não cai para armazenamento sem cifragem em silêncio.
+- `app-ios.yml` usa `macos-26` e requer URL/chave pública Supabase, sync validada, `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID` e `ASC_KEY_P8` para assinar e enviar. Sem credenciais, apenas compila sem assinatura.
+- Confirmar Bundle ID `site.oaze.app` e criar o registro correspondente em App Store Connect antes do upload.
+- Configurar Google/Apple Login, URLs de retorno, Associated Domains, APNs, política de privacidade, rótulos de privacidade, classificação etária e exclusão de conta. Confirmar regras de assinatura dentro do app antes de oferecer pagamento.
+- TestFlight exige build assinado, processamento da Apple e convite/adição de testadores.
 
-## iOS · App Store
+## Bloqueios de lançamento público
 
-| Item | Estado |
-|---|---|
-| Projeto Capacitor com Swift Package Manager | ✅ |
-| `NSFaceIDUsageDescription` e `CFBundleURLTypes` no `Info.plist` | ✅ nesta sessão |
-| Workflow de arquivo, assinatura e envio | ✅ escrito · ⛔ nunca executado |
-| `apple-app-site-association` publicado | ⛔ · minuta em `oaze mobile/01-apple-iphone-ipad-mac/arquivos/` |
-| Chave de API do App Store Connect nos segredos | ⛔ |
-| **Entrar com a Apple** | ✅ no código — a diretriz 4.8 exige, e ela anda junto com o Google |
-| Exclusão de conta dentro do app | ✅ `core/auth/deleteAccount` → Edge Function `oaze-conta` |
-| Rótulos de privacidade | ⛔ · material em `oaze mobile/01-apple-iphone-ipad-mac/2-privacidade-app-store.md` |
-| Assinatura vendida no app (regra 3.1.1) | ⛔ **decisão pendente** — ver abaixo |
+1. A sincronização financeira segue desativada. Testar Auth, importação, conflitos e retorno do offline em dois aparelhos reais antes de definir `OAZE_SYNC_ENABLED=true` nas variáveis do GitHub.
+2. Builds nativos, instalação em aparelhos e fluxos de loja ainda precisam de execução observada. `cap sync` e testes web não provam compilação nativa.
+3. Push requer configuração FCM/APNs e função de envio no backend.
+4. ID nas lojas, preço/plano e conformidade de compras no iOS ainda precisam de decisão. Não criar cadastros irreversíveis por suposição.
+5. Capturar screenshots reais do app e preencher as declarações com base no comportamento final. Material promocional não substitui telas reais.
 
-## Windows · Microsoft Store
-
-| Item | Estado |
-|---|---|
-| Tauri 2 com alvos MSI e NSIS | ✅ |
-| Comandos Rust: cofre, Windows Hello, notificação agendada, compartilhar, deep link | ✅ escritos · ⛔ **nunca compilados** (esta máquina não tem Rust) |
-| `capabilities/default.json` com permissão mínima | ✅ |
-| Certificado de código **ou** MSIX | ⛔ **decisão pendente** |
-
-## macOS · Mac App Store
-
-| Item | Estado |
-|---|---|
-| Alvos `.app` e `.dmg` | ✅ |
-| `Entitlements.plist` com App Sandbox e só rede de saída | ✅ |
-| Touch ID por `LocalAuthentication` | ✅ escrito · ⛔ nunca compilado |
-| Assinatura de distribuição e envio do `.pkg` | ⛔ |
-| Fora da loja: DMG notarizado | ⛔ |
-
-## Decisões que travam o envio
-
-1. **Identificador nas lojas.** Proposto `site.oaze.app`, já escrito no Capacitor
-   e no Tauri. **Não dá para trocar depois de criar o app nas lojas.**
-2. **Plano.** O briefing do OAZE 2 diz plano único (R$ 29,90/mês ou R$ 249,90/ano);
-   o site oferece "grátis" + "completo"; o app traz plano grátis com 10 coconutz.
-   São três respostas para a mesma pergunta e só uma pode ir para a loja.
-3. **Pagamento no iOS.** Assinatura vendida dentro do app cai na regra 3.1.1.
-   Ligar Stripe/Asaas no iPhone sem resolver isso é reprovação na revisão.
-4. **Windows: certificado próprio ou MSIX.**
-5. **Promessas do site que o app não cumpre** (registradas em `ESTADO.md` e
-   confirmadas na auditoria): voz na Coco e extrato em moeda estrangeira não
-   existem; `/criar-conta` não é rota do `.htaccess`, lá é `/cadastro`.
-
-## Ordem segura
-
-1. `npx cap sync android` e `npx cap sync ios` passaram numa cópia temporária. Compilar agora com Gradle e Xcode nos respectivos ambientes.
-2. Rodar `app-ci` no GitHub — é o primeiro build que esta sessão **não** pôde
-   executar, e é ele que prova que o CI fecha.
-3. Rodar `app-android` e `app-desktop` sem segredos, só para ver compilar. O
-   Rust nunca foi compilado: é aqui que erros de API aparecem, não antes.
-4. A migração `supabase/migrations/20261010010249_oaze2_multiplatform_sync.sql`
-   foi aplicada no projeto Supabase OAZE. As quatro tabelas novas estão vazias,
-   com RLS e permissões verificadas. A RPC de escrita e a separação de leitura
-   entre dois usuários passaram em transações revertidas. Ainda falta testar o
-   fluxo autenticado no aplicativo com dois aparelhos, inclusive ambos offline.
-5. Preencher os formulários de loja com o material de `oaze mobile/`.
-6. Primeiro envio manual em cada loja; depois, tags `app-v*`.
-
-## Volta atrás
-
-Nada do OAZE 1 é apagado. O repositório antigo tem tags (`v2.0.0`,
-`backup-pre-saas`). A importação do aplicativo apenas lê os dados legados;
-a migração SQL cria tabelas e RPCs `oaze2_*` sem modificar `public.dados`.
-Desligar a flag de sincronização suspende as novas trocas do OAZE 2 sem
-interferir no site antigo.
+A migração SQL `20261010010249_oaze2_multiplatform_sync.sql` já foi aplicada no mesmo Supabase do OAZE 1. As tabelas novas estão vazias; o importador do app apenas lê `public.dados` da própria conta por escolha explícita.

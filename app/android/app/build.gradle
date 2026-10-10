@@ -17,6 +17,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // Instala ao lado do futuro app de loja e usa só dados de teste.
+            applicationIdSuffix ".teste"
+            versionNameSuffix "-teste"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

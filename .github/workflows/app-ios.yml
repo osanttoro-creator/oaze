@@ -11,7 +11,7 @@ name: App · iOS (App Store)
 on:
   workflow_dispatch:
   push:
-    tags: ['app-v*']
+    tags: ["app-v*"]
 
 jobs:
   verifica:
@@ -19,11 +19,15 @@ jobs:
 
   ios:
     needs: verifica
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     env:
       # segredo não pode ir direto num if; vira um sim/não aqui
       ASSINAR: ${{ secrets.ASC_KEY_ID != '' }}
+      VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_OAZE_ENV: production
+      VITE_OAZE_SYNC_ENABLED: ${{ vars.OAZE_SYNC_ENABLED }}
     defaults:
       run:
         working-directory: app
@@ -34,8 +38,18 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: app/package-lock.json
+      - run: xcodebuild -version
+      - name: Bloqueia pacote de loja sem conta e sincronização verificadas
+        shell: bash
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ] ||
+             [ "$VITE_OAZE_SYNC_ENABLED" != "true" ]; then
+            echo "::error::Configure URL, chave pública e OAZE_SYNC_ENABLED=true depois do teste real entre dois aparelhos."
+            exit 1
+          fi
       - run: npm ci
       - run: npm run build
+      - run: npm run verificar:seguranca
       - run: npx cap sync ios
 
       - name: Compila sem assinatura

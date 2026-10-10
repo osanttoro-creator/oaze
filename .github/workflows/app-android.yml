@@ -10,7 +10,7 @@ name: App · Android (Google Play)
 on:
   workflow_dispatch:
   push:
-    tags: ['app-v*']
+    tags: ["app-v*"]
 
 jobs:
   verifica:
@@ -23,6 +23,11 @@ jobs:
     defaults:
       run:
         working-directory: app
+    env:
+      VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_OAZE_ENV: production
+      VITE_OAZE_SYNC_ENABLED: ${{ vars.OAZE_SYNC_ENABLED }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -34,8 +39,17 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+      - name: Bloqueia pacote de loja sem conta e sincronização verificadas
+        shell: bash
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ] ||
+             [ "$VITE_OAZE_SYNC_ENABLED" != "true" ]; then
+            echo "::error::Configure URL, chave pública e OAZE_SYNC_ENABLED=true depois do teste real entre dois aparelhos."
+            exit 1
+          fi
       - run: npm ci
       - run: npm run build
+      - run: npm run verificar:seguranca
       - run: npx cap sync android
 
       - name: Chave de upload
