@@ -1,4 +1,4 @@
-# OAZE 2 — estado em 09/10/2026
+# OAZE 2 — estado em 10/10/2026
 
 O projeto canônico está em `G:\Meu Drive\sites\oaze app`. O remoto Git configurado é `https://github.com/osanttoro-creator/oaze.git`. O site público OAZE 1 continua separado.
 
@@ -18,7 +18,7 @@ O aplicativo usa o mesmo projeto Supabase do OAZE 1, por URL e chave publicável
 
 ## Builds e publicação
 
-- Android/iOS: projetos e CI preparados; cofre, biometria, preferências, compartilhamento, clipboard e push por import dinâmico. `npx cap sync android` e `npx cap sync ios` passaram numa cópia temporária; os dez plugins entram nos dois projetos, incluindo biometria via SPM no iOS. O workflow de teste #2 passou no GitHub: gerou APK Android e compilou iOS sem assinatura. O APK está em `builds/oaze-android-teste-2.apk`. Faltam instalação e fluxos em aparelhos, configuração FCM/APNs e assinatura de loja.
+- Android/iOS: projetos e CI preparados; cofre, biometria, preferências, compartilhamento, clipboard e push por import dinâmico. `npx cap sync android` e `npx cap sync ios` passaram numa cópia temporária; os dez plugins entram nos dois projetos, incluindo biometria via SPM no iOS. O workflow de teste #4 passou no GitHub: gerou APK Android, compilou AAB sem assinatura de loja e compilou iOS sem assinatura. O APK está em `builds/oaze-android-teste-4.apk` (SHA-256 `711B473226FD72DB6EE4D498E4840900805287F37319541E0D8CD5ECBC0BB701`). Faltam instalação e fluxos em aparelhos, configuração FCM/APNs e assinatura de loja.
 - Windows/macOS: código Rust e CI preparados; Rust não foi compilado nesta máquina. Assinatura e notarização pendentes.
 - Push registra token por usuário e dispositivo, mas ainda não há função de envio no servidor. Lembretes locais seguem independentes.
 - Crash reporting de produção, validação de loja e distribuição continuam pendentes. `12-PUBLICACAO.md` registra as decisões de negócio e loja.
@@ -26,7 +26,7 @@ O aplicativo usa o mesmo projeto Supabase do OAZE 1, por URL e chave publicável
 
 ## Próximas verificações
 
-1. Rodar os workflows de CI e builds nativos Android/Windows; compilar iOS/macOS em macOS.
+1. Compilar Windows/macOS em runners apropriados e validar os builds Android/iOS em aparelhos reais.
 2. Configurar Auth OAuth e deep links; testar login, importação e saída em aparelhos reais.
 3. Testar dois aparelhos com alterações simultâneas e offline; somente então ligar a flag de sincronização.
 4. Configurar push, assinatura, crash reporting e submissão às lojas.

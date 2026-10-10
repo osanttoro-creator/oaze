@@ -1,11 +1,11 @@
 # Teste mobile e preparação para lojas
 
-Estado verificado em 09/10/2026. Código em `G:\Meu Drive\sites\oaze app`. O identificador `site.oaze.app` ainda é uma proposta: confirmar antes de cadastrar o aplicativo nas lojas.
+Estado verificado em 10/10/2026. Código em `G:\Meu Drive\sites\oaze app`. O identificador `site.oaze.app` ainda é uma proposta: confirmar antes de cadastrar o aplicativo nas lojas.
 
-O workflow [de teste #2](https://github.com/osanttoro-creator/oaze/actions/runs/38014289768)
-passou nos três jobs: web, Android e iOS. O APK foi copiado para
-`builds/oaze-android-teste-2.apk` dentro da pasta canônica, com SHA-256
-`2399A415AD3DC0E6046A8911E4158B8CBA105E5ADEEF6DA465F2DAFDD2033583`.
+O workflow [de teste #4](https://github.com/osanttoro-creator/oaze/actions/runs/38061380060)
+passou nos três jobs: web, Android e iOS. Também compilou o AAB Android sem assinatura de loja. O APK foi copiado para
+`builds/oaze-android-teste-4.apk` dentro da pasta canônica, com SHA-256
+`711B473226FD72DB6EE4D498E4840900805287F37319541E0D8CD5ECBC0BB701`.
 O arquivo foi aberto como pacote ZIP/APK e contém os assets web apontando para o
 mesmo projeto Supabase. A instalação e os fluxos em aparelhos reais ainda não
 foram testados.
@@ -49,7 +49,7 @@ O mesmo workflow compila o projeto iOS com Xcode 26 ou superior e **sem assinatu
 ## Bloqueios de lançamento público
 
 1. A sincronização financeira segue desativada. Testar Auth, importação, conflitos e retorno do offline em dois aparelhos reais antes de definir `OAZE_SYNC_ENABLED=true` nas variáveis do GitHub.
-2. Builds nativos, instalação em aparelhos e fluxos de loja ainda precisam de execução observada. `cap sync` e testes web não provam compilação nativa.
+2. Os builds nativos Android e iOS passaram no CI. Instalação em aparelhos, assinatura e fluxos de loja ainda precisam de execução observada.
 3. Push requer configuração FCM/APNs e função de envio no backend.
 4. ID nas lojas, preço/plano e conformidade de compras no iOS ainda precisam de decisão. Não criar cadastros irreversíveis por suposição.
 5. Capturar screenshots reais do app e preencher as declarações com base no comportamento final. Material promocional não substitui telas reais.
