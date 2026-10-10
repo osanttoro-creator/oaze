@@ -2,6 +2,14 @@
 
 Estado verificado em 09/10/2026. Código em `G:\Meu Drive\sites\oaze app`. O identificador `site.oaze.app` ainda é uma proposta: confirmar antes de cadastrar o aplicativo nas lojas.
 
+O workflow [de teste #2](https://github.com/osanttoro-creator/oaze/actions/runs/38014289768)
+passou nos três jobs: web, Android e iOS. O APK foi copiado para
+`builds/oaze-android-teste-2.apk` dentro da pasta canônica, com SHA-256
+`2399A415AD3DC0E6046A8911E4158B8CBA105E5ADEEF6DA465F2DAFDD2033583`.
+O arquivo foi aberto como pacote ZIP/APK e contém os assets web apontando para o
+mesmo projeto Supabase. A instalação e os fluxos em aparelhos reais ainda não
+foram testados.
+
 ## Testar no Android
 
 O workflow `.github/workflows/app-mobile-test.yml` gera um **APK de depuração** no GitHub Actions a cada alteração do app na branch `main` e também por execução manual. O APK usa o pacote `site.oaze.app.teste`, separado do futuro app de loja. O fluxo não precisa de keystore de publicação.
@@ -15,6 +23,9 @@ O workflow `.github/workflows/app-mobile-test.yml` gera um **APK de depuração*
 Se as variáveis públicas `OAZE_SUPABASE_URL` e `OAZE_SUPABASE_PUBLISHABLE_KEY` estiverem cadastradas em **Settings → Secrets and variables → Actions → Variables**, o APK também oferece login na mesma conta Supabase do site. Sem ambas, ele é um teste local sem conta. `VITE_OAZE_SYNC_ENABLED` fica `false` no APK de teste: dados financeiros não aparecem automaticamente no outro aparelho. Não use o APK para validar sincronização antes da ativação controlada.
 
 Um APK de depuração não é o pacote da Play Store. A Google Play recebe um AAB de lançamento, assinado com a chave de upload.
+Cada runner de teste pode gerar uma assinatura de depuração diferente; para instalar
+um APK de outra execução pode ser necessário desinstalar o anterior, o que apaga
+os dados locais daquela instalação. Exporte um backup antes de fazer isso.
 
 ## Testar no iPhone
 
@@ -24,8 +35,9 @@ O mesmo workflow compila o projeto iOS com Xcode 26 ou superior e **sem assinatu
 
 - Android usa `targetSdkVersion 36`, exigido para novos envios no período atual.
 - `app-android.yml` gera AAB assinado quando as variáveis públicas do Supabase, a flag de sync validada e os quatro segredos da chave de upload estiverem configurados.
+- O CI fornece `versionCode` crescente a cada execução do workflow de loja. O APK de teste usa um identificador próprio e não substitui o app de produção.
 - Segredos: `ANDROID_KEYSTORE_B64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Nunca gravar a chave ou senhas no Git.
-- Confirmar identificador, nome, política de privacidade, exclusão de conta, formulários de dados financeiros e de segurança de dados. Cadastrar o app na Play Console e fazer primeiro envio pelo canal de testes.
+- Confirmar identificador, nome, exclusão de conta, formulários de dados financeiros e de segurança de dados. As URLs públicas `https://oaze.site/privacidade`, `https://oaze.site/termos` e `https://oaze.site/suporte` responderam com páginas próprias em 09/10/2026; revisar seu conteúdo final antes de informar às lojas. Cadastrar o app na Play Console e fazer primeiro envio pelo canal de testes.
 
 ## Preparação da App Store
 

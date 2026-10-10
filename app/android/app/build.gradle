@@ -7,7 +7,8 @@ android {
         applicationId "site.oaze.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        // O CI passa um número crescente: a Play Store recusa códigos repetidos.
+        versionCode (project.findProperty('oazeVersionCode') ?: '1').toString().toInteger()
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

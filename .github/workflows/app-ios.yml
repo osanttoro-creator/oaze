@@ -68,11 +68,17 @@ jobs:
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
+          if [ -z "$ASC_ISSUER_ID" ] || [ -z "$ASC_KEY_P8" ] || [ -z "$TEAM_ID" ]; then
+            echo "::error::Configuração Apple incompleta para assinatura e upload."
+            exit 1
+          fi
           KEY="$RUNNER_TEMP/AuthKey.p8"
+          trap 'rm -f "$KEY"' EXIT
           printf '%s' "$ASC_KEY_P8" > "$KEY"
           AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$KEY" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/OAZE.xcarchive" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic "${AUTH[@]}" archive
           cat > "$RUNNER_TEMP/export.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -85,4 +91,3 @@ jobs:
           EOF
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/OAZE.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/export.plist" -exportPath "$RUNNER_TEMP/export" "${AUTH[@]}"
-          rm -f "$KEY"

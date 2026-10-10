@@ -18,7 +18,7 @@ O aplicativo usa o mesmo projeto Supabase do OAZE 1, por URL e chave publicável
 
 ## Builds e publicação
 
-- Android/iOS: projetos e CI preparados; cofre, biometria, preferências, compartilhamento, clipboard e push por import dinâmico. `npx cap sync android` e `npx cap sync ios` passaram numa cópia temporária; os dez plugins entram nos dois projetos, incluindo biometria via SPM no iOS. Um workflow gera APK de teste Android e compila iOS sem assinatura, mas ainda precisa passar no GitHub. Faltam compilação confirmada, configuração FCM/APNs, assinatura e testes em aparelhos.
+- Android/iOS: projetos e CI preparados; cofre, biometria, preferências, compartilhamento, clipboard e push por import dinâmico. `npx cap sync android` e `npx cap sync ios` passaram numa cópia temporária; os dez plugins entram nos dois projetos, incluindo biometria via SPM no iOS. O workflow de teste #2 passou no GitHub: gerou APK Android e compilou iOS sem assinatura. O APK está em `builds/oaze-android-teste-2.apk`. Faltam instalação e fluxos em aparelhos, configuração FCM/APNs e assinatura de loja.
 - Windows/macOS: código Rust e CI preparados; Rust não foi compilado nesta máquina. Assinatura e notarização pendentes.
 - Push registra token por usuário e dispositivo, mas ainda não há função de envio no servidor. Lembretes locais seguem independentes.
 - Crash reporting de produção, validação de loja e distribuição continuam pendentes. `12-PUBLICACAO.md` registra as decisões de negócio e loja.

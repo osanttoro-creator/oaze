@@ -73,6 +73,7 @@ jobs:
           set -euo pipefail
           chmod +x gradlew
           ./gradlew bundleRelease \
+            -PoazeVersionCode=${{ github.run_number }} \
             -Pandroid.injected.signing.store.file="$RUNNER_TEMP/upload.jks" \
             -Pandroid.injected.signing.store.password="$STORE_PASS" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
