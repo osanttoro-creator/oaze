@@ -75,6 +75,12 @@ describe('migração do OAZE 1', () => {
     expect(invoice(w, 'nu', '2026-09')?.paid).toBe(true);
   });
 
+  it('preserva forma de pagamento quando o documento antigo a registrou', () => {
+    const source = structuredClone(v1);
+    Object.assign(source.profiles[0]!.transactions[0]!, { meio: 'pix' });
+    expect(migrateV1(source)!.workspaces[0]!.transactions[0]!.method).toBe('pix');
+  });
+
   it('meta: saved é o total, e só o depósito com conta sai da conta', () => {
     const w = migrateV1(v1)!.workspaces[0]!;
     const g = w.goals[0]!;

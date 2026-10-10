@@ -26,11 +26,14 @@ import type { Envelope, Op, RemoteSpace, Stamp, SyncStatus } from './types';
   outro lado está escrevendo sem parar e insistir só queima bateria.
 */
 
-const REV_KEY = 'oaze.sync.rev.v1';
+const LEGACY_REV_KEY = 'oaze.sync.rev.v1';
 const DEVICE_KEY = 'oaze.device.v1';
 const MAX_ATTEMPTS = 3;
 
 let revisions: Record<ID, number> = {};
+let revisionOwner: string | null = null;
+let syncEpoch = 0;
+let suspended = true;
 let device = '';
 let status: SyncStatus = { phase: 'idle', pending: 0, lastSyncAt: null, notice: null, error: null };
 
@@ -79,7 +82,7 @@ export function record(op: Omit<Op, 'opId' | 'at' | 'device'>): void {
 }
 
 async function loadRevisions(): Promise<void> {
-  const raw = await store().get(REV_KEY);
+  const raw = await store().get(revisionKey(revisionOwner));
   if (!raw) return;
   try {
     revisions = JSON.parse(raw) as Record<ID, number>;
@@ -89,20 +92,34 @@ async function loadRevisions(): Promise<void> {
 }
 
 async function saveRevisions(): Promise<void> {
-  await store().set(REV_KEY, JSON.stringify(revisions));
+  await store().set(revisionKey(revisionOwner), JSON.stringify(revisions));
+}
+
+function revisionKey(id: string | null): string {
+  return id ? `oaze.sync.rev.v2.user.${encodeURIComponent(id)}` : LEGACY_REV_KEY;
+}
+
+/** Revisões de um usuário jamais podem ser reutilizadas em outra conta. */
+export async function selectRevisionOwner(id: string | null): Promise<void> {
+  if (revisionOwner === id) return;
+  revisionOwner = id;
+  revisions = {};
+  await loadRevisions();
 }
 
 /* ------------------------------------------------------------------ leitura */
 
 export async function pull(): Promise<RemoteSpace[]> {
+  const epoch = syncEpoch;
   const c = await api();
-  if (!c || authState().status !== 'signed-in') return [];
+  if (!c || suspended || authState().status !== 'signed-in') return [];
   const { data, error } = await c
     .from('oaze2_spaces')
     .select('id,rev,payload,updated_at')
     .is('deleted_at', null)
     .order('updated_at', { ascending: false });
   if (error) throw new Error(error.message);
+  if (suspended || epoch !== syncEpoch) return [];
   const rows = (data ?? []) as { id: ID; rev: number; payload: Envelope; updated_at: string }[];
   for (const row of rows) revisions[row.id] = row.rev;
   await saveRevisions();
@@ -135,6 +152,8 @@ async function save(id: ID, expected: number, envelope: Envelope): Promise<SaveR
  * — a camada de cima troca o espaço local por ele quando houve fusão.
  */
 export async function push(space: Workspace): Promise<{ envelope: Envelope; merged: boolean } | null> {
+  const epoch = syncEpoch;
+  if (suspended) return null;
   const ops = pendingFor(space.id);
   if (!ops.length) return null;
 
@@ -145,8 +164,10 @@ export async function push(space: Workspace): Promise<{ envelope: Envelope; merg
   let merged = false;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    if (suspended || epoch !== syncEpoch) return null;
     const { envelope, dropped } = applyOps(base, ops);
     const reply = await save(space.id, rev, prune(envelope));
+    if (suspended || epoch !== syncEpoch) return null;
 
     if (reply.ok) {
       revisions[space.id] = reply.rev;
@@ -183,6 +204,23 @@ export async function push(space: Workspace): Promise<{ envelope: Envelope; merg
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 let running = false;
+const idleWaiters = new Set<() => void>();
+
+/** Invalida imediatamente qualquer resposta de rede da sessão anterior. */
+export function suspendSync(): void {
+  suspended = true;
+  syncEpoch++;
+}
+
+export async function waitSyncIdle(): Promise<void> {
+  if (!running) return;
+  await new Promise<void>((resolve) => idleWaiters.add(resolve));
+}
+
+export function resumeSync(): void {
+  suspended = false;
+  void sync();
+}
 
 export type Provider = () => Workspace[];
 export type Adopter = (envelope: Envelope) => void;
@@ -197,30 +235,37 @@ export function wire(provider: Provider, adopter: Adopter): void {
 
 /** Uma rodada. Seguro chamar a qualquer momento: nunca roda duas em paralelo. */
 export async function sync(): Promise<void> {
-  if (running) return;
+  if (running || suspended) return;
   if (!navigator.onLine) {
     patch({ phase: 'offline' });
     return;
   }
-  if (authState().status !== 'signed-in') {
+  if (authState().status !== 'signed-in' || authState().user?.id !== revisionOwner) {
     patch({ phase: 'idle', error: null });
     return;
   }
   running = true;
+  const epoch = syncEpoch;
   patch({ phase: 'syncing', error: null });
   try {
     /* espaço de exemplo nunca sobe: é dado ilustrativo e misturaria com real */
     for (const space of provide().filter((s) => !s.demo)) {
+      if (suspended || epoch !== syncEpoch) return;
       const out = await push(space);
-      if (out?.merged) adopt(out.envelope);
+      if (out?.merged && !pendingFor(space.id).length && epoch === syncEpoch) adopt(out.envelope);
     }
     const remote = await pull();
-    for (const r of remote) adopt(r.envelope);
+    if (suspended || epoch !== syncEpoch) return;
+    for (const r of remote) {
+      if (!pendingFor(r.id).length) adopt(r.envelope);
+    }
     if (status.phase === 'syncing') patch({ phase: 'idle', lastSyncAt: new Date().toISOString() });
   } catch (err) {
     patch({ phase: 'error', error: err instanceof Error ? err.message : 'A sincronização falhou.' });
   } finally {
     running = false;
+    idleWaiters.forEach((resolve) => resolve());
+    idleWaiters.clear();
   }
 }
 
@@ -252,9 +297,10 @@ export async function start(): Promise<() => void> {
     }, 90_000);
   };
   beat();
-  kick();
+  resumeSync();
 
   return () => {
+    suspendSync();
     clearTimeout(timer);
     window.removeEventListener('online', kick);
     window.removeEventListener('focus', kick);
@@ -266,8 +312,11 @@ export async function start(): Promise<() => void> {
 /** Só para teste. */
 export function resetEngineForTest(): void {
   revisions = {};
+  revisionOwner = null;
   device = 'test-device';
   running = false;
+  suspended = true;
+  syncEpoch = 0;
   clearTimeout(timer);
   status = { phase: 'idle', pending: 0, lastSyncAt: null, notice: null, error: null };
 }

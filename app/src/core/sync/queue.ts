@@ -16,13 +16,19 @@ import type { Op } from './types';
     teto estoura a cota de armazenamento e aí o app para de gravar.
 */
 
-const KEY = 'oaze.sync.queue.v1';
+const LEGACY_KEY = 'oaze.sync.queue.v1';
 /** ~3 MB de operações. Acima disso o problema é outro: a sincronização não sobe. */
 const MAX = 4000;
 
 let ops: Op[] = [];
 let loaded = false;
-let writing: Promise<void> | null = null;
+let owner: string | null = null;
+let writing = Promise.resolve();
+let timer: ReturnType<typeof setTimeout> | undefined;
+
+function keyFor(id: string | null): string {
+  return id ? `oaze.sync.queue.v2.user.${encodeURIComponent(id)}` : LEGACY_KEY;
+}
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
@@ -35,7 +41,7 @@ export function onQueueChange(l: () => void): () => void {
 export async function load(): Promise<void> {
   if (loaded) return;
   loaded = true;
-  const raw = await store().get(KEY);
+  const raw = await store().get(keyFor(owner));
   if (!raw) return;
   try {
     const parsed = JSON.parse(raw) as Op[];
@@ -50,14 +56,8 @@ export async function load(): Promise<void> {
 /* Gravação coalescida: cem lançamentos num minuto não devem gerar cem escritas
    no cofre, que no celular é I/O de verdade. */
 function persist(): void {
-  if (writing) return;
-  writing = new Promise<void>((resolve) => {
-    setTimeout(async () => {
-      writing = null;
-      await store().set(KEY, JSON.stringify(ops));
-      resolve();
-    }, 180);
-  });
+  clearTimeout(timer);
+  timer = setTimeout(() => { void flushToDisk(); }, 180);
 }
 
 export function enqueue(...incoming: Op[]): void {
@@ -92,12 +92,30 @@ export function ack(opIds: readonly string[]): void {
 }
 
 export async function flushToDisk(): Promise<void> {
-  await store().set(KEY, JSON.stringify(ops));
+  clearTimeout(timer);
+  timer = undefined;
+  const key = keyFor(owner);
+  const value = JSON.stringify(ops);
+  writing = writing.catch(() => {}).then(() => store().set(key, value));
+  await writing;
+}
+
+/** Trocar de conta salva a fila anterior e carrega só a fila da nova conta. */
+export async function selectQueueOwner(id: string | null): Promise<void> {
+  if (owner === id && loaded) return;
+  if (loaded) await flushToDisk();
+  else await writing;
+  owner = id;
+  ops = [];
+  loaded = false;
+  await load();
 }
 
 /** Só para teste. */
 export function resetQueueForTest(): void {
+  clearTimeout(timer);
   ops = [];
   loaded = false;
-  writing = null;
+  owner = null;
+  writing = Promise.resolve();
 }

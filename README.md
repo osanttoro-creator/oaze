@@ -33,7 +33,7 @@ npm run dev                  # http://localhost:5188  (?demo abre o exemplo)
 | Comando | O que faz |
 |---|---|
 | `npm run dev` | servidor de desenvolvimento |
-| `npm test` | 216 testes de regra contábil, interface, autenticação e lógica local de sincronização |
+| `npm test` | regra contábil, interface, autenticação e lógica local de sincronização |
 | `npm run typecheck` | tipos |
 | `npm run build` | `dist/` — o mesmo pacote vai para web, Capacitor e Tauri |
 | `npm run verificar:seguranca` | varre segredo e confere a CSP |
@@ -95,8 +95,10 @@ processamento.
 
 O cliente está configurado para usar o mesmo projeto Supabase do OAZE 1. A
 sessão e a sincronização entre plataformas ainda exigem validação real. Por
-segurança, `VITE_OAZE_SYNC_ENABLED` permanece `false` até isolar os dados locais
-por conta e testar a migração SQL em staging.
+segurança, `VITE_OAZE_SYNC_ENABLED` permanece `false` até validar o fluxo
+autenticado entre dois aparelhos. O estado, a fila e as revisões já são
+separados por conta; a migração SQL foi aplicada e as políticas RLS e RPCs
+passaram em testes transacionais.
 
 **Sem conta o app funciona inteiro**, só fica isolado no aparelho. Isso é
 promessa do produto, não limitação.

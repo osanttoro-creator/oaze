@@ -106,10 +106,9 @@ export function hasAccountBackend(): boolean {
 }
 
 /**
- * O SQL do OAZE 2 ainda não foi aplicado/validado no projeto compartilhado.
- * A conta pode funcionar antes disso; a sincronização só é ligada após um
- * teste real de RLS e de dois aparelhos. Evita gravar dados financeiros em
- * produção por causa de uma configuração incompleta do build.
+ * O SQL do OAZE 2 está no projeto compartilhado, com RLS e RPC testadas.
+ * A sincronização permanece desligada até validar o fluxo autenticado em
+ * dois aparelhos, inclusive a recuperação de alterações offline.
  */
 export function hasSyncBackend(): boolean {
   return hasAccountBackend() && import.meta.env.VITE_OAZE_SYNC_ENABLED === 'true';

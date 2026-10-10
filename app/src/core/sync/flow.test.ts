@@ -11,7 +11,7 @@ import type { Envelope, Op, Stamp } from './types';
 
   O "servidor" aqui é uma implementação em memória da RPC `oaze2_save_space`,
   escrita para se comportar **exatamente** como o SQL de
-  `20261006120000_oaze2_sincronizacao.sql`: compara a revisão, incrementa quando
+  `20261010010249_oaze2_multiplatform_sync.sql`: compara a revisão, incrementa quando
   bate e devolve a versão do servidor quando não bate.
 
   Testar contra um dublê e não contra o Supabase é escolha, não atalho: o que

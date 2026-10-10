@@ -104,30 +104,18 @@ da APNs. Até lá, os lembretes são locais e funcionam sem rede.
    executar, e é ele que prova que o CI fecha.
 3. Rodar `app-android` e `app-desktop` sem segredos, só para ver compilar. O
    Rust nunca foi compilado: é aqui que erros de API aparecem, não antes.
-4. Aplicar `supabase/migrations/20261006120000_oaze2_sincronizacao.sql` em
-   **staging** e testar sincronização com dois aparelhos de verdade, incluindo o
-   caso dos dois offline editando o mesmo mês.
-
-   > **Onde este arquivo mora, e o que isso custa.** Ele fica aqui, no projeto do
-   > OAZE 2, e **não** na pasta de migrações do OAZE 1 — o v2 é dono das próprias
-   > tabelas. A consequência prática, que não pode passar batida: um
-   > `supabase db push` rodado de dentro do OAZE 1 **não aplica** esta migração,
-   > e sem ela a sincronização não tem onde gravar. Para aplicar, copie o arquivo
-   > para a pasta `supabase/migrations/` do projeto ligado à CLI, ou rode o SQL
-   > direto:
-   >
-   > ```bash
-   > supabase db execute --file supabase/migrations/20261006120000_oaze2_sincronizacao.sql
-   > ```
-   >
-   > Ela não toca em nada do OAZE 1: só cria `oaze2_spaces`, `oaze2_devices`,
-   > `oaze2_prefs`, `oaze2_push_tokens` e três funções, todas com RLS.
+4. A migração `supabase/migrations/20261010010249_oaze2_multiplatform_sync.sql`
+   foi aplicada no projeto Supabase OAZE. As quatro tabelas novas estão vazias,
+   com RLS e permissões verificadas. A RPC de escrita e a separação de leitura
+   entre dois usuários passaram em transações revertidas. Ainda falta testar o
+   fluxo autenticado no aplicativo com dois aparelhos, inclusive ambos offline.
 5. Preencher os formulários de loja com o material de `oaze mobile/`.
 6. Primeiro envio manual em cada loja; depois, tags `app-v*`.
 
 ## Volta atrás
 
 Nada do OAZE 1 é apagado. O repositório antigo tem tags (`v2.0.0`,
-`backup-pre-saas`), a migração só **lê** o `financas.v1`, e a tabela nova
-(`oaze2_spaces`) não toca em `dados`. Se o v2 falhar no ar, voltar o deploy para
-o commit anterior devolve o OAZE 1 com os dados de todo mundo intactos.
+`backup-pre-saas`). A importação do aplicativo apenas lê os dados legados;
+a migração SQL cria tabelas e RPCs `oaze2_*` sem modificar `public.dados`.
+Desligar a flag de sincronização suspende as novas trocas do OAZE 2 sem
+interferir no site antigo.

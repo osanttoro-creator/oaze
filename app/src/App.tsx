@@ -3,6 +3,7 @@ import { Button, ErrorState } from './design-system';
 import { reportHandled } from './core/telemetry';
 import { useApp } from './state/store';
 import { useUnlocked } from './state/session';
+import { usePartitionFailure } from './state/partition';
 import { Welcome } from './screens/Welcome';
 import { Lock } from './screens/Lock';
 import { Shell } from './shell/Shell';
@@ -44,6 +45,7 @@ export function App({ storageProblem }: { storageProblem?: Error | null }) {
   const hasSpace = useApp((s) => s.workspaces.length > 0 && !!s.activeId);
   const hasPin = useApp((s) => !!s.security.pin);
   const unlocked = useUnlocked();
+  const partitionFailure = usePartitionFailure();
 
   /*
     O cofre certo para esta plataforma não abriu. Em vez de cair em silêncio para
@@ -62,6 +64,17 @@ export function App({ storageProblem }: { storageProblem?: Error | null }) {
             Tentar de novo
           </Button>
         }
+      />
+    );
+  }
+
+  if (partitionFailure) {
+    return (
+      <ErrorState
+        title="Não consegui trocar de conta"
+        message="Para proteger seus dados, o OAZE interrompeu a troca. Seus dados anteriores não foram enviados para outra conta."
+        detail={partitionFailure.message}
+        action={<Button tone="milk" onClick={() => location.reload()}>Tentar de novo</Button>}
       />
     );
   }

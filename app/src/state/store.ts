@@ -82,6 +82,7 @@ export function initialState(): AppState {
 
 let state: AppState = initialState();
 let hydrated = false;
+let writesFrozen = false;
 
 /**
  * Troca o estado inicial pelo que estava guardado. Chamado uma vez por
@@ -109,7 +110,20 @@ export function getState(): AppState {
   return state;
 }
 
+/** Troca de conta: limpa o estado anterior sem enfileirar edição ou gravação. */
+export function replaceState(next: AppState | null): void {
+  clearTimeout(saveTimer);
+  state = next ?? initialState();
+  listeners.forEach((l) => l());
+}
+
+/** Bloqueia edições enquanto o cofre troca de conta. */
+export function freezeStateWrites(frozen: boolean): void {
+  writesFrozen = frozen;
+}
+
 export function setState(fn: (s: AppState) => AppState, source: 'local' | 'remote' = 'local'): void {
+  if (writesFrozen) return;
   const before = state;
   state = fn(state);
   if (state === before) return;
@@ -160,7 +174,7 @@ export function updateSettings(patch: Partial<Settings>): void {
   setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
 }
 
-export function flushSave(): void {
+export function flushSave(): Promise<void> {
   clearTimeout(saveTimer);
-  savePersisted(state);
+  return savePersisted(state);
 }

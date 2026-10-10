@@ -3,15 +3,16 @@ import { demoWorkspace } from '../domain/seed';
 import { installPrivacyCurtain } from '../platform';
 import { installNative } from '../platform/native';
 import { installAutoLock, unlock } from '../state/session';
-import { flushSave, getState, hydrate, setState, type AppState } from '../state/store';
-import { readPersisted } from '../state/persist';
-import { startAuth } from './auth';
+import { flushSave, freezeStateWrites, getState, hydrate, setState, type AppState } from '../state/store';
+import { persistedOwner, readPersisted } from '../state/persist';
+import { authState, onAuthChange, startAuth } from './auth';
+import { accountPartitionReady, switchAccountPartition } from '../state/partition';
 import { hasAccountBackend, hasSyncBackend } from './api/client';
 import { boot as bootStorage, bootFailure } from './storage';
 import { adoptEnvelope, localSpaces, startCapture } from './sync/bridge';
-import { start as startSync, wire } from './sync/engine';
-import { flushToDisk, load as loadQueue } from './sync/queue';
-import { installErrorReporting } from './telemetry';
+import { deviceId, selectRevisionOwner, start as startSync, suspendSync, waitSyncIdle, wire } from './sync/engine';
+import { flushToDisk, selectQueueOwner } from './sync/queue';
+import { installErrorReporting, reportHandled } from './telemetry';
 
 /*
   A ordem do arranque não é arbitrária — cada passo depende do anterior:
@@ -54,14 +55,34 @@ export async function boot(): Promise<BootResult> {
   /* o resto em paralelo: nenhuma destas peças é pré-requisito da primeira tela */
   void installNative();
   if (hasAccountBackend()) {
-    void startAuth().then(async () => {
-      if (hasSyncBackend()) {
-        wire(localSpaces, adoptEnvelope);
-        await loadQueue();
-        startCapture();
-        return startSync();
-      }
+    let syncOwner: string | null = null;
+    let stopSync: () => void = () => {};
+    let stopCapture: (() => void) | null = null;
+    let transition = Promise.resolve();
+    if (hasSyncBackend()) wire(localSpaces, adoptEnvelope);
+
+    onAuthChange(() => {
+      const userId = authState().user?.id ?? null;
+      if (persistedOwner() === userId && syncOwner === userId) return;
+      suspendSync();
+      const partition = switchAccountPartition(userId, hasSyncBackend());
+      transition = transition.then(async () => {
+        stopSync();
+        await waitSyncIdle();
+        await partition;
+        if ((authState().user?.id ?? null) !== userId || !hasSyncBackend()) return;
+        await selectQueueOwner(userId);
+        await selectRevisionOwner(userId);
+        await deviceId();
+        if (userId) {
+          stopCapture ??= startCapture();
+          freezeStateWrites(false);
+          stopSync = await startSync();
+        } else freezeStateWrites(false);
+        syncOwner = userId;
+      }).catch((error) => reportHandled(error, 'troca de conta'));
     });
+    void startAuth().then(accountPartitionReady).catch((error) => reportHandled(error, 'início da conta'));
   }
 
   return { storageProblem: bootFailure() };

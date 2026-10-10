@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { register, resetForTest, type SecureStore } from '../storage';
-import { ack, enqueue, flushToDisk, load, pending, pendingCount, pendingFor, resetQueueForTest } from './queue';
+import { ack, enqueue, flushToDisk, load, pending, pendingCount, pendingFor, resetQueueForTest, selectQueueOwner } from './queue';
 import type { Op } from './types';
 
 /*
@@ -92,6 +92,17 @@ describe('fila offline', () => {
     resetQueueForTest();
     await load();
     expect(pending().map((o) => o.opId)).toEqual(['a', 'b']);
+  });
+
+  it('mantém pendências da conta A fora da conta B e recupera A depois', async () => {
+    await selectQueueOwner('user-a');
+    enqueue(op('da-a'));
+    await selectQueueOwner('user-b');
+    expect(pendingCount()).toBe(0);
+    enqueue(op('da-b'));
+    await selectQueueOwner('user-a');
+    expect(pending().map((item) => item.opId)).toEqual(['da-a']);
+    expect(store.data.has('oaze.sync.queue.v2.user.user-b')).toBe(true);
   });
 
   it('fila ilegível no disco começa vazia em vez de travar o arranque', async () => {

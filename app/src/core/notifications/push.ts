@@ -2,6 +2,7 @@ import { api } from '../api/client';
 import { platform } from '../../platform';
 import { deviceId } from '../sync/engine';
 import { reportHandled } from '../telemetry';
+import type { PushNotificationsPlugin } from '@capacitor/push-notifications';
 
 /*
   Notificação push — a arquitetura, ligada ao que já existe.
@@ -25,30 +26,21 @@ import { reportHandled } from '../telemetry';
 
 export type PushTopic = 'fatura' | 'sincronizacao' | 'conta';
 
-interface PushPlugin {
-  requestPermissions(): Promise<{ receive: string }>;
-  checkPermissions(): Promise<{ receive: string }>;
-  register(): Promise<void>;
-  addListener(
-    event: 'registration' | 'registrationError' | 'pushNotificationActionPerformed',
-    cb: (data: unknown) => void,
-  ): Promise<{ remove: () => void }>;
+async function plugin(): Promise<PushNotificationsPlugin | null> {
+  if (!pushAvailable()) return null;
+  return (await import('@capacitor/push-notifications')).PushNotifications;
 }
 
-function plugin(): PushPlugin | null {
-  const p = (globalThis as { Capacitor?: { Plugins?: { PushNotifications?: PushPlugin } } }).Capacitor?.Plugins
-    ?.PushNotifications;
-  return p ?? null;
-}
+let listeners: { remove(): Promise<void> }[] = [];
 
 /** Push só existe no celular. No desktop e na web, o lembrete é local. */
 export function pushAvailable(): boolean {
   const p = platform();
-  return (p === 'ios' || p === 'android') && !!plugin();
+  return p === 'ios' || p === 'android';
 }
 
 export async function pushGranted(): Promise<boolean> {
-  const p = plugin();
+  const p = await plugin();
   if (!p) return false;
   try {
     return (await p.checkPermissions()).receive === 'granted';
@@ -62,19 +54,22 @@ export async function pushGranted(): Promise<boolean> {
  * primeiro arranque é como se perde a permissão para sempre.
  */
 export async function enablePush(): Promise<boolean> {
-  const p = plugin();
+  const p = await plugin();
   if (!p) return false;
   try {
     const { receive } = await p.requestPermissions();
     if (receive !== 'granted') return false;
 
-    await p.addListener('registration', (data) => {
-      const token = (data as { value?: string })?.value;
-      if (token) void saveToken(token);
-    });
-    await p.addListener('registrationError', (err) => {
-      reportHandled(err, 'registro de push');
-    });
+    if (!listeners.length) {
+      listeners = [
+        await p.addListener('registration', (data) => {
+          if (data.value) void saveToken(data.value);
+        }),
+        await p.addListener('registrationError', (err) => {
+          reportHandled(err, 'registro de push');
+        }),
+      ];
+    }
 
     await p.register();
     return true;
@@ -88,15 +83,20 @@ async function saveToken(token: string): Promise<void> {
   const c = await api();
   if (!c) return;
   try {
-    await c.from('oaze2_push_tokens').upsert(
+    const { data } = await c.auth.getSession();
+    const userId = data.session?.user.id;
+    if (!userId) return;
+    const result = await c.from('oaze2_push_tokens').upsert(
       {
+        user_id: userId,
         device_id: await deviceId(),
         platform: platform(),
         token,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: 'device_id' },
+      { onConflict: 'user_id,device_id' },
     );
+    if (result.error) throw result.error;
   } catch (err) {
     reportHandled(err, 'guardar token de push');
   }
@@ -105,10 +105,25 @@ async function saveToken(token: string): Promise<void> {
 /** Sair do aparelho tira o token: senão ele continua recebendo aviso da conta. */
 export async function disablePush(): Promise<void> {
   const c = await api();
-  if (!c) return;
   try {
-    await c.from('oaze2_push_tokens').delete().eq('device_id', await deviceId());
+    if (c) {
+      const { data } = await c.auth.getSession();
+      const userId = data.session?.user.id;
+      if (userId) {
+        const result = await c.from('oaze2_push_tokens').delete()
+          .eq('user_id', userId).eq('device_id', await deviceId());
+        if (result.error) throw result.error;
+      }
+    }
   } catch (err) {
     reportHandled(err, 'remover token de push');
+  }
+  try {
+    const p = await plugin();
+    await p?.unregister();
+    await Promise.all(listeners.map((listener) => listener.remove()));
+    listeners = [];
+  } catch (err) {
+    reportHandled(err, 'desativar push no aparelho');
   }
 }

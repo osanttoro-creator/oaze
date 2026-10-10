@@ -145,6 +145,8 @@ export async function completeOAuthFromUrl(url: string): Promise<boolean> {
 export async function signOut(everywhere = false): Promise<void> {
   const c = await api();
   if (!c) return;
+  const { disablePush } = await import('../notifications/push');
+  await disablePush();
   await c.auth.signOut({ scope: everywhere ? 'global' : 'local' });
 }
 

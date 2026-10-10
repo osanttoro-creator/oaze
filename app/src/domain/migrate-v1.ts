@@ -139,7 +139,9 @@ function convertProfile(p: Raw, owner: string, report: MigrationReport): Workspa
     const inst = t.installment && Number(t.installment.total) > 1
       ? { index: Number(t.installment.index) || 1, total: Number(t.installment.total), groupId: str(t.installment.groupId) || uid('grp') }
       : undefined;
-    const method: Method = 'nao_informado';
+    const oldMethod = str(t.meio);
+    const supported: Method[] = ['pix', 'cartao_fisico', 'cartao_virtual', 'dinheiro', 'boleto', 'debito_automatico', 'transferencia', 'deposito'];
+    const method: Method = supported.includes(oldMethod as Method) ? oldMethod as Method : 'nao_informado';
     return {
       id: str(t.id, uid('tx')), kind, description: str(t.description, '(sem descrição)'), amount: Math.abs(cents(t.amount)), date: iso(t.date),
       categoryId: str(t.categoryId) || undefined, method,

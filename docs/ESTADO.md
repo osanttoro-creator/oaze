@@ -2,30 +2,30 @@
 
 O projeto canônico está em `G:\Meu Drive\sites\oaze app`. O remoto Git configurado é `https://github.com/osanttoro-creator/oaze.git`. O site público OAZE 1 continua separado.
 
-## Funciona neste estágio
+## Implementado e validado localmente
 
-- Núcleo React/TypeScript compartilhado, com cascas adaptativas para celular e desktop; projetos Capacitor para Android/iOS e Tauri para Windows/macOS.
-- Motor financeiro, design system Night Ocean, navegação, campo de partículas e interfaces de conta.
-- Conta configurada para o **mesmo projeto Supabase** do OAZE 1 por URL e chave publicável locais, ignoradas pelo Git. Isso não migra nem sincroniza automaticamente os dados de `public.dados`.
-- Captura de alterações do estado em operações por entidade, fusão, fila offline e RPC SQL preparados. A captura tem testes de inclusão, edição, remoção e orçamento.
-- Nesta máquina: 19 arquivos de testes / 216 testes, typecheck, build Vite e scanner de segurança passaram. O build web não comprova os builds nativos.
+- Núcleo React/TypeScript compartilhado; cascas adaptativas para celular e desktop; projetos Capacitor para Android/iOS e Tauri para Windows/macOS.
+- Motor financeiro, design system Night Ocean, navegação, partículas e telas de conta.
+- Estado, fila offline e revisões separados por conta. Trocar de conta esconde os dados anteriores imediatamente. O estado sem conta fica local e pode ser copiado para uma conta por escolha explícita.
+- Importação por escolha explícita dos dados locais do OAZE 1 e dos perfis da própria conta em `public.dados`, sem alterar o site antigo.
+- 21 arquivos de testes / 222 testes, typecheck, build Vite e scanner de segurança passaram nesta máquina. Isso não comprova os builds nativos.
 
-## Bloqueios para liberar sincronização
+## Supabase compartilhado
 
-`VITE_OAZE_SYNC_ENABLED=false` de propósito. Hoje o estado (`oaze.v2`), a fila (`oaze.sync.queue.v1`) e as revisões (`oaze.sync.rev.v1`) ainda usam chaves locais globais. É preciso separar esses dados por usuário, definir a adoção de dados anteriores ao login e impedir que a troca de contas mostre ou envie dados de outra pessoa. Depois, aplicar a migração SQL em staging, testar Auth e RPC reais, conflitos e dois dispositivos. A migração SQL ainda não foi aplicada aqui.
+O aplicativo usa o mesmo projeto Supabase do OAZE 1, por URL e chave publicável locais ignoradas pelo Git. A migração `20261010010249_oaze2_multiplatform_sync.sql` foi aplicada no projeto OAZE. As quatro tabelas `oaze2_*` estão vazias, têm RLS ativa e permissões conferidas. A RPC de escrita e o isolamento de leitura entre duas contas passaram em transações revertidas. Nenhum dado financeiro de usuário foi transferido automaticamente.
 
-O login web usa Supabase Auth, mas Google/Apple e links de retorno dependem da configuração de provedores e URLs no painel Supabase. Não foram validados em aparelhos.
+`VITE_OAZE_SYNC_ENABLED=false` ainda é intencional. Faltam teste autenticado do fluxo completo com dois dispositivos, resolução de conflito real e recuperação offline antes de ligar a sincronização financeira em builds distribuídos. A conta e o login podem funcionar com a chave publicável configurada; isso não significa que os dados financeiros já apareçam em outro aparelho. Google/Apple e links de retorno dependem de configuração dos provedores no Supabase e teste nativo.
 
 ## Builds e publicação
 
-- Android/iOS: projetos e CI preparados; pacotes de cofre, biometria, preferências, compartilhamento e clipboard declarados e ligados por import dinâmico. Ainda faltam `npx cap sync`, SDKs, assinaturas e teste real em aparelho.
-- Windows/macOS: código Rust e CI preparados; Rust não compilado nesta máquina. Assinatura e notarização pendentes.
-- Push e demais recursos nativos exigem testes reais antes de promessa pública.
-- `docs/12-PUBLICACAO.md` lista decisões de lojas e negócio ainda abertas.
+- Android/iOS: projetos e CI preparados; cofre, biometria, preferências, compartilhamento, clipboard e push por import dinâmico. Faltam `npx cap sync`, SDKs, configuração FCM/APNs, assinatura e testes em aparelhos.
+- Windows/macOS: código Rust e CI preparados; Rust não foi compilado nesta máquina. Assinatura e notarização pendentes.
+- Push registra token por usuário e dispositivo, mas ainda não há função de envio no servidor. Lembretes locais seguem independentes.
+- Crash reporting de produção, validação de loja e distribuição continuam pendentes. `12-PUBLICACAO.md` registra as decisões de negócio e loja.
 
-## Ordem técnica seguinte
+## Próximas verificações
 
-1. Isolar estado, fila e revisões por conta; testar login A → sair → login B e uso offline.
-2. Aplicar SQL em staging e testar o fluxo completo contra o mesmo Supabase, sem tocar no `public.dados` do OAZE 1.
-3. Rodar os workflows Android/Windows; depois builds iOS/macOS em macOS e testes em aparelhos.
-4. Configurar links de retorno, assinaturas, crash reporting, distribuição e revisão das lojas.
+1. Rodar os workflows de CI e builds nativos Android/Windows; compilar iOS/macOS em macOS.
+2. Configurar Auth OAuth e deep links; testar login, importação e saída em aparelhos reais.
+3. Testar dois aparelhos com alterações simultâneas e offline; somente então ligar a flag de sincronização.
+4. Configurar push, assinatura, crash reporting e submissão às lojas.

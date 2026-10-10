@@ -12,10 +12,29 @@ import type { AppState } from './store';
   A leitura é assíncrona porque o cofre nativo é assíncrono. Quem orquestra é
   `main.tsx`: abre o cofre, lê, hidrata a loja e só então renderiza.
 */
-const KEY = 'oaze.v2';
+const LOCAL_KEY = 'oaze.v2';
+let ownerId: string | null = null;
+let writes = Promise.resolve();
+
+function keyFor(id: string | null): string {
+  return id ? `oaze.v2.user.${encodeURIComponent(id)}` : LOCAL_KEY;
+}
+
+/** Cada conta tem sua própria gaveta; os dados sem conta continuam locais. */
+export function selectPersistedOwner(id: string | null): void {
+  ownerId = id;
+}
+
+export function persistedOwner(): string | null {
+  return ownerId;
+}
 
 export async function readPersisted(): Promise<AppState | null> {
-  const raw = await store().get(KEY);
+  return readPersistedFor(ownerId);
+}
+
+export async function readPersistedFor(id: string | null): Promise<AppState | null> {
+  const raw = await store().get(keyFor(id));
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as AppState;
@@ -27,12 +46,25 @@ export async function readPersisted(): Promise<AppState | null> {
   }
 }
 
-export function savePersisted(s: AppState): void {
-  void store().set(KEY, JSON.stringify(s));
+export function savePersisted(s: AppState): Promise<void> {
+  return savePersistedFor(ownerId, s);
+}
+
+/** Captura chave e conteúdo antes de qualquer troca de sessão. */
+export function savePersistedFor(id: string | null, s: AppState): Promise<void> {
+  const key = keyFor(id);
+  const value = JSON.stringify(s);
+  writes = writes.catch(() => {}).then(() => store().set(key, value));
+  return writes;
+}
+
+export function flushPersistedWrites(): Promise<void> {
+  return writes;
 }
 
 export async function clearPersisted(): Promise<void> {
-  await store().remove(KEY);
+  await flushPersistedWrites();
+  await store().remove(keyFor(ownerId));
 }
 
 /** Backup: o espaço inteiro em JSON, sem o PIN. */

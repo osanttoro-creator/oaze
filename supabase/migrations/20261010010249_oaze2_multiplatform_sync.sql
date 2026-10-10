@@ -41,12 +41,12 @@ alter table public.oaze2_spaces enable row level security;
 
 drop policy if exists oaze2_spaces_select on public.oaze2_spaces;
 create policy oaze2_spaces_select on public.oaze2_spaces
-  for select using (auth.uid() = user_id);
+  for select to authenticated using ((select auth.uid()) = user_id);
 
 -- Impede escrita direta: toda alteração de rev precisa passar pela RPC.
 drop policy if exists oaze2_spaces_insert on public.oaze2_spaces;
 drop policy if exists oaze2_spaces_update on public.oaze2_spaces;
-revoke insert, update, delete on public.oaze2_spaces from anon, authenticated;
+revoke all on public.oaze2_spaces from public, anon, authenticated;
 grant select on public.oaze2_spaces to authenticated;
 
 -- Sem policy de DELETE de propósito: apagar é marcar `deleted_at`.
@@ -68,7 +68,9 @@ alter table public.oaze2_devices enable row level security;
 
 drop policy if exists oaze2_devices_all on public.oaze2_devices;
 create policy oaze2_devices_all on public.oaze2_devices
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+revoke all on public.oaze2_devices from public, anon, authenticated;
+grant select, insert, update, delete on public.oaze2_devices to authenticated;
 
 -- --------------------------------------------------------------- preferências
 create table if not exists public.oaze2_prefs (
@@ -84,7 +86,9 @@ alter table public.oaze2_prefs enable row level security;
 
 drop policy if exists oaze2_prefs_all on public.oaze2_prefs;
 create policy oaze2_prefs_all on public.oaze2_prefs
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+revoke all on public.oaze2_prefs from public, anon, authenticated;
+grant select, insert, update, delete on public.oaze2_prefs to authenticated;
 
 -- ============================================================================
 -- Gravação com revisão otimista
@@ -106,7 +110,7 @@ create or replace function public.oaze2_save_space(
 ) returns jsonb
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $$
 declare
   v_user uuid := auth.uid();
@@ -129,6 +133,9 @@ begin
 
   if p_payload->>'format' is distinct from '2' then
     raise exception 'formato de envelope desconhecido';
+  end if;
+  if p_payload->'space'->>'id' is distinct from p_id then
+    raise exception 'envelope não corresponde ao espaço';
   end if;
 
   -- A trava por chave também serializa a criação, quando ainda não há linha.
@@ -166,7 +173,7 @@ begin
 end;
 $$;
 
-revoke all on function public.oaze2_save_space(text, bigint, jsonb) from public;
+revoke all on function public.oaze2_save_space(text, bigint, jsonb) from public, anon;
 grant execute on function public.oaze2_save_space(text, bigint, jsonb) to authenticated;
 
 -- ---------------------------------------------------------- apagar um espaço
@@ -174,7 +181,7 @@ create or replace function public.oaze2_delete_space(p_id text)
 returns void
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $$
 declare
   v_user uuid := auth.uid();
@@ -188,7 +195,7 @@ begin
 end;
 $$;
 
-revoke all on function public.oaze2_delete_space(text) from public;
+revoke all on function public.oaze2_delete_space(text) from public, anon;
 grant execute on function public.oaze2_delete_space(text) to authenticated;
 
 -- ------------------------------------------------------- registrar o aparelho
@@ -199,7 +206,7 @@ create or replace function public.oaze2_touch_device(
 ) returns void
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $$
 declare
   v_user uuid := auth.uid();
@@ -214,7 +221,7 @@ begin
 end;
 $$;
 
-revoke all on function public.oaze2_touch_device(text, text, text) from public;
+revoke all on function public.oaze2_touch_device(text, text, text) from public, anon;
 grant execute on function public.oaze2_touch_device(text, text, text) to authenticated;
 
 -- ---------------------------------------------------- tokens de push
@@ -225,11 +232,12 @@ grant execute on function public.oaze2_touch_device(text, text, text) to authent
 -- aparelho lê o dado dele mesmo. Mandar o saldo pronto exporia o número ao
 -- provedor de push, que é um terceiro fora do acordo de tratamento de dados.
 create table if not exists public.oaze2_push_tokens (
-  device_id   text        primary key,
+  device_id   text        not null,
   user_id     uuid        not null default auth.uid() references auth.users (id) on delete cascade,
   platform    text        not null check (platform in ('ios', 'android')),
   token       text        not null,
-  updated_at  timestamptz not null default now()
+  updated_at  timestamptz not null default now(),
+  primary key (user_id, device_id)
 );
 
 create index if not exists oaze2_push_tokens_user on public.oaze2_push_tokens (user_id);
@@ -238,4 +246,6 @@ alter table public.oaze2_push_tokens enable row level security;
 
 drop policy if exists oaze2_push_tokens_all on public.oaze2_push_tokens;
 create policy oaze2_push_tokens_all on public.oaze2_push_tokens
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+revoke all on public.oaze2_push_tokens from public, anon, authenticated;
+grant select, insert, update, delete on public.oaze2_push_tokens to authenticated;
