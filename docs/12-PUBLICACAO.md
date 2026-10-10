@@ -99,7 +99,7 @@ da APNs. Até lá, os lembretes são locais e funcionam sem rede.
 
 ## Ordem segura
 
-1. Instalar os plugins nativos e rodar `npx cap sync`.
+1. `npx cap sync android` e `npx cap sync ios` passaram numa cópia temporária. Compilar agora com Gradle e Xcode nos respectivos ambientes.
 2. Rodar `app-ci` no GitHub — é o primeiro build que esta sessão **não** pôde
    executar, e é ele que prova que o CI fecha.
 3. Rodar `app-android` e `app-desktop` sem segredos, só para ver compilar. O

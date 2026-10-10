@@ -18,10 +18,11 @@ O aplicativo usa o mesmo projeto Supabase do OAZE 1, por URL e chave publicável
 
 ## Builds e publicação
 
-- Android/iOS: projetos e CI preparados; cofre, biometria, preferências, compartilhamento, clipboard e push por import dinâmico. Faltam `npx cap sync`, SDKs, configuração FCM/APNs, assinatura e testes em aparelhos.
+- Android/iOS: projetos e CI preparados; cofre, biometria, preferências, compartilhamento, clipboard e push por import dinâmico. `npx cap sync android` e `npx cap sync ios` passaram numa cópia temporária; os dez plugins entram nos dois projetos, incluindo biometria via SPM no iOS. Faltam compilação com SDK/Xcode, configuração FCM/APNs, assinatura e testes em aparelhos.
 - Windows/macOS: código Rust e CI preparados; Rust não foi compilado nesta máquina. Assinatura e notarização pendentes.
 - Push registra token por usuário e dispositivo, mas ainda não há função de envio no servidor. Lembretes locais seguem independentes.
 - Crash reporting de produção, validação de loja e distribuição continuam pendentes. `12-PUBLICACAO.md` registra as decisões de negócio e loja.
+- `npm audit --omit=dev` encontrou zero vulnerabilidades; o audit completo reportou três avisos moderados na cadeia de ferramentas do Capacitor CLI, ainda sem correção compatível verificada.
 
 ## Próximas verificações
 
