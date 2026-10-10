@@ -1,6 +1,6 @@
 # OAZE 2 — Plano de implementação
 
-Status: 06/10/2026 · ✅ feito e verificado · 🟨 escrito, não verificado aqui ·
+Status: 10/10/2026 · ✅ verificação indicada na linha · 🟨 ainda depende da validação indicada ·
 🟡 próximo · ⛔ bloqueia publicação
 
 ## Fatias
@@ -10,13 +10,13 @@ Status: 06/10/2026 · ✅ feito e verificado · 🟨 escrito, não verificado aq
 | 1 | Motor em centavos (porte do calc) + automações | ✅ | 19 testes de regra contábil |
 | 2 | Estado, PIN, bloqueio, desfazer | ✅ | fluxo no navegador |
 | 3 | Todas as telas do mockup, celular e desktop | ✅ | navegador 375 px e 1024 px |
-| 4 | Coco no aparelho (Agora, Conversa, Memória) | ✅ | 4 testes + fluxo no navegador |
+| 4 | Coco (Agora, Conversa, Memória) | ✅ no navegador · 🟨 aparelho | 4 testes + fluxo no navegador |
 | 5 | Migração OAZE 1 → 2 | ✅ | 4 testes de paridade + Chrome limpo |
-| 6 | Projetos nativos gerados | ✅ gerados · 🟨 não compilados | `android/`, `ios/`, `src-tauri/` |
-| 7 | CI: verificação, Android, iOS, desktop | ✅ escrito · 🟨 nunca rodou | `.github/workflows/app-*.yml` |
-| 8 | ⛔ Armazenamento cifrado no nativo | ✅ desenho e web · 🟨 nativo | `core/storage` + 9 testes de cifragem |
-| 9 | Biometria nativa | 🟨 | `platform/native.ts` + `src-tauri/src/biometrics.rs` |
-| 10 | ⛔ Conta + sincronização Supabase | ✅ cliente e fusão · 🟨 banco | `core/sync` + 13 testes de fusão; migração SQL escrita |
+| 6 | Projetos nativos gerados | ✅ compilados em CI · 🟨 instalação real | Android, iOS sem assinatura, Windows e macOS Apple Silicon |
+| 7 | CI: verificação, Android, iOS, desktop | ✅ rodou | mobile #4 e desktop #3 no GitHub Actions |
+| 8 | ⛔ Armazenamento cifrado no nativo | ✅ código e build · 🟨 teste em aparelho | `core/storage`, comandos nativos e 9 testes de cifragem |
+| 9 | Biometria nativa | ✅ compila · 🟨 teste em aparelho | Capacitor e Rust, sem validação de Touch ID/Windows Hello real |
+| 10 | ⛔ Conta + sincronização Supabase | ✅ banco aplicado e testes de isolamento · 🟨 dois aparelhos | `core/sync`, migração aplicada, flag financeira desligada |
 | 11 | Coco com IA via `oaze-assistant` | ✅ cliente | `core/ai` — agregado, nunca descrição |
 | 12 | Assinatura (Stripe/Asaas; regra 3.1.1 no iOS) | 🟡 | decisão pendente |
 | 13 | Site de apresentação | outra sessão, em `site/` | conflitos em `12-PUBLICACAO.md` |
@@ -33,7 +33,7 @@ Status: 06/10/2026 · ✅ feito e verificado · 🟨 escrito, não verificado aq
 | **24** | **Testes de componente, autenticação, integração e fluxo** | ✅ | 26 + 19 + 13 + 8 testes |
 | **25** | **Design system em uso nas telas** | ✅ | `ui/bits` delega; 15 regras duplicadas removidas |
 | **26** | **Escala de texto (acessibilidade)** | ✅ | tipografia em `rem`, verificada a 150 % |
-| **27** | **Câmera, galeria, arquivos e salvar** | ✅ código · 🟨 plugins | `platform/files.ts` + `oaze_save_file` |
+| **27** | **Câmera, galeria, arquivos e salvar** | ✅ código e plugins sincronizados · 🟨 teste em aparelho | `platform/files.ts` + `oaze_save_file` |
 | **28** | **Arrastar e soltar (desktop)** | ✅ | `ui/DropZone.tsx`, ligado ao restaurar backup |
 | **29** | **Push: arquitetura e tabela** | ✅ cliente · ⛔ função de servidor | `core/notifications/push.ts` + `oaze2_push_tokens` |
 
