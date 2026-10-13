@@ -58,7 +58,7 @@ O mesmo workflow compila o projeto iOS com Xcode 26 ou superior e **sem assinatu
 
 ## Preparação da Microsoft Store
 
-O usuário informou em 13/10/2026 que abriu o painel **Apps & Games** no Partner Center. Isso não confirma que o nome do produto foi reservado nem que o pacote foi aceito.
+Em 13/10/2026, o painel **Apps & Games** da conta do usuário abriu e mostrou **0 produtos**. O menu da conta mostrou apenas o nome do perfil; não exibiu o editor jurídico. Portanto o nome OAZE ainda não aparece reservado nesse painel e nenhum pacote foi enviado.
 
 O Tauri 2 gera MSI e NSIS/EXE. Para a via **EXE ou MSI** da Store, a Microsoft exige instalador offline, instalação silenciosa, hospedagem do binário numa URL estável e assinatura do instalador e dos executáveis internos por certificado confiável. O NSIS aceita `/S`; o MSI aceita `msiexec /quiet`. O modo `embedBootstrapper` usado nos builds de teste não satisfaz a exigência de instalador offline. A configuração `app/src-tauri/tauri.microsoftstore.conf.json` altera somente esse modo para `offlineInstaller`; ela não assina nem publica o pacote.
 
