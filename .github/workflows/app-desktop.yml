@@ -10,6 +10,10 @@ on:
   workflow_dispatch:
   push:
     tags: ['app-v*']
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/app-desktop.yml'
 
 jobs:
   verifica:
