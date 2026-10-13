@@ -1,18 +1,18 @@
 import { useSyncExternalStore } from 'react';
 import type { EntryType } from './actions';
-import type { ID } from '../domain/types';
+import type { ID, ISODate } from '../domain/types';
 
 export type Screen =
   | 'inicio' | 'lancamentos' | 'carteira' | 'mais'
-  | 'investimentos' | 'categorias' | 'metas' | 'lembretes' | 'relatorios' | 'configuracoes' | 'plano';
+  | 'investimentos' | 'categorias' | 'metas' | 'agenda' | 'lembretes' | 'relatorios' | 'configuracoes' | 'plano';
 
-export const MORE_SCREENS: Screen[] = ['mais', 'investimentos', 'categorias', 'metas', 'lembretes', 'relatorios', 'configuracoes', 'plano'];
+export const MORE_SCREENS: Screen[] = ['mais', 'investimentos', 'categorias', 'metas', 'agenda', 'lembretes', 'relatorios', 'configuracoes', 'plano'];
 
 export interface UIState {
   screen: Screen;
   /** Cartão ou conta tirado da carteira. */
   walletPick: ID | null;
-  novo: { open: boolean; type: EntryType };
+  novo: { open: boolean; type: EntryType; date?: ISODate };
   coco: { open: boolean; tab: 'agora' | 'conversa' | 'memoria' };
   toast: { text: string; undo?: () => void } | null;
 }
@@ -69,12 +69,12 @@ export function go(screen: Screen, walletPick: ID | null = null): void {
   else if (scroller) scroller.scrollTop = 0;
 }
 
-export function openNovo(type: EntryType = 'despesa'): void {
-  patchUI({ novo: { open: true, type } });
+export function openNovo(type: EntryType = 'despesa', date?: ISODate): void {
+  patchUI({ novo: { open: true, type, date } });
 }
 
 export function closeNovo(): void {
-  patchUI({ novo: { ...ui.novo, open: false } });
+  patchUI({ novo: { ...ui.novo, open: false, date: undefined } });
 }
 
 export function openCoco(tab: UIState['coco']['tab'] = ui.coco.tab): void {

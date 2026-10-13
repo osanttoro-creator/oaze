@@ -1,0 +1,59 @@
+.agenda-top, .agenda-nav, .agenda-summary, .agenda-event, .agenda-week-day header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+.agenda-top { margin-bottom: var(--space-8); }
+.agenda-top .h2 { margin-top: var(--space-4); }
+.agenda-nav { flex: none; gap: var(--space-2); }
+.agenda-nav button {
+  min-width: var(--touch-comfort);
+  min-height: var(--touch-comfort);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-s);
+  background: var(--fill);
+}
+.agenda-nav button:hover, .agenda-day:hover, .agenda-year-row:hover { background: var(--fill-2); }
+.agenda-summary { margin-block: var(--space-8); flex-wrap: wrap; }
+.agenda-summary > div { display: grid; gap: var(--space-3); min-width: 7rem; }
+.agenda-summary strong { font: var(--t-mono); }
+.agenda-month-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; }
+.agenda-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-2); text-align: center; }
+.agenda-grid > .eyebrow { padding-block: var(--space-5); }
+.agenda-day { min-height: 4rem; display: grid; place-items: center; gap: var(--space-2); border-radius: var(--r-s); background: var(--fill); }
+.agenda-day[aria-pressed='true'] { background: var(--brand-milk); color: var(--brand-night); }
+.agenda-day-marks { display: flex; gap: var(--space-2); min-height: var(--space-3); }
+.agenda-day-marks i, .agenda-mark { width: var(--space-3); height: var(--space-3); border-radius: var(--r-pill); background: var(--out); }
+.agenda-day-marks .income, .agenda-mark.income { background: var(--in); }
+.agenda-day-marks .invoice, .agenda-mark.invoice { background: var(--warn); }
+.agenda-detail .h2 { margin-block: var(--space-5) var(--space-8); }
+.agenda-detail > .btn { margin-top: var(--space-8); }
+.agenda-events { display: grid; }
+.agenda-event { justify-content: start; border-top: 1px solid var(--line); padding-block: var(--space-7); }
+.agenda-event .grow { display: grid; gap: var(--space-2); }
+.agenda-event-amount { display: grid; justify-items: end; gap: var(--space-4); text-align: right; }
+.agenda-week { display: grid; margin-top: var(--space-8); }
+.agenda-week-day { padding-block: var(--space-8); border-top: 1px solid var(--line); }
+.agenda-week-day header { justify-content: start; }
+.agenda-week-day > .link { min-height: var(--touch-comfort); display: inline-flex; align-items: center; }
+.agenda-year { display: grid; gap: var(--space-3); }
+.agenda-year-row { display: grid; grid-template-columns: 5rem minmax(0, 1fr) 9rem; align-items: center; gap: var(--space-8); min-height: var(--touch-comfort); padding: var(--space-6); border-radius: var(--r-s); text-align: left; }
+.agenda-year-values { display: grid; justify-items: end; }
+.agenda-bars { display: grid; gap: var(--space-3); }
+.agenda-bars i { display: block; height: var(--space-3); min-width: var(--space-1); border-radius: var(--r-pill); }
+.agenda-bars .income { background: var(--in); }
+.agenda-bars .expense { background: var(--out); }
+.agenda-recurring { margin-top: var(--space-8); }
+
+@media (max-width: 800px) {
+  .agenda-month-layout { grid-template-columns: 1fr; }
+  .agenda-day { min-height: var(--touch-comfort); }
+}
+@media (max-width: 420px) {
+  .agenda-summary { gap: var(--space-6); }
+  .agenda-year-row { grid-template-columns: 3.5rem minmax(0, 1fr) 6.5rem; gap: var(--space-4); }
+  .agenda-year-values { font-size: 0.75rem; }
+  .agenda-grid-panel { padding-inline: var(--space-6); }
+}

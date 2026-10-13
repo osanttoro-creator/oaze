@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { setViewport } from '../test/setup';
 import { demoWorkspace } from '../domain/seed';
+import { todayYM } from '../domain/dates';
 import { getState, initialState, setState } from '../state/store';
 import { go, patchUI } from '../state/route';
 import { Shell } from './Shell';
@@ -72,6 +73,20 @@ describe('navegação', () => {
     await userEvent.click(within(nav).getByRole('button', { name: /Configurações/ }));
     /* Settings é lazy: aparece depois do Suspense resolver */
     expect(await screen.findByRole('heading', { name: /configurações/i }, { timeout: 4000 })).toBeInTheDocument();
+  });
+
+  it('a agenda abre pelo menu Mais e mostra o calendário financeiro', async () => {
+    setViewport(375);
+    render(<Shell />);
+    const nav = await screen.findByRole('navigation', { name: 'Navegação principal' });
+    await userEvent.click(within(nav).getByRole('button', { name: /Mais/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Agenda/ }));
+    expect(await screen.findByRole('heading', { name: 'agenda' })).toBeInTheDocument();
+    expect(screen.getByRole('radiogroup', { name: 'Alcance do calendário' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /^20 de .*evento/ }));
+    await userEvent.click(screen.getByRole('button', { name: '+ lançamento neste dia' }));
+    const form = await screen.findByRole('dialog', { name: 'Novo lançamento' });
+    expect(within(form).getByLabelText('Outra data')).toHaveValue(`${todayYM()}-20`);
   });
 
   it('o hash acompanha a tela: o botão voltar do Android funciona', async () => {

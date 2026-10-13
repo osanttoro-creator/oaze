@@ -1,4 +1,4 @@
-# OAZE 2 — estado em 10/10/2026
+# OAZE 2 — estado em 13/10/2026
 
 O projeto canônico está em `G:\Meu Drive\sites\oaze app`. O remoto Git configurado é `https://github.com/osanttoro-creator/oaze.git`. O site público OAZE 1 continua separado.
 
@@ -8,7 +8,8 @@ O projeto canônico está em `G:\Meu Drive\sites\oaze app`. O remoto Git configu
 - Motor financeiro, design system Night Ocean, navegação, partículas e telas de conta.
 - Estado, fila offline e revisões separados por conta. Trocar de conta esconde os dados anteriores imediatamente. O estado sem conta fica local e pode ser copiado para uma conta por escolha explícita.
 - Importação por escolha explícita dos dados locais do OAZE 1 e dos perfis da própria conta em `public.dados`, sem alterar o site antigo.
-- 21 arquivos de testes / 222 testes, typecheck, build Vite e scanner de segurança passaram nesta máquina. Isso não comprova os builds nativos.
+- Agenda financeira portada da V3: visões de ano, mês e semana, vencimentos de fatura, recorrências e lançamento com data escolhida. O resumo usa os mesmos totais confirmados do domínio.
+- 22 arquivos de testes / 226 testes, typecheck, build Vite e scanner de segurança passaram numa cópia temporária nesta máquina. O site de origem passou em 34 verificações. Isso não comprova os builds nativos após esta alteração.
 
 ## Supabase compartilhado
 
@@ -20,6 +21,7 @@ O aplicativo usa o mesmo projeto Supabase do OAZE 1, por URL e chave publicável
 
 - Android/iOS: projetos e CI preparados; cofre, biometria, preferências, compartilhamento, clipboard e push por import dinâmico. `npx cap sync android` e `npx cap sync ios` passaram numa cópia temporária; os dez plugins entram nos dois projetos, incluindo biometria via SPM no iOS. O workflow de teste #4 passou no GitHub: gerou APK Android, compilou AAB sem assinatura de loja e compilou iOS sem assinatura. O APK está em `builds/oaze-android-teste-4.apk` (SHA-256 `711B473226FD72DB6EE4D498E4840900805287F37319541E0D8CD5ECBC0BB701`). Faltam instalação e fluxos em aparelhos, configuração FCM/APNs e assinatura de loja.
 - Windows/macOS: o workflow desktop #3 compilou e empacotou ambos com sucesso no GitHub. Instaladores em `builds/oaze-windows-teste-3.msi`, `builds/oaze-windows-teste-3.exe` e `builds/oaze-macos-teste-3.dmg` (Apple Silicon). Faltam instalação observada, assinatura e notarização para distribuição.
+- Microsoft Store: existe configuração separada para instalador offline, mas ainda faltam o nome jurídico do editor conforme Partner Center, assinatura de código para MSI/EXE, instalação silenciosa e novo build. Os instaladores em `builds/` são de uma versão anterior à agenda.
 - Push registra token por usuário e dispositivo, mas ainda não há função de envio no servidor. Lembretes locais seguem independentes.
 - Crash reporting de produção, validação de loja e distribuição continuam pendentes. `12-PUBLICACAO.md` registra as decisões de negócio e loja.
 - `npm audit --omit=dev` encontrou zero vulnerabilidades; o audit completo reportou três avisos moderados na cadeia de ferramentas do Capacitor CLI, ainda sem correção compatível verificada.
@@ -30,3 +32,4 @@ O aplicativo usa o mesmo projeto Supabase do OAZE 1, por URL e chave publicável
 2. Configurar Auth OAuth e deep links; testar login, importação e saída em aparelhos reais.
 3. Testar dois aparelhos com alterações simultâneas e offline; somente então ligar a flag de sincronização.
 4. Configurar push, assinatura, crash reporting e submissão às lojas.
+5. Comparar o app com as capacidades do site atual em `13-PARIDADE-SITE-APP.md` antes de declarar equivalência.

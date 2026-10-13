@@ -19,6 +19,7 @@ const More = lazy(() => import('../screens/More').then((m) => ({ default: m.More
 const Investments = lazy(() => import('../screens/Investments').then((m) => ({ default: m.Investments })));
 const Categories = lazy(() => import('../screens/Categories').then((m) => ({ default: m.Categories })));
 const Goals = lazy(() => import('../screens/Goals').then((m) => ({ default: m.Goals })));
+const Agenda = lazy(() => import('../screens/Agenda').then((m) => ({ default: m.Agenda })));
 const Reminders = lazy(() => import('../screens/Reminders').then((m) => ({ default: m.Reminders })));
 const Reports = lazy(() => import('../screens/Reports').then((m) => ({ default: m.Reports })));
 const Settings = lazy(() => import('../screens/Settings').then((m) => ({ default: m.Settings })));
@@ -32,6 +33,7 @@ const SCREENS: Record<Screen, () => ReactNode> = {
   investimentos: () => <Investments />,
   categorias: () => <Categories />,
   metas: () => <Goals />,
+  agenda: () => <Agenda />,
   lembretes: () => <Reminders />,
   relatorios: () => <Reports />,
   configuracoes: () => <Settings />,

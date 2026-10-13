@@ -56,6 +56,16 @@ O mesmo workflow compila o projeto iOS com Xcode 26 ou superior e **sem assinatu
 - Configurar Google/Apple Login, URLs de retorno, Associated Domains, APNs, política de privacidade, rótulos de privacidade, classificação etária e exclusão de conta. Confirmar regras de assinatura dentro do app antes de oferecer pagamento.
 - TestFlight exige build assinado, processamento da Apple e convite/adição de testadores.
 
+## Preparação da Microsoft Store
+
+O usuário informou em 13/10/2026 que abriu o painel **Apps & Games** no Partner Center. Isso não confirma que o nome do produto foi reservado nem que o pacote foi aceito.
+
+O Tauri 2 gera MSI e NSIS/EXE. Para a via **EXE ou MSI** da Store, a Microsoft exige instalador offline, instalação silenciosa, hospedagem do binário numa URL estável e assinatura do instalador e dos executáveis internos por certificado confiável. O NSIS aceita `/S`; o MSI aceita `msiexec /quiet`. O modo `embedBootstrapper` usado nos builds de teste não satisfaz a exigência de instalador offline. A configuração `app/src-tauri/tauri.microsoftstore.conf.json` altera somente esse modo para `offlineInstaller`; ela não assina nem publica o pacote.
+
+Antes do build de submissão: confirmar o **nome jurídico do editor** exibido no Partner Center. O `bundle.publisher` atual é `OAZE`, igual ao `productName`, combinação que a documentação do Tauri aponta como inválida para a Store. Não substituir esse campo por um nome presumido. Após confirmar o editor e obter o certificado, gerar um novo bundle com a configuração da Store, testar instalação/remoção em Windows limpo, login, cofre e sincronização, e só então enviar pelo Partner Center. O caminho MSIX pode evitar o custo de certificado, mas o Tauri não o gera diretamente; conversão e teste do MSIX são um trabalho separado.
+
+Fontes: [Tauri — Microsoft Store](https://v2.tauri.app/distribute/microsoft-store/), [Microsoft — distribuir Win32](https://learn.microsoft.com/en-us/windows/apps/distribute-through-store/how-to-distribute-your-win32-app-through-microsoft-store), [Microsoft — assinatura](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/code-signing-options).
+
 ## Bloqueios de lançamento público
 
 1. A sincronização financeira segue desativada. Testar Auth, importação, conflitos e retorno do offline em dois aparelhos reais antes de definir `OAZE_SYNC_ENABLED=true` nas variáveis do GitHub.
