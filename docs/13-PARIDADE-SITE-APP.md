@@ -13,6 +13,6 @@ Fonte: `G:\Meu Drive\sites\OAZE\o site` e `app/src` deste repositório. O verifi
 | Coco Realtime/voz | Fluxo e teste locais no site | Conversa de texto e análise; voz em tempo real não encontrada | Integrar backend e permissões de microfone com consentimento |
 | Cobrança | Fluxo Stripe preparado no servidor | Tela Plano; checkout nativo ainda não validado | Definir regras de cada loja e validar pagamento real |
 | OAZE Score | Existe na V3 | Cálculo e tela de relatórios existem, mas não foi verificada paridade de fórmula com a V3 | Comparar ambos com os mesmos dados |
-| Builds | Navegador publicado | APK e desktop de teste anteriores à agenda; iOS compila sem assinatura | Regerar e instalar em aparelhos reais |
+| Builds | Navegador publicado | APK e desktop de teste com agenda gerados nos workflows desta revisão; iOS compila sem assinatura | Instalar e testar em aparelhos reais |
 
 Ordem recomendada: validar conta/importação e sincronização antes de liberar dados financeiros entre aparelhos; em seguida fechar recursos que o site já oferece, testar nativos e só depois preparar submissão de loja. O mesmo projeto Supabase pode continuar, mantendo as tabelas `oaze2_*` separadas durante a migração.
