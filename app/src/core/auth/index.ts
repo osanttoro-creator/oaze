@@ -97,7 +97,10 @@ export async function sendMagicLink(email: string): Promise<void> {
 
 export async function sendPasswordReset(email: string): Promise<void> {
   const c = await must();
-  const { error } = await c.auth.resetPasswordForEmail(email.trim(), { redirectTo: redirectTo('/redefinir-senha') });
+  /* A troca da senha tem formulário próprio no site. O app instalado ainda não
+     possui essa tela; mandar o link a oaze://auth deixaria a pessoa sem campo. */
+  const resetUrl = platform() === 'web' ? `${location.origin}/redefinir-senha` : 'https://oaze.site/redefinir-senha';
+  const { error } = await c.auth.resetPasswordForEmail(email.trim(), { redirectTo: resetUrl });
   if (error) throw friendly(error.message);
 }
 
@@ -107,16 +110,26 @@ export async function sendPasswordReset(email: string): Promise<void> {
  */
 export async function signInWithProvider(provider: 'google' | 'apple'): Promise<void> {
   const c = await must();
-  const { error } = await c.auth.signInWithOAuth({
+  const p = platform();
+  const { data, error } = await c.auth.signInWithOAuth({
     provider,
     options: {
       redirectTo: redirectTo(),
-      /* no app instalado o navegador do sistema abre e volta por deep link;
-         `skipBrowserRedirect` deixaria a aba parada em branco */
-      skipBrowserRedirect: false,
+      /* Nativo: não mandar o WebView para o provedor. O URL é aberto pelo
+         navegador do sistema e retorna por oaze://auth. */
+      skipBrowserRedirect: p !== 'web',
     },
   });
   if (error) throw friendly(error.message);
+  if (p === 'web') return;
+  if (!data.url) throw new Error('Não consegui abrir o login. Tente novamente.');
+  if (p === 'android' || p === 'ios') {
+    const { Browser } = await import('@capacitor/browser');
+    await Browser.open({ url: data.url });
+  } else {
+    const { openUrl } = await import('@tauri-apps/plugin-opener');
+    await openUrl(data.url);
+  }
 }
 
 /**
@@ -124,10 +137,12 @@ export async function signInWithProvider(provider: 'google' | 'apple'): Promise<
  * `appUrlOpen` do Capacitor e pelo `deep-link` do Tauri.
  */
 export async function completeOAuthFromUrl(url: string): Promise<boolean> {
+  let callback: URL;
+  try { callback = new URL(url); } catch { return false; }
+  if (callback.protocol !== 'oaze:' || callback.hostname !== 'auth') return false;
   const c = await api();
   if (!c) return false;
-  const frag = url.includes('#') ? url.slice(url.indexOf('#') + 1) : '';
-  const params = new URLSearchParams(frag || url.slice(url.indexOf('?') + 1));
+  const params = new URLSearchParams(callback.hash.slice(1) || callback.search.slice(1));
   const access_token = params.get('access_token');
   const refresh_token = params.get('refresh_token');
   const code = params.get('code');
@@ -178,7 +193,7 @@ async function must() {
 
 function redirectTo(path = '/app'): string {
   /* app instalado volta por esquema próprio; navegador volta para a origem */
-  return platform() === 'web' ? `${location.origin}${path}` : `oaze://auth${path}`;
+  return platform() === 'web' ? `${location.origin}${path}` : 'oaze://auth';
 }
 
 /** Mensagem do provedor traduzida para algo que a pessoa possa agir. */

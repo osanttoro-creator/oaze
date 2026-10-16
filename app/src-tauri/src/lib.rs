@@ -19,8 +19,16 @@ use tauri_plugin_deep_link::DeepLinkExt;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        /* No Windows, o callback chega a um segundo processo. Ele repassa o
+           deep link à janela que já está aberta antes de encerrar. */
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             vault::oaze_data_key,
@@ -76,7 +84,16 @@ pub fn run() {
         .expect("error while building tauri application");
 }
 
-/// O lado web avisa que já está escutando. Sem isto, um link que abre o app do
-/// zero dispararia o evento antes de haver alguém para ouvir.
+/// O lado web avisa que já está escutando e lê URLs que abriram o app frio.
+/// Sem isto, o callback pode chegar antes do listener e desaparecer.
 #[tauri::command]
-fn oaze_deep_link_ready() {}
+fn oaze_deep_link_ready(app: tauri::AppHandle) -> Vec<String> {
+    app.deep_link()
+        .get_current()
+        .ok()
+        .flatten()
+        .unwrap_or_default()
+        .into_iter()
+        .map(|url| url.to_string())
+        .collect()
+}

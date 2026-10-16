@@ -239,8 +239,11 @@ export async function haptic(kind: HapticKind = 'light'): Promise<void> {
 async function installDeepLinks(): Promise<void> {
   const handle = async (url: string) => {
     try {
-      if (url.includes('access_token') || url.includes('code=')) {
-        await completeOAuthFromUrl(url);
+      if (await completeOAuthFromUrl(url)) {
+        if (platform() === 'ios' || platform() === 'android') {
+          const { Browser } = await import('@capacitor/browser');
+          await Browser.close().catch(() => {});
+        }
         return;
       }
       const screen = url.split('/app/')[1]?.split(/[?#]/)[0];
@@ -253,13 +256,16 @@ async function installDeepLinks(): Promise<void> {
   if (platform() === 'ios' || platform() === 'android') {
     const { App } = await import('@capacitor/app');
     await App.addListener('appUrlOpen', ({ url }) => void handle(url));
+    const initial = await App.getLaunchUrl().catch(() => undefined);
+    if (initial?.url) await handle(initial.url);
     return;
   }
   const invoke = invoker();
   if (invoke) {
     /* o Rust reencaminha o `deep-link` para o webview como evento de janela */
     window.addEventListener('oaze:deep-link', (e) => void handle((e as CustomEvent<string>).detail));
-    await invoke('oaze_deep_link_ready').catch(() => {});
+    const initial = await invoke<string[]>('oaze_deep_link_ready').catch(() => []);
+    for (const url of initial) await handle(url);
   }
 }
 
