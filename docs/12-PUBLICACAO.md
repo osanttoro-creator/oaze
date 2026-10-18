@@ -1,11 +1,13 @@
 # Teste mobile e preparação para lojas
 
-Estado verificado em 13/10/2026. Código em `G:\Meu Drive\sites\oaze app`. O identificador `site.oaze.app` ainda é uma proposta: confirmar antes de cadastrar o aplicativo nas lojas.
+Estado atualizado em 16/10/2026. Código em `G:\Meu Drive\sites\oaze app`. O identificador `site.oaze.app` ainda é uma proposta: confirmar antes de cadastrar o aplicativo nas lojas.
 
-O [workflow mobile desta revisão](https://github.com/osanttoro-creator/oaze/actions/runs/38433215960)
+O domínio raiz `https://oaze.site/` é a apresentação do produto; a experiência financeira web fica em `https://oaze.site/app`. O site publicado encaminha retornos de autenticação que chegarem à raiz para `/app`. No Android e Windows instalados, o fluxo de login por provedor abre o navegador do sistema e usa `oaze://auth` para voltar ao aplicativo. Cadastrar `oaze://auth` nas URLs de redirecionamento autorizadas do Supabase e testar retorno com o aplicativo fechado antes de promover builds de teste para as lojas. O navegador do usuário precisa permanecer fora da interface do app durante a autenticação.
+
+O [workflow mobile desta revisão](https://github.com/osanttoro-creator/oaze/actions/runs/38976818155)
 passou nos três jobs: web, Android e iOS. Também compilou o AAB Android sem assinatura de loja. O APK com a agenda foi copiado para
-`builds/oaze-android-teste-7.apk` dentro da pasta canônica, com SHA-256
-`F65E35DF2A17ECEF337B15DF0A4841C1F8ED1D13C156F3A557C5C50F9C1C8187`.
+`builds/oaze-android-teste-10.apk` dentro da pasta canônica, com SHA-256
+`0716F298DDDF76E6345EF439048A477A48A563F3CBEA05F4518FEEDB244EE555`.
 O arquivo foi aberto como pacote ZIP/APK e contém os assets web apontando para o
 mesmo projeto Supabase. A instalação e os fluxos em aparelhos reais ainda não
 foram testados.
@@ -14,11 +16,11 @@ foram testados.
 
 No celular ou computador, abra **Meu Drive → sites → oaze app → builds**. Arquivos verificados:
 
-- Android: `oaze-android-teste-7.apk` — SHA-256 `F65E35DF2A17ECEF337B15DF0A4841C1F8ED1D13C156F3A557C5C50F9C1C8187`.
-- Windows x64: `oaze-windows-teste-7.msi` — SHA-256 `A02A03880C2349D40B0B5F79ADAF69AD7586EF364C0932B2CA5237E4D7F0C7BB`; alternativa `oaze-windows-teste-7.exe` — SHA-256 `45FA5A42C0AA80061F7C0D35D0DC94587B6A14EDB688D0E653ED97CCE7455166`.
+- Android: `oaze-android-teste-10.apk` — SHA-256 `0716F298DDDF76E6345EF439048A477A48A563F3CBEA05F4518FEEDB244EE555`.
+- Windows x64: `oaze-windows-teste-10.msi` — SHA-256 `400832E538C24110BF8838C190F2202A2B66B8B0E72F6B4FCDAFAC483AEFB684`; alternativa `oaze-windows-teste-10.exe` — SHA-256 `00DA87541C1B5DB9CD7441B549F3B9DB93AB44215DFBC274C80997BD0578177D`.
 - macOS Apple Silicon: `oaze-macos-teste-7.dmg` — SHA-256 `06B0C940B13752619FEA0AFACDEB5FE6ED8A9C69D58F16BA0ED8B483124236B2`.
 
-O [workflow desktop desta revisão](https://github.com/osanttoro-creator/oaze/actions/runs/38433216036) passou em Windows e macOS. Os instaladores desktop são builds de teste sem assinatura de distribuição, e o DMG desta execução é apenas para Macs Apple Silicon. No iPhone ainda não há pacote instalável: a compilação iOS passou sem assinatura, mas TestFlight requer credenciais Apple.
+O [workflow desktop desta revisão](https://github.com/osanttoro-creator/oaze/actions/runs/38976818160) passou em Windows e macOS. Os instaladores Windows desta revisão são builds de teste sem assinatura de distribuição. O DMG listado acima é anterior a esta revisão e apenas para Macs Apple Silicon. No iPhone ainda não há pacote instalável: a compilação iOS passou sem assinatura, mas TestFlight requer credenciais Apple.
 
 ## Testar no Android
 
