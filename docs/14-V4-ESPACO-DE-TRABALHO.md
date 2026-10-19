@@ -2,7 +2,7 @@
 
 ## Decisão em avaliação
 
-O usuário identificou a opção **“abrir versão teste”** como entrada para o layout preferido. O código instalado oferece **“Ver com dados de exemplo”**, enquanto o site também publica uma prévia em `/preview-v3/`. Ainda falta relacionar a opção vista pelo usuário a uma dessas duas telas por URL ou captura. Comparar as duas antes de escolher a base visual definitiva. A V4 deve viver neste repositório canônico, com o mesmo projeto Supabase; abrir outro app ou outra base de dados criaria mais divergência.
+O usuário identificou a opção **“abrir versão teste”** dentro do aplicativo Windows como entrada para o layout preferido. No código atual, essa entrada é **“Ver com dados de exemplo”**. Ela foi retirada dos builds distribuídos e permanece visível apenas no ambiente de desenvolvimento; espaços de exemplo que alguém já criou localmente não são apagados pela atualização. Usar esse layout como base visual da V4 e portar os fluxos reais da V3. A V4 deve viver neste repositório canônico, com o mesmo projeto Supabase; abrir outro app ou outra base de dados criaria mais divergência.
 
 ## O que a inspeção mostrou
 
@@ -30,4 +30,4 @@ O usuário identificou a opção **“abrir versão teste”** como entrada para
 - Ações financeiras e permissões produzem os mesmos resultados da V3.
 - Windows e Android instalados passam pelos fluxos principais; builds verdes isolados não substituem esse teste.
 
-**Estado:** proposta técnica baseada na inspeção do código e da interface de exemplo local. A entrada usada pelo usuário é “abrir versão teste”; a rota exata e a política de acesso público à demonstração ainda precisam de verificação no produto instalado/publicado.
+**Estado:** a tela de exemplo do aplicativo Windows foi identificada como referência visual; o acesso novo a ela foi retirado da interface de produção. A paridade funcional e a migração dos dados V3 para o espaço V4 ainda estão em implementação.

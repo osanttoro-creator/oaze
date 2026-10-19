@@ -17,6 +17,8 @@ O aplicativo usa o mesmo projeto Supabase do OAZE 1, por URL e chave publicável
 
 Em 18/10, foi confirmado que a lista Auth Redirect URLs tinha somente endereços web: por isso o OAuth terminava em `https://oaze.site/app#home`, fora do aplicativo. `oaze://auth` foi adicionado e confirmado no painel Supabase. O cliente nativo passou ao fluxo PKCE, grava e lê o verificador no cofre assíncrono e só aceita o código de retorno no deep link. Os 231 testes, typecheck, build web e scanner passaram na cópia de validação; a entrada real no instalador atualizado ainda precisa ser testada.
 
+O botão de demonstração do app Windows foi identificado pelo usuário como a entrada indevida. Nos builds de produção, a entrada “Ver com dados de exemplo” deixa de aparecer; a tela permanece acessível no ambiente de desenvolvimento para orientar a V4. A atualização preserva os espaços locais que já tenham sido criados.
+
 `VITE_OAZE_SYNC_ENABLED=false` ainda é intencional. Faltam teste autenticado do fluxo completo com dois dispositivos, resolução de conflito real e recuperação offline antes de ligar a sincronização financeira em builds distribuídos. A conta e o login podem funcionar com a chave publicável configurada; isso não significa que os dados financeiros já apareçam em outro aparelho. O login Google/Apple abre o navegador do sistema e deve retornar pelo esquema `oaze://auth`; o callback no Android cobre abertura fria e no desktop registra instância única. A URL agora está permitida no Supabase; faltam instalação atualizada e teste real dos provedores. Recuperação de senha usa o formulário do site.
 
 ## Builds e publicação
