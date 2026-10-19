@@ -2,6 +2,8 @@ import { isDesktopShell, platform, registerBiometrics, type Biometrics } from '.
 import { completeOAuthFromUrl } from '../core/auth';
 import { reportHandled } from '../core/telemetry';
 
+const authFailed = () => window.dispatchEvent(new CustomEvent('oaze:auth-error'));
+
 /*
   Ligar o que é nativo — P3 e P12 da auditoria.
 
@@ -246,10 +248,17 @@ async function installDeepLinks(): Promise<void> {
         }
         return;
       }
+      let callback: URL | null = null;
+      try { callback = new URL(url); } catch { /* outros links são ignorados */ }
+      if (callback?.protocol === 'oaze:' && callback.hostname === 'auth') {
+        authFailed();
+        return;
+      }
       const screen = url.split('/app/')[1]?.split(/[?#]/)[0];
       if (screen && /^[a-z-]{1,24}$/.test(screen)) location.hash = `/${screen}`;
     } catch (err) {
       reportHandled(err, 'deep link');
+      authFailed();
     }
   };
 

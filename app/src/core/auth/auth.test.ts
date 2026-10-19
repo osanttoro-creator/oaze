@@ -221,8 +221,8 @@ describe('caminhos sem senha', () => {
     await signInWithProvider('google');
     expect(fake.chamadas).toContain('oauth:google:oaze://auth:true');
     expect(fake.chamadas).toContain('browser:open');
-    expect(await completeOAuthFromUrl('oaze://auth#access_token=a&refresh_token=b')).toBe(true);
-    expect(fake.chamadas).toContain('setSession');
+    expect(await completeOAuthFromUrl('oaze://auth?code=abc')).toBe(true);
+    expect(fake.chamadas).toContain('exchangeCode');
   });
 
   it('Windows abre o provedor no navegador padrão', async () => {
@@ -238,6 +238,11 @@ describe('caminhos sem senha', () => {
     expect(await completeOAuthFromUrl('https://outro.site/?code=abc')).toBe(false);
     expect(await completeOAuthFromUrl('oaze://outro?code=abc')).toBe(false);
     expect(fake.chamadas).not.toContain('exchangeCode');
+  });
+
+  it('recusa tokens implícitos em links que qualquer aplicativo pode forjar', async () => {
+    expect(await completeOAuthFromUrl('oaze://auth#access_token=a&refresh_token=b')).toBe(false);
+    expect(fake.chamadas).not.toContain('setSession');
   });
 });
 

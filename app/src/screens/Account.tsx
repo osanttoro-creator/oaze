@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Button, Card, Input, Loading } from '../design-system';
 import { hasAccountBackend, hasSyncBackend } from '../core/api/client';
 import {
@@ -37,6 +37,12 @@ export function Account() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const syncReady = hasSyncBackend();
+
+  useEffect(() => {
+    const onAuthError = () => setError('Não foi possível concluir a entrada. Tente de novo no aplicativo.');
+    window.addEventListener('oaze:auth-error', onAuthError);
+    return () => window.removeEventListener('oaze:auth-error', onAuthError);
+  }, []);
 
   if (!hasAccountBackend()) {
     return (

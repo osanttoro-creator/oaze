@@ -143,13 +143,10 @@ export async function completeOAuthFromUrl(url: string): Promise<boolean> {
   const c = await api();
   if (!c) return false;
   const params = new URLSearchParams(callback.hash.slice(1) || callback.search.slice(1));
-  const access_token = params.get('access_token');
-  const refresh_token = params.get('refresh_token');
   const code = params.get('code');
-  if (access_token && refresh_token) {
-    const { error } = await c.auth.setSession({ access_token, refresh_token });
-    return !error;
-  }
+  /* A URL pode ser disparada por qualquer aplicativo. Aceitar tokens prontos
+     permitiria forçar uma sessão alheia; só o código ligado ao verificador
+     PKCE criado neste aparelho pode concluir a entrada. */
   if (code) {
     const { error } = await c.auth.exchangeCodeForSession(code);
     return !error;
