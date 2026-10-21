@@ -6,17 +6,12 @@ import { deleteTransaction, setCategories, toggleConfirmed } from '../state/acti
 import { entriesForMonth, methodLabel, monthTotals, type Entry } from '../domain/calc';
 import { dayMonth, monthName, parseISO, todayYM } from '../domain/dates';
 import { stripAccents } from '../domain/merchant';
-import type { Method, Workspace, YM } from '../domain/types';
-import { Icon, type IconName } from '../ui/Icon';
+import type { Workspace, YM } from '../domain/types';
+import { Icon } from '../ui/Icon';
+import { METHOD_ICON } from '../ui/method-icons';
 import { Empty, Money, ScreenHead, Sheet } from '../ui/bits';
 import { CardThumb, walletItems, type WalletItem } from '../ui/Cards';
 import { MonthSwitch } from './Home';
-
-export const METHOD_ICON: Record<Method, IconName> = {
-  pix: 'qr-code', cartao_fisico: 'credit-card', cartao_virtual: 'smartphone', dinheiro: 'banknote',
-  boleto: 'barcode', debito_automatico: 'refresh-cw', transferencia: 'landmark', deposito: 'piggy-bank',
-  nao_informado: 'circle-ellipsis',
-};
 
 type Filter = 'todos' | 'pix' | 'cartoes' | 'debito' | 'credito';
 const FILTERS: [Filter, string][] = [['todos', 'Todos'], ['pix', 'Pix'], ['cartoes', 'Cartões'], ['debito', 'Débito'], ['credito', 'Crédito']];

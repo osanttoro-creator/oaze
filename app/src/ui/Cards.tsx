@@ -50,7 +50,7 @@ export function BankTile({ bank, small }: { bank: string; small?: boolean }) {
   );
 }
 
-export function BankCard({ item, style, onClick, full, label }: { item: WalletItem; style?: CSSProperties; onClick?: () => void; full?: boolean; label?: string }) {
+export function BankCard({ item, style, onClick, full, label, hidden = false }: { item: WalletItem; style?: CSSProperties; onClick?: () => void; full?: boolean; label?: string; hidden?: boolean }) {
   return (
     <div
       className="bank-card"
@@ -58,8 +58,14 @@ export function BankCard({ item, style, onClick, full, label }: { item: WalletIt
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      aria-hidden={hidden || undefined}
       aria-label={label ?? `${item.name} ${item.kind === 'credito' ? 'crédito' : 'débito'}${item.last4 ? ` final ${item.last4}` : ''}`}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.()}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="card-top">
         <BankTile bank={item.bank} />

@@ -9,6 +9,7 @@ const CARD_H = 200;
 export interface WalletProps {
   items: WalletItem[];
   picked: string | null;
+  open?: boolean;
   onPick: (id: string) => void;
   onPocket: () => void;
   eyebrow: string;
@@ -22,27 +23,33 @@ export interface WalletProps {
  * Os cartões moram dentro da carteira. Fechada, só a faixa de cima de cada um
  * aparece; tocar num cartão tira ele do bolso e empurra o bolso para baixo.
  */
-export function Wallet({ items, picked, onPick, onPocket, eyebrow, badge, value, sub, hint }: WalletProps) {
+export function Wallet({ items, picked, open = true, onPick, onPocket, eyebrow, badge, value, sub, hint }: WalletProps) {
   const n = items.length;
-  const pocketTop = picked ? CARD_H + 36 : Math.max(24, (n - 1) * STRIP + 40);
+  const pocketTop = !open ? 0 : picked ? CARD_H + 36 : Math.max(24, (n - 1) * STRIP + 40);
   let tucked = 0;
 
   return (
     <div className="wallet" style={{ height: pocketTop + POCKET_H }}>
       {items.map((item, i) => {
         const isPicked = item.id === picked;
-        const top = picked == null ? i * STRIP : isPicked ? 0 : pocketTop - 30 + tucked++ * 5;
+        const top = !open ? 0 : picked == null ? i * STRIP : isPicked ? 0 : pocketTop - 30 + tucked++ * 5;
         return (
           <BankCard
             key={item.id}
             item={item}
             full={isPicked}
-            onClick={() => onPick(item.id)}
+            onClick={open ? () => onPick(item.id) : undefined}
+            hidden={!open}
             style={{ transform: `translateY(${top}px)`, zIndex: isPicked ? 30 : i + 1, boxShadow: isPicked ? 'var(--shadow-float)' : undefined }}
           />
         );
       })}
-      <div className="pocket" style={{ transform: `translateY(${pocketTop}px)` }} onClick={onPocket}>
+      <div className="pocket" role="button" tabIndex={0} aria-expanded={open} aria-label={open ? 'Recolher cartões da carteira' : 'Mostrar cartões da carteira'} style={{ transform: `translateY(${pocketTop}px)` }} onClick={onPocket} onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onPocket();
+        }
+      }}>
         <svg className="shape" viewBox="0 0 360 208" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id="pocketFill" x1="0" y1="0" x2="0" y2="1">

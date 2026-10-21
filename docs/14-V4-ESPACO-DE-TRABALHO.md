@@ -30,4 +30,8 @@ O usuário identificou a opção **“abrir versão teste”** dentro do aplicat
 - Ações financeiras e permissões produzem os mesmos resultados da V3.
 - Windows e Android instalados passam pelos fluxos principais; builds verdes isolados não substituem esse teste.
 
+## Primeiro incremento no app
+
+Na tela Início, tocar um cartão agora abre e recolhe o plástico dentro da própria carteira; o bolso mostra o saldo da conta ou a fatura do cartão selecionado. Tocar no bolso alterna a exposição dos cartões, inclusive por teclado, e cartões ocultos deixam de receber foco. A grade desktop passa a permitir encolhimento das colunas e empilha os painéis internos nas larguras intermediárias. No celular, a entrada da Coco usa as partículas dentro do conteúdo para não cobrir o resumo financeiro. A prévia local com dados de exemplo foi inspecionada em 390 e 1280 px; testes, tipagem e build passaram. Isso não valida dados reais nem ativa sincronização financeira.
+
 **Estado:** a tela de exemplo do aplicativo Windows foi identificada como referência visual; o acesso novo a ela foi retirado da interface de produção. A paridade funcional e a migração dos dados V3 para o espaço V4 ainda estão em implementação.

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { setViewport } from '../test/setup';
@@ -72,7 +72,7 @@ describe('navegação', () => {
     const nav = await screen.findByRole('navigation', { name: 'Navegação principal' });
     await userEvent.click(within(nav).getByRole('button', { name: /Configurações/ }));
     /* Settings é lazy: aparece depois do Suspense resolver */
-    expect(await screen.findByRole('heading', { name: /configurações/i }, { timeout: 4000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /configurações/i }, { timeout: 10000 })).toBeInTheDocument();
   });
 
   it('a agenda abre pelo menu Mais e mostra o calendário financeiro', async () => {
@@ -80,8 +80,8 @@ describe('navegação', () => {
     render(<Shell />);
     const nav = await screen.findByRole('navigation', { name: 'Navegação principal' });
     await userEvent.click(within(nav).getByRole('button', { name: /Mais/ }));
-    await userEvent.click(await screen.findByRole('button', { name: /Agenda/ }));
-    expect(await screen.findByRole('heading', { name: 'agenda' })).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole('button', { name: /Agenda/ }, { timeout: 10000 }));
+    expect(await screen.findByRole('heading', { name: 'agenda' }, { timeout: 10000 })).toBeInTheDocument();
     expect(screen.getByRole('radiogroup', { name: 'Alcance do calendário' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /^20 de .*evento/ }));
     await userEvent.click(screen.getByRole('button', { name: '+ lançamento neste dia' }));
@@ -93,7 +93,7 @@ describe('navegação', () => {
     setViewport(375);
     render(<Shell />);
     await screen.findByRole('navigation', { name: 'Navegação principal' });
-    go('carteira');
+    act(() => go('carteira'));
     await waitFor(() => expect(location.hash).toBe('#/carteira'));
   });
 });

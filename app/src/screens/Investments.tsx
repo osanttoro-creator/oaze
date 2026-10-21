@@ -7,8 +7,8 @@ import { addMonths, monthLabel, todayYM } from '../domain/dates';
 import { brl } from '../domain/money';
 import type { InvestmentType } from '../domain/types';
 import { Icon } from '../ui/Icon';
+import { TINTS } from '../ui/chart-colors';
 import { CocoFace, Money, ScreenHead } from '../ui/bits';
-import { TINTS } from './Home';
 
 const TYPE: Record<InvestmentType, string> = { tesouro: 'Tesouro Direto', cdb: 'CDB', fii: 'Fundo imobiliário', acoes: 'Ações', outros: 'Outros' };
 

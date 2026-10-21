@@ -8,9 +8,9 @@ import { compound } from '../domain/calc';
 import { addDaysISO, todayISO } from '../domain/dates';
 import type { ID, InvestmentType, Method } from '../domain/types';
 import { Icon } from '../ui/Icon';
+import { METHOD_ICON } from '../ui/method-icons';
 import { CocoFace, Seg, Sheet, Toggle } from '../ui/bits';
 import { CardThumb, walletItems } from '../ui/Cards';
-import { METHOD_ICON } from './Transactions';
 
 const PAY: Method[] = ['pix', 'cartao_fisico', 'cartao_virtual', 'dinheiro', 'boleto', 'debito_automatico', 'transferencia'];
 const RECEIVE: Method[] = ['pix', 'transferencia', 'dinheiro', 'deposito', 'boleto'];

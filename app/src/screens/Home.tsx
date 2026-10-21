@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { useApp, useWorkspace, updateSettings } from '../state/store';
 import { go, openCoco, openNovo } from '../state/route';
 import { useDesktop } from '../state/session';
+import { OazeIntelligence, type FieldState } from '../design-system';
+import { useSyncStatus } from '../core/sync/engine';
 import {
-  categoryTotals, currentBalance, dueItems, investedTotal, monthTotals, monthWave, openInvoicesTotal, totalBalance,
+  accountBalance, categoryTotals, currentBalance, currentInvoiceRef, dueItems, investedTotal, invoice, monthTotals, monthWave, openInvoicesTotal, totalBalance,
 } from '../domain/calc';
 import { addDaysISO, addMonths, dayMonth, monthEnd, monthLabel, monthName, monthStart, parseISO, todayISO, todayYM } from '../domain/dates';
 import { Icon } from '../ui/Icon';
+import { TINTS } from '../ui/chart-colors';
 import { CocoFace, Money } from '../ui/bits';
 import { Wallet } from '../ui/Wallet';
 import { walletItems } from '../ui/Cards';
@@ -15,8 +18,6 @@ import { brl } from '../domain/money';
 import { suggestions, countWord } from '../coco/engine';
 import type { YM } from '../domain/types';
 import type { EntryType } from '../state/actions';
-
-export const TINTS = ['#5FA99B', '#8FB0C0', '#F0E5CF', '#6F9AA8', '#A9CFC6', '#C9D3D6', '#4E8B80'];
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -55,7 +56,10 @@ export function Home() {
   const w = useWorkspace();
   const owner = useApp((s) => s.owner.name);
   const decided = useApp((s) => s.cocoDecisions);
+  const sync = useSyncStatus();
   const [ym, setYm] = useState<YM>(todayYM());
+  const [picked, setPicked] = useState<string | null>(null);
+  const [cardsOpen, setCardsOpen] = useState(true);
 
   const accounts = currentBalance(w);
   const invested = investedTotal(w);
@@ -64,6 +68,10 @@ export function Home() {
   const before = totalBalance(w, lastMonthEnd);
   const change = before > 0 ? ((total - before) / before) * 100 : null;
   const items = walletItems(w.accounts, w.cards, owner.toUpperCase());
+  const selected = items.find((item) => item.id === picked);
+  const selectedCard = selected?.kind === 'credito' ? w.cards.find((card) => card.id === selected.id) : null;
+  const selectedInvoice = selectedCard ? invoice(w, selectedCard.id, currentInvoiceRef(w, selectedCard)) : null;
+  const walletValue = selected?.kind === 'debito' ? accountBalance(w, selected.id) : selectedCard ? selectedInvoice?.remaining ?? 0 : total;
 
   const t = monthTotals(w, ym);
   const isNow = ym === todayYM();
@@ -73,6 +81,7 @@ export function Home() {
   const dueEnd = monthEnd(todayYM()) > addDaysISO(todayISO(), 10) ? monthEnd(todayYM()) : addDaysISO(todayISO(), 10);
   const due = dueItems(w, todayISO(), dueEnd).slice(0, 4);
   const pending = suggestions(w, decided).filter((s) => !decided[s.id]).length;
+  const intelligenceState: FieldState = sync.phase === 'error' ? 'error' : sync.phase === 'syncing' ? 'processing' : pending ? 'thinking' : 'idle';
 
   const quick: [EntryType, string, Parameters<typeof Icon>[0]['name']][] = [
     ['despesa', 'Despesa', 'arrow-up-right'], ['receita', 'Receita', 'arrow-down-left'], ['transf', 'Transferir', 'arrow-left-right'], ['aporte', 'Aporte', 'sprout'],
@@ -81,14 +90,18 @@ export function Home() {
   const wallet = (
     <Wallet
       items={items}
-      picked={null}
-      onPick={(id) => go('carteira', id)}
-      onPocket={() => go('carteira')}
-      eyebrow="saldo total"
-      badge={change != null && <span className={`mono small ${change >= 0 ? 'in' : 'out'}`}>{change >= 0 ? '▲' : '▼'} {Math.abs(change).toFixed(1).replace('.', ',')}% vs {monthLabel(addMonths(todayYM(), -1)).slice(0, 3)}</span>}
-      value={<Money value={total} />}
-      sub={<><Money value={accounts} /> em contas · <Money value={invested} /> investidos</>}
-      hint={items.length ? 'toque num cartão para abrir' : 'adicione uma conta na carteira'}
+      picked={selected?.id ?? null}
+      open={cardsOpen}
+      onPick={(id) => setPicked(picked === id ? null : id)}
+      onPocket={() => {
+        setPicked(null);
+        setCardsOpen((open) => !open);
+      }}
+      eyebrow={selected ? selected.kind === 'credito' ? 'fatura do cartão' : 'saldo da conta' : 'saldo total'}
+      badge={!selected && change != null && <span className={`mono small ${change >= 0 ? 'in' : 'out'}`}>{change >= 0 ? '▲' : '▼'} {Math.abs(change).toFixed(1).replace('.', ',')}% vs {monthLabel(addMonths(todayYM(), -1)).slice(0, 3)}</span>}
+      value={<Money value={walletValue} />}
+      sub={selected ? <>{selected.name} · {selected.kind === 'credito' ? 'crédito' : 'débito'}</> : <><Money value={accounts} /> em contas · <Money value={invested} /> investidos</>}
+      hint={!cardsOpen ? 'toque para mostrar os cartões' : selected ? 'toque no cartão para guardar' : items.length ? 'toque num cartão para abrir' : 'adicione uma conta na carteira'}
     />
   );
 
@@ -101,6 +114,14 @@ export function Home() {
         </button>
       ))}
     </div>
+  );
+
+  const cocoCta = (
+    <button type="button" className="coco-cta" onClick={() => openCoco('agora')} aria-label={desktop ? undefined : `Abrir a Coco, ${pending ? `${countWord(pending)} ${pending === 1 ? 'pendência' : 'pendências'}` : 'sem pendências'}`}>
+      {desktop ? <CocoFace mood="feliz" size={64} /> : <OazeIntelligence state={intelligenceState} size={64} label={null} className="home-intelligence" />}
+      <span className="grow">{pending ? `${countWord(pending).replace(/^./, (c) => c.toUpperCase())} ${pending === 1 ? 'coisa' : 'coisas'} para ver` : 'Tudo em dia com a Coco'}</span>
+      <Icon name="chevron-right" />
+    </button>
   );
 
   const monthPanel = (
@@ -184,11 +205,7 @@ export function Home() {
           <div>
             {wallet}
             {quickRow}
-            <button type="button" className="coco-cta" onClick={() => openCoco('agora')}>
-              <CocoFace mood="feliz" size={64} />
-              <span className="grow">{pending ? `${countWord(pending).replace(/^./, (c) => c.toUpperCase())} ${pending === 1 ? 'coisa' : 'coisas'} para ver` : 'Tudo em dia com a Coco'}</span>
-              <Icon name="chevron-right" />
-            </button>
+            {cocoCta}
           </div>
           <div>
             {monthPanel}
@@ -216,6 +233,7 @@ export function Home() {
       </header>
       {wallet}
       {quickRow}
+      {cocoCta}
       {monthPanel}
       {catPanel}
       {duePanel}
