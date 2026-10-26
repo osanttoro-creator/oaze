@@ -45,6 +45,8 @@ O mesmo workflow compila o projeto iOS com Xcode 26 ou superior e **sem assinatu
 
 ## Preparação da Google Play
 
+O AAB atual usa `VITE_OAZE_DISTRIBUTION=play`: mostra a assinatura existente, mas não abre checkout ou portal Stripe. O OAZE vende acesso a recursos digitais de gestão financeira; compra dentro do app da Play exige Play Billing ou enquadramento em programa permitido. O APK distribuído fora da Play e o Windows continuam com Stripe. O painel empacotado exige login; a descrição antiga de uso completo sem conta pertence ao cliente anterior e não vale para o app publicado nesta revisão.
+
 - Android usa `targetSdkVersion 36` — Android 16, exigido pelo Google para novos envios desde 31/08/2026.
 - `app-android.yml` gera AAB assinado quando as variáveis públicas do Supabase e os quatro segredos da chave de upload estiverem configurados.
 - **Canal.** O workflow pergunta `teste` ou `producao`. `teste` aceita a

@@ -48,11 +48,9 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # Conta é exigência dos dois canais: um app de loja sem conta configurada
-      # não deixa ninguém entrar. Sincronização desligada é aceitável no canal
-      # de testes — sem conta o app funciona inteiro, isolado no aparelho, e
-      # isso é promessa do produto, não limitação. Produção exige o teste real
-      # entre dois aparelhos (docs/12-PUBLICACAO.md).
+      # O painel publicado exige conta. O canal de testes tolera a flag antiga
+      # de sincronização desligada, mas isso não libera uso sem login.
+      # Produção exige teste real da conta em dois aparelhos.
       - name: Confere o que o canal exige
         shell: bash
         run: |

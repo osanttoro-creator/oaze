@@ -129,7 +129,7 @@ duas antes de marcar, porque esta declaração é verificada.
 | Compartilha conteúdo criado por usuários | não |
 | Permite comunicação entre usuários | não |
 | Compartilha localização | não |
-| Permite compras digitais | 🟡 falta decidir — depende da decisão sobre plano |
+| Permite compras digitais | Não no AAB atual: plano existente é consultado, mas a compra no app está bloqueada até integrar Play Billing ou programa permitido. Confirmar a redação exata na versão enviada. |
 | Coleta dado pessoal | sim: e-mail, e só com conta |
 
 ## 5. Microsoft Store — ficha do produto
