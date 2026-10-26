@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -16,13 +17,64 @@ interface SiteAuth {
 type NativeWindow = Window & {
   SiteAuth?: SiteAuth;
   OAZE_NATIVE_AUTH_READY?: Promise<void>;
-  __TAURI_INTERNALS__?: { invoke: <T>(command: string) => Promise<T> };
+  __TAURI_INTERNALS__?: { invoke: <T>(command: string, args?: Record<string, unknown>) => Promise<T> };
+  OAZE_NATIVE_NOTIFICATIONS?: {
+    request(): Promise<boolean>;
+    schedule(items: Array<{ id: number; at: string }>): Promise<void>;
+    cancel(): Promise<void>;
+  };
+  OAZE_NATIVE_OPEN_EXTERNAL?: (url: string) => Promise<void>;
+  OAZE_BILLING_READONLY?: boolean;
 };
 
 const nativeWindow = window as NativeWindow;
 const android = Capacitor.getPlatform() === 'android';
 const desktop = !!nativeWindow.__TAURI_INTERNALS__;
 const auth = nativeWindow.SiteAuth;
+nativeWindow.OAZE_BILLING_READONLY = android && import.meta.env.VITE_OAZE_DISTRIBUTION === 'play';
+
+if (android || desktop) {
+  nativeWindow.OAZE_NATIVE_OPEN_EXTERNAL = async (url) => {
+    if (!/^https:\/\/(checkout|billing)\.stripe\.com\//.test(url)) {
+      throw new Error('Endereço de cobrança inválido.');
+    }
+    if (android) await Browser.open({ url });
+    else await openUrl(url);
+  };
+}
+
+if (android || desktop) {
+  nativeWindow.OAZE_NATIVE_NOTIFICATIONS = {
+    async request() {
+      if (android) return (await LocalNotifications.requestPermissions()).display === 'granted';
+      return nativeWindow.__TAURI_INTERNALS__!.invoke<boolean>('oaze_notify_request');
+    },
+    async cancel() {
+      if (android) {
+        const pending = await LocalNotifications.getPending();
+        const ours = pending.notifications.filter(({ id }) => id >= 3100000 && id < 4100000);
+        if (ours.length) await LocalNotifications.cancel({ notifications: ours });
+      } else {
+        await nativeWindow.__TAURI_INTERNALS__!.invoke('oaze_notify_cancel_all');
+      }
+    },
+    async schedule(items) {
+      await this.cancel();
+      if (android) {
+        if (!items.length) return;
+        await LocalNotifications.schedule({ notifications: items.map(({ id, at }) => ({
+          id, title: 'Lembrete OAZE', body: 'Você tem um compromisso financeiro próximo. Abra o OAZE para conferir.',
+          schedule: { at: new Date(at) },
+        })) });
+      } else {
+        await nativeWindow.__TAURI_INTERNALS__!.invoke('oaze_notify_schedule', {
+          items: items.map(({ id, at }) => ({ id,
+            title: 'Lembrete OAZE', body: 'Abra o OAZE para conferir seus próximos compromissos.', at: new Date(at).toISOString() })),
+        });
+      }
+    },
+  };
+}
 
 if (auth) {
   auth.destino = () => '/index.html';

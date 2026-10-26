@@ -1,8 +1,12 @@
-# OAZE 2 — estado em 25/10/2026
+# OAZE app — estado em 26/10/2026
 
-## Correção em andamento: painel publicado no app
+## Revisão 2.0.3 em preparação
 
-Os pacotes de teste Android 16 e Windows 13 mostram uma interface diferente da disponível em `https://oaze.site/app`. Eles foram substituídos como alvo de desenvolvimento pela versão 2.0.2, que empacota o painel publicado em `app/live-site/` e usa `app/dist-live/` nos shells Android e Windows. Ver `18-PAINEL-PUBLICADO-NO-APP.md`. Até saírem e serem instalados os novos binários, os links antigos nesta página são apenas histórico de teste, não a entrega atual.
+Entrada animada, áreas seguras da câmera, layout adaptativo para aparelhos dobráveis, consulta de cobrança e portal Stripe autenticado, controle contextual de notificações e fundo WebGL refinado foram implementados na pasta do app. A função `oaze-billing-portal` está ativa no Supabase; ainda não foi testada com uma assinatura real. O AAB da Google Play omite compra e portal Stripe até existir Play Billing ou programa permitido. `docs/19-ENTRADA-COBRANCA-AVISOS-E-DOBRAVEIS.md` registra o comportamento e os testes pendentes. A suíte local passou (241 testes, typecheck, builds e scanner); essa suíte não comprova a operação instalada em Android/Windows.
+
+## Painel publicado no app
+
+Os pacotes de teste Android 16 e Windows 13 mostravam uma interface diferente da disponível em `https://oaze.site/app`. A versão 2.0.2 passou a empacotar o painel publicado em `app/live-site/` e a usar `app/dist-live/` nos shells Android e Windows. Ver `18-PAINEL-PUBLICADO-NO-APP.md`. Os links de builds antigos nesta página são histórico; conferir o número de versão antes de instalar.
 
 O projeto canônico está em `G:\Meu Drive\sites\oaze app`. O remoto Git configurado é `https://github.com/osanttoro-creator/oaze.git`. O site público OAZE 1 continua separado, e migrou junto para o Drive: ele está em `G:\Meu Drive\sites\OAZE\o site`, não mais em `Downloads`.
 

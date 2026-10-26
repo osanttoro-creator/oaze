@@ -259,6 +259,7 @@
     const notificationCount = notificationSeen() === notificationSignature(alerts) ? 0 : alerts.length;
     $('#v3-notification-dot').hidden = !notificationCount;
     $('#v3-notification-dot').textContent = notificationCount > 9 ? '9+' : String(notificationCount);
+    if (nativeNotificationsEnabled()) void syncNativeNotifications().catch(() => {});
     $('[data-action="privacy"]').setAttribute('aria-pressed', String(state.hideMoney));
     $('[data-action="privacy"]').setAttribute('aria-label', state.hideMoney ? 'Mostrar valores' : 'Ocultar valores');
   }
@@ -1349,11 +1350,49 @@
     return String(hash >>> 0);
   }
   function notificationSeen() { try { return sessionStorage.getItem(notificationStorageKey()); } catch { return null; } }
+  let scheduledNotificationKey = '';
+  function nativeNotificationsEnabled() {
+    try { return localStorage.getItem('oaze.native.reminders') === 'yes'; } catch { return false; }
+  }
+  async function syncNativeNotifications() {
+    const native = global.OAZE_NATIVE_NOTIFICATIONS;
+    if (demo || !native || !nativeNotificationsEnabled()) return;
+    const list = reminders();
+    const key = `${notificationStorageKey()}:${notificationSignature(list)}`;
+    if (key === scheduledNotificationKey) return;
+    const now = Date.now();
+    const items = list.map((entry, index) => {
+      const due = new Date(`${entry.date}T09:00:00`);
+      if (!Number.isFinite(due.getTime()) || due.getTime() <= now) return null;
+      return { id: 3100000 + index, at: due.toISOString() };
+    }).filter(Boolean);
+    await native.schedule(items);
+    scheduledNotificationKey = key;
+  }
+  async function toggleNativeNotifications() {
+    const native = global.OAZE_NATIVE_NOTIFICATIONS;
+    if (!native || demo) return;
+    if (nativeNotificationsEnabled()) {
+      try { await native.cancel(); } catch { toast('Não consegui cancelar os avisos do sistema.'); return; }
+      try { localStorage.removeItem('oaze.native.reminders'); } catch { /* preferência local */ }
+      scheduledNotificationKey = '';
+      toast('Avisos do sistema desligados neste aparelho.');
+    } else {
+      let granted = false;
+      try { granted = await native.request(); } catch { /* permissão recusada */ }
+      if (!granted) { toast('Permissão não concedida. Você ainda pode ver os lembretes aqui.'); return; }
+      try { localStorage.setItem('oaze.native.reminders', 'yes'); await syncNativeNotifications(); }
+      catch { try { localStorage.removeItem('oaze.native.reminders'); } catch {} toast('Não consegui programar os avisos.'); return; }
+      toast('Avisos do sistema ligados neste aparelho.');
+    }
+    openNotifications();
+  }
   function openNotifications() {
     const list=reminders();
     try { sessionStorage.setItem(notificationStorageKey(),notificationSignature(list)); } catch { /* navegador sem sessão */ }
     $('#v3-notification-dot').hidden=true;
-    openSheet(`${sheetTop('notificações','próximos 30 dias')}<div class="v3-notification-list">${list.length ? list.map((item) => `<div class="v3-notification-item"><span class="v3-date">${esc(item.date.slice(8,10))}<small>${esc(shortDate(item.date).split(' ')[1].toUpperCase())}</small></span><span><strong>${esc(item.title)}</strong><small>${esc(item.sub || 'previsto')}</small></span><strong class="v3-mono v3-sensitive">${money(item.amount)}</strong></div>`).join('') : '<p class="v3-muted">Nenhuma notificação pendente.</p>'}</div><div class="v3-notification-actions"><button type="button" class="v3-secondary" data-go="calendar">Abrir agenda</button>${Object.keys(askSilenced()).length ? `<button type="button" class="v3-secondary" data-action="reset-asks">Reativar avisos ocultos</button>` : ''}</div>`, 'Notificações');
+    const permission = global.OAZE_NATIVE_NOTIFICATIONS && !demo ? `<div class="v3-notification-permission"><strong>Avisos neste aparelho</strong><p>${nativeNotificationsEnabled() ? 'Ligados. Você receberá um lembrete no dia do vencimento, às 9h.' : 'Desligados. Ative quando quiser receber avisos fora do app.'}</p><button type="button" class="v3-secondary" data-action="toggle-native-notifications">${nativeNotificationsEnabled() ? 'Desligar avisos' : 'Ativar avisos'}</button><small>${global.__TAURI_INTERNALS__ ? 'No computador, os avisos funcionam enquanto o OAZE estiver aberto.' : 'No Android, o sistema pode adiar avisos para economizar bateria.'}</small></div>` : '';
+    openSheet(`${sheetTop('notificações','próximos 30 dias')}${permission}<p class="v3-muted">Os avisos do sistema não exibem seus valores na tela bloqueada.</p><div class="v3-notification-list">${list.length ? list.map((item) => `<div class="v3-notification-item"><span class="v3-date">${esc(item.date.slice(8,10))}<small>${esc(shortDate(item.date).split(' ')[1].toUpperCase())}</small></span><span><strong>${esc(item.title)}</strong><small>${esc(item.sub || 'previsto')}</small></span><strong class="v3-mono v3-sensitive">${money(item.amount)}</strong></div>`).join('') : '<p class="v3-muted">Nenhuma notificação pendente.</p>'}</div><div class="v3-notification-actions"><button type="button" class="v3-secondary" data-go="calendar">Abrir agenda</button>${Object.keys(askSilenced()).length ? `<button type="button" class="v3-secondary" data-action="reset-asks">Reativar avisos ocultos</button>` : ''}</div>`, 'Notificações');
   }
   function eventosDoMes(ym) {
     const alvo = ym || state.ym;
@@ -1937,7 +1976,13 @@
       ['Recorrências', 'recurring_items']
     ].map(([label,key]) => `<li>${label}: ${Limites.contar(key)} / ${Limites.limite(key) ?? 'sem limite'}</li>`).join('') : '';
     const ai = signed && global.Limites && Limites.consumoIA ? Limites.consumoIA() : null;
-    return `<div class="v3-grid v3-settings"><div><span class="v3-label v3-section-title">CONTA</span><section class="v3-panel">${row('Seus dados', '', 'data-action="account-profile"')}${row('Trocar conta', '', 'data-action="switch-account"')}${row('Sair', '', 'data-action="sign-out"')}${row('Excluir conta', '', 'data-action="delete-account"')}</section><span class="v3-label v3-section-title">SEGURANÇA</span><section class="v3-panel"><div class="v3-setting-row"><span>Sessão e sincronização</span><span>${signed?'Conectada':'Sem sessão'}</span></div><div class="v3-setting-row"><span>PIN do cofre</span><span>na carteira</span></div><div class="v3-setting-row"><span>Biometria</span><span>indisponível na web</span></div></section></div><div><span class="v3-label v3-section-title">PLANO E AJUDA</span><section class="v3-panel">${row('Plano e assinatura', '', 'data-go="plan"')}${signed?`<details class="v3-usage"><summary>Acompanhar recursos utilizados</summary><ul>${usage}${ai?`<li>Coco neste mês: ${ai.usado} / ${ai.limite ?? 'sem limite'}</li>`:''}</ul></details>`:''}<a class="v3-setting-row" href="/suporte"><span>Ajuda e suporte</span><span class="v3-muted">abrir ›</span></a></section><span class="v3-label v3-section-title">COCO E DADOS</span><section class="v3-panel">${row('Notificações', '', 'data-action="notifications"')}</section></div></div>`;
+    return `<div class="v3-grid v3-settings"><div><span class="v3-label v3-section-title">CONTA</span><section class="v3-panel">${row('Seus dados', '', 'data-action="account-profile"')}${row('Trocar conta', '', 'data-action="switch-account"')}${row('Sair', '', 'data-action="sign-out"')}${row('Excluir conta', '', 'data-action="delete-account"')}</section><span class="v3-label v3-section-title">SEGURANÇA</span><section class="v3-panel"><div class="v3-setting-row"><span>Sessão e sincronização</span><span>${signed?'Conectada':'Sem sessão'}</span></div><div class="v3-setting-row"><span>PIN do cofre</span><span>na carteira</span></div><div class="v3-setting-row"><span>Biometria</span><span>indisponível na web</span></div></section></div><div><span class="v3-label v3-section-title">PLANO E AJUDA</span><section class="v3-panel">${row('Plano e assinatura', '', 'data-go="plan"')}${signed?`<details class="v3-usage"><summary>Acompanhar recursos utilizados</summary><ul>${usage}${ai?`<li>Coco neste mês: ${ai.usado} / ${ai.limite ?? 'sem limite'}</li>`:''}</ul></details>`:''}<a class="v3-setting-row" href="/suporte"><span>Ajuda e suporte</span><span class="v3-muted">abrir ›</span></a></section><span class="v3-label v3-section-title">COCO E DADOS</span><section class="v3-panel">${row('Notificações', '', 'data-action="notifications"')}${row('Permissões do aparelho', '', 'data-action="device-permissions"')}</section></div></div>`;
+  }
+  function openDevicePermissions() {
+    const notifications = global.OAZE_NATIVE_NOTIFICATIONS
+      ? `<div class="v3-notification-permission"><strong>Notificações</strong><p>${nativeNotificationsEnabled() ? 'Ativadas neste aparelho.' : 'Desativadas neste aparelho.'} Só solicitamos acesso quando você toca em ativar.</p><button type="button" class="v3-secondary" data-action="notifications">Abrir notificações</button></div>`
+      : '<p>Os lembretes aparecem dentro do OAZE neste navegador.</p>';
+    openSheet(`${sheetTop('permissões do aparelho', 'controle no momento de uso')}<div class="v3-permissions-list">${notifications}<div><strong>Microfone</strong><p>A Coco pede acesso quando você inicia a conversa por voz. O microfone é encerrado ao terminar a conversa.</p></div><div><strong>Câmera e arquivos</strong><p>O seletor do sistema abre apenas quando você escolhe anexar um arquivo ou uma imagem à Coco.</p></div><div><strong>Biometria</strong><p>Não é exigida para entrar. O PIN continua protegendo os dados sensíveis.</p></div><small>Se uma permissão foi negada, altere-a nas configurações do aparelho. O OAZE não consegue mudá-la sozinho.</small></div>`, 'Permissões do aparelho');
   }
   function accountProfileSheet() {
     const owner = V3Backend.user(), data = V3Backend.accountProfile() || {};
@@ -1970,20 +2015,23 @@
   }
   function renderPlan() {
     const list = global.Planos ? Planos.LISTA : [];
+    const playReadonly = !!global.OAZE_BILLING_READONLY;
     const sub = state.subscription, current = sub?.plan_id || 'free';
     const paid = current !== 'free' && ['active', 'past_due', 'canceled'].includes(sub?.status) && (!sub?.current_period_end || new Date(sub.current_period_end) > new Date());
     const linkedSubscription=!!(sub?.stripe_subscription_id || sub?.asaas_subscription_id);
     const period = state.billing === 'annual' ? 'ano' : 'mês';
-    const status = demo ? 'Prévia: nenhuma assinatura é criada aqui.' : state.billingError ? `Não consegui consultar sua assinatura: ${esc(state.billingError)}` : !sub ? 'Consultando sua assinatura…' : paid ? `Plano ${esc(Planos.get(current).nome)} · ${sub.cancel_at_period_end ? 'cancelamento agendado' : sub.status === 'past_due' ? 'pagamento pendente' : 'ativo'}` : 'Seu plano atual é Semente.';
-    return `<div class="v3-plan-head"><div class="v3-segment" role="group" aria-label="Ciclo de cobrança"><button type="button" data-billing="monthly" class="${state.billing === 'monthly' ? 'is-active' : ''}" aria-pressed="${state.billing === 'monthly'}">Mensal</button><button type="button" data-billing="annual" class="${state.billing === 'annual' ? 'is-active' : ''}" aria-pressed="${state.billing === 'annual'}">Anual</button></div></div><p class="v3-plan-status" role="status">${status}</p>${!demo&&paid&&!sub.cancel_at_period_end&&!linkedSubscription?'<p class="v3-plan-alert" role="alert">Não foi possível identificar a assinatura ligada a este plano. <a href="/suporte">Peça ajuda para conferir a cobrança ou cancelar</a> antes de assinar outro.</p>':''}<div class="v3-grid v3-plan-grid">${list.map((p) => {
+    const status = demo ? 'Prévia: nenhuma assinatura é criada aqui.' : state.billingError ? `Não consegui consultar sua assinatura: ${esc(state.billingError)}` : !sub ? 'Consultando sua assinatura…' : sub.status === 'past_due' && sub.stripe_subscription_id ? 'Pagamento pendente. Confira seu cartão e suas cobranças na Stripe.' : paid ? `Plano ${esc(Planos.get(current).nome)} · ${sub.cancel_at_period_end ? 'cancelamento agendado' : 'ativo'}` : 'Seu plano atual é Semente.';
+    const renewDate = sub?.current_period_end && !Number.isNaN(new Date(sub.current_period_end).getTime()) ? new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(sub.current_period_end)) : '';
+    const paidDetails = !demo && (paid || sub?.stripe_subscription_id) ? `<section class="v3-panel v3-billing-details" aria-label="Sua cobrança"><h2>cobrança</h2><dl><div><dt>Ciclo</dt><dd>${sub.billing_cycle === 'annual' ? 'Anual' : sub.billing_cycle === 'monthly' ? 'Mensal' : 'Não informado'}</dd></div>${renewDate ? `<div><dt>${sub.cancel_at_period_end ? 'Acesso até' : 'Fim do período atual'}</dt><dd>${esc(renewDate)}</dd></div>` : ''}<div><dt>Forma de pagamento</dt><dd>${sub.stripe_subscription_id ? 'Gerenciada com segurança pela Stripe' : 'Consulte o suporte'}</dd></div></dl>${playReadonly ? '<p class="v3-muted">Gerencie a forma de pagamento no canal em que contratou a assinatura.</p>' : sub.stripe_subscription_id ? '<button type="button" class="v3-secondary" data-action="billing-portal">Atualizar cartão e consultar cobranças</button>' : '<a class="v3-secondary" href="/suporte">Pedir ajuda sobre a cobrança</a>'}<p class="v3-muted">O OAZE não recebe nem guarda o número completo do seu cartão.</p></section>` : '';
+    return `<div class="v3-plan-head"><div class="v3-segment" role="group" aria-label="Ciclo de cobrança"><button type="button" data-billing="monthly" class="${state.billing === 'monthly' ? 'is-active' : ''}" aria-pressed="${state.billing === 'monthly'}">Mensal</button><button type="button" data-billing="annual" class="${state.billing === 'annual' ? 'is-active' : ''}" aria-pressed="${state.billing === 'annual'}">Anual</button></div></div><p class="v3-plan-status" role="status">${status}</p>${paidDetails}${!demo&&paid&&!sub.cancel_at_period_end&&!linkedSubscription?'<p class="v3-plan-alert" role="alert">Não foi possível identificar a assinatura ligada a este plano. <a href="/suporte">Peça ajuda para conferir a cobrança ou cancelar</a> antes de assinar outro.</p>':''}<div class="v3-grid v3-plan-grid">${list.map((p) => {
       const isCurrent = p.id === current && (p.id === 'free' || paid);
-      const disabled = demo || !sub || !!state.billingError || state.paymentBusy || isCurrent || (paid && !sub.cancel_at_period_end) || p.id === 'free';
+      const disabled = playReadonly || demo || !sub || !!state.billingError || state.paymentBusy || isCurrent || (paid && !sub.cancel_at_period_end) || (sub.status === 'past_due' && linkedSubscription) || p.id === 'free';
       const price = state.billing === 'annual' ? p.anualCentavos : p.mensalCentavos;
-      const label = isCurrent ? 'Plano atual' : p.id === 'free' ? 'Plano inicial' : paid && !sub.cancel_at_period_end ? 'Cancele o plano atual antes' : demo ? 'Disponível no app' : 'Assinar com Stripe';
+      const label = isCurrent ? 'Plano atual' : p.id === 'free' ? 'Plano inicial' : playReadonly ? 'Assinatura indisponível neste app' : paid && !sub.cancel_at_period_end ? 'Cancele o plano atual antes' : demo ? 'Disponível no app' : 'Assinar com Stripe';
       const quantidade=(n,sing,plural)=>n==null?`${plural[0].toUpperCase()+plural.slice(1)} sem limite`:`Até ${n} ${n===1?sing:plural}`;
       const resumo=p.id==='free'?'O essencial para começar a organizar seu dinheiro.':'Mais espaço para contas, cartões e conversas com a Coco.';
       return `<section class="v3-panel v3-plan${p.destaque ? ' highlight' : ''}"><div class="v3-row"><h2>${esc(p.nome)}</h2>${p.destaque ? '<span class="v3-label">PLANO PRINCIPAL</span>' : ''}</div><p class="v3-plan-summary">${resumo}</p><p class="v3-money">${money(price / 100)} <span>por ${period}</span></p><ul><li>${quantidade(p.limites.workspaces,'espaço','espaços')}</li><li>${quantidade(p.limites.accounts,'conta','contas')}</li><li>${quantidade(p.limites.credit_cards,'cartão','cartões')}</li><li>${p.limites.ai_queries_per_month == null ? 'Conversas com a Coco sem limite mensal' : `${p.limites.ai_queries_per_month} ${p.limites.ai_queries_per_month===1?'pedido':'pedidos'} à Coco por mês`}</li></ul><button type="button" class="${p.destaque ? 'v3-secondary' : 'v3-primary'}" data-action="subscribe" data-plan="${esc(p.id)}" ${disabled ? 'disabled' : ''}>${label}</button></section>`;
-    }).join('')}</div>${!demo && paid && !sub.cancel_at_period_end && linkedSubscription ? '<button type="button" class="v3-secondary v3-plan-cancel" data-action="cancel-subscription">Cancelar renovação da assinatura</button>' : ''}`;
+    }).join('')}</div>${!playReadonly && !demo && paid && !sub.cancel_at_period_end && linkedSubscription ? '<button type="button" class="v3-secondary v3-plan-cancel" data-action="cancel-subscription">Cancelar renovação da assinatura</button>' : ''}`;
   }
   function renderMore() {
     const desc = { investments: `${money(invested())} investidos`, categories: `${profile().categories.length} em uso`, goals: `${profile().goals.length} metas ativas`, calendar: 'calendário e recorrências', coco: 'conversa e análises', settings: 'segurança, dados', plan: demo ? 'OAZE mensal' : 'planos vigentes' };
@@ -3546,19 +3594,35 @@
     if (state.page === 'plan') render();
   }
   async function startCheckout(planId) {
-    if (demo || state.paymentBusy || !['basic', 'pro'].includes(planId) || !state.subscription || state.billingError) return;
+    if (global.OAZE_BILLING_READONLY || demo || state.paymentBusy || planId !== 'pro' || !state.subscription || state.billingError) return;
     state.paymentBusy = true; render();
     try {
       const result = await V3Backend.payment({ acao: 'assinar', plano: planId, ciclo: state.billing, moeda: 'BRL' });
       if (!/^https:\/\/checkout\.stripe\.com\//.test(String(result.url || ''))) throw new Error('O servidor não retornou uma página segura de pagamento.');
-      global.location.assign(result.url);
+      if (global.OAZE_NATIVE_OPEN_EXTERNAL) await global.OAZE_NATIVE_OPEN_EXTERNAL(result.url);
+      else global.location.assign(result.url);
+      if (global.OAZE_NATIVE_OPEN_EXTERNAL) { state.paymentBusy = false; render(); }
     } catch (error) {
       toast(error.message || 'Não foi possível iniciar o pagamento. Nada foi cobrado.');
       state.paymentBusy = false; render();
     }
   }
+  async function openBillingPortal() {
+    if (global.OAZE_BILLING_READONLY || demo || state.paymentBusy || !state.subscription?.stripe_subscription_id) return;
+    state.paymentBusy = true;
+    try {
+      const result = await V3Backend.billingPortal();
+      if (!/^https:\/\/billing\.stripe\.com\//.test(String(result.url || ''))) throw new Error('O servidor não retornou uma página segura de cobrança.');
+      if (global.OAZE_NATIVE_OPEN_EXTERNAL) await global.OAZE_NATIVE_OPEN_EXTERNAL(result.url);
+      else global.location.assign(result.url);
+      if (global.OAZE_NATIVE_OPEN_EXTERNAL) { state.paymentBusy = false; render(); }
+    } catch (error) {
+      toast(error.message || 'Não foi possível abrir suas cobranças. Tente novamente.');
+      state.paymentBusy = false;
+    }
+  }
   async function cancelSubscription() {
-    if (demo || state.paymentBusy || !state.subscription) return;
+    if (global.OAZE_BILLING_READONLY || demo || state.paymentBusy || !state.subscription) return;
     state.paymentBusy = true; closeSheet(); render();
     try {
       await V3Backend.payment({ acao: 'cancelar' });
@@ -4269,6 +4333,7 @@
       return;
     }
     if (action==='subscribe'){startCheckout(target.dataset.plan);return;}
+    if (action==='billing-portal'){openBillingPortal();return;}
     if (action==='cancel-subscription') {
       openSheet(`${sheetTop('cancelar renovação','o plano não termina hoje')}<p>Você mantém o plano até o fim do período já pago. Depois, sua conta volta ao Semente.</p><div class="v3-form-row" style="margin-top:24px"><button type="button" class="v3-secondary" data-action="close">Manter assinatura</button><button type="button" class="v3-primary" data-action="confirm-cancel-subscription">Cancelar renovação</button></div>`,'Confirmar cancelamento');
       return;
@@ -4298,6 +4363,8 @@
     if (action==='vault'){openVault(target.dataset.walletId);return;}
     if (action==='privacy'){state.hideMoney=!state.hideMoney;render();return;}
     if (action==='notifications'){openNotifications();return;}
+    if (action==='device-permissions'){openDevicePermissions();return;}
+    if (action==='toggle-native-notifications'){void toggleNativeNotifications();return;}
     if (action==='reset-asks'){askReset();render();openNotifications();toast('Os avisos voltarão a aparecer neste aparelho.');return;}
     if (action==='home-blocks'){painelBlocosInicio();return;}
     if (action==='filtros'){painelFiltros();return;}
@@ -4578,6 +4645,14 @@
         history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
       }
       refreshSubscription();
+      if (global.OAZE_NATIVE_OPEN_EXTERNAL) {
+        const refreshOnReturn = () => {
+          if (document.visibilityState === 'visible') void refreshSubscription();
+          if (nativeNotificationsEnabled()) void syncNativeNotifications().catch(() => {});
+        };
+        document.addEventListener('visibilitychange', refreshOnReturn);
+        global.addEventListener('focus', refreshOnReturn);
+      }
       if (paymentReturn === 'sucesso') {
         toast('Pagamento enviado. O plano será liberado após confirmação da Stripe.');
         let attempts = 0;

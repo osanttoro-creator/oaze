@@ -33,6 +33,7 @@ jobs:
       VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
       VITE_OAZE_ENV: production
+      VITE_OAZE_DISTRIBUTION: play
       VITE_OAZE_SYNC_ENABLED: ${{ vars.OAZE_SYNC_ENABLED }}
       CANAL: ${{ inputs.canal || 'producao' }}
     steps:

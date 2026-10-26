@@ -173,7 +173,7 @@
   V3Backend.subscription = async function () {
     if (!client || !user) throw new Error('Entre na sua conta para consultar a assinatura.');
     const { data, error } = await bounded(client.from('subscriptions')
-      .select('plan_id,status,current_period_end,cancel_at_period_end,stripe_subscription_id,asaas_subscription_id')
+      .select('plan_id,status,billing_cycle,current_period_end,cancel_at_period_end,stripe_subscription_id,asaas_subscription_id')
       .eq('user_id', user.id).maybeSingle());
     if (error) throw error;
     return data || { plan_id: 'free', status: 'free', cancel_at_period_end: false };
@@ -194,6 +194,24 @@
     }));
     const result = await response.json().catch(() => ({}));
     if (!response.ok || result.erro) throw new Error(result.mensagem || 'Pagamento indisponível agora. Nada foi cobrado.');
+    return result;
+  };
+  V3Backend.billingPortal = async function () {
+    if (!client || !user) throw new Error('Entre na sua conta para consultar a cobrança.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    if (!/^https:\/\//.test(base) || !publicKey) throw new Error('Cobrança indisponível: conexão não configurada.');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+    const response = await bounded(fetch(base + '/functions/v1/oaze-billing-portal', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'content-type': 'application/json', apikey: publicKey,
+        authorization: 'Bearer ' + data.session.access_token },
+      body: '{}'
+    }));
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.url) throw new Error(result.mensagem || 'Não foi possível abrir suas cobranças.');
     return result;
   };
   V3Backend.vault = async function (body) {
