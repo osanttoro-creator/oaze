@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Manifesto do pacote MSIX enviado à Microsoft Store.
+
+  Os três valores de identidade NÃO são escolha nossa: o Partner Center os
+  atribui ao produto e compara o manifesto caractere por caractere. Eles ficam
+  em variáveis do repositório, nunca escritos aqui à mão:
+
+    MSSTORE_IDENTITY_NAME            Package/Identity/Name
+    MSSTORE_IDENTITY_PUBLISHER       Package/Identity/Publisher  (CN=...)
+    MSSTORE_PUBLISHER_DISPLAY_NAME   Package/Properties/PublisherDisplayName
+
+  Quem substitui é tools/empacotar-msix.mjs. Pacote enviado sem assinatura:
+  a Store assina com o próprio certificado, e por isso este caminho não exige
+  certificado pago. A versão tem quatro partes e a última é sempre 0 — a Store
+  reserva a revisão para si e recusa pacote que a use.
+
+  O protocolo `oaze` está declarado aqui de propósito. Fora do MSIX o app
+  registra o esquema no registro do Windows em tempo de execução; dentro do
+  contêiner essa escrita é virtualizada e o login com Google não voltaria para
+  o app. Num pacote, quem registra o esquema é o manifesto.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity
+    Name="__IDENTITY_NAME__"
+    Publisher="__IDENTITY_PUBLISHER__"
+    Version="__VERSION__"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>OAZE</DisplayName>
+    <PublisherDisplayName>__PUBLISHER_DISPLAY_NAME__</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>Contas, cartões, faturas, metas e investimentos numa visão só.</Description>
+  </Properties>
+
+  <Dependencies>
+    <!-- 17763 = Windows 10 1809, o primeiro com suporte a MSIX de desktop. -->
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="pt-BR" />
+  </Resources>
+
+  <Applications>
+    <Application Id="OAZE" Executable="OAZE.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="OAZE"
+        Description="Contas, cartões, faturas, metas e investimentos numa visão só."
+        BackgroundColor="#0D1821"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile
+          ShortName="OAZE"
+          Square71x71Logo="Assets\Square71x71Logo.png"
+          Square310x310Logo="Assets\Square310x310Logo.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo" />
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\Square310x310Logo.png" BackgroundColor="#0D1821" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="oaze">
+            <uap:DisplayName>OAZE</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- App de desktop empacotado: roda com a confiança do usuário, como o
+         instalador faria. `internetClient` é o acesso ao Supabase. -->
+    <rescap:Capability Name="runFullTrust" />
+    <Capability Name="internetClient" />
+  </Capabilities>
+</Package>

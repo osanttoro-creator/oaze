@@ -1,10 +1,8 @@
-# Microsoft Store e Mac App Store: o mesmo app em Tauri, compilado em cada sistema.
+# Pacote de teste Windows. O projeto macOS permanece no repositório, fora desta rodada.
 #
 # Windows: gera MSI e instalador NSIS. A Store aceita MSI/EXE assinados com certificado
 # de código, ou MSIX — a escolha está em docs/02-TRD.md.
-# macOS: gera .app e .dmg. Para a Mac App Store, falta a assinatura de distribuição
-# com o perfil de provisionamento (segredos a definir no primeiro envio).
-name: App · desktop (Windows e macOS)
+name: App · Windows
 
 on:
   workflow_dispatch:
@@ -24,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-15]
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     env:
@@ -58,9 +56,7 @@ jobs:
       - run: npx tauri build
       - uses: actions/upload-artifact@v4
         with:
-          name: oaze-desktop-${{ matrix.os }}
+          name: oaze-windows-teste-${{ github.run_number }}
           path: |
             app/src-tauri/target/release/bundle/msi/*.msi
             app/src-tauri/target/release/bundle/nsis/*.exe
-            app/src-tauri/target/release/bundle/dmg/*.dmg
-            app/src-tauri/target/release/bundle/macos/*.app

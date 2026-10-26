@@ -32,11 +32,15 @@ npm run dev                  # http://localhost:5188  (?demo abre o exemplo)
 
 ## Testar no celular
 
-O workflow [App · teste mobile](.github/workflows/app-mobile-test.yml) gera
-um APK Android instalável em **Actions → Artifacts** após cada mudança na
-`main`. No iPhone, o CI compila sem assinatura; instalação em aparelho exige
-TestFlight. O passo a passo e os limites da sincronização estão em
+O workflow [App · Android](.github/workflows/app-mobile-test.yml) gera um APK
+instalável em **Actions → Artifacts** após cada mudança na `main`. O passo a
+passo e os limites da sincronização estão em
 [Teste mobile e lojas](docs/12-PUBLICACAO.md).
+
+As duas lojas desta rodada são **Google Play** e **Microsoft Store**. Os
+projetos iOS e macOS continuam no repositório e o núcleo compila para eles, mas
+não são compilados nem preparados para loja agora. O que cada loja ainda espera
+está em [Fichas de loja](docs/17-FICHAS-DE-LOJA.md).
 
 | Comando | O que faz |
 |---|---|

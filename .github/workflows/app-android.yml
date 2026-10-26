@@ -9,6 +9,12 @@ name: App · Android (Google Play)
 
 on:
   workflow_dispatch:
+    inputs:
+      canal:
+        description: 'teste = AAB para canal de testes do Play (sincronização pode estar desligada); producao = exige sincronização validada'
+        type: choice
+        options: [teste, producao]
+        default: teste
   push:
     tags: ["app-v*"]
 
@@ -28,6 +34,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
       VITE_OAZE_ENV: production
       VITE_OAZE_SYNC_ENABLED: ${{ vars.OAZE_SYNC_ENABLED }}
+      CANAL: ${{ inputs.canal || 'producao' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -39,14 +46,25 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Bloqueia pacote de loja sem conta e sincronização verificadas
+
+      # Conta é exigência dos dois canais: um app de loja sem conta configurada
+      # não deixa ninguém entrar. Sincronização desligada é aceitável no canal
+      # de testes — sem conta o app funciona inteiro, isolado no aparelho, e
+      # isso é promessa do produto, não limitação. Produção exige o teste real
+      # entre dois aparelhos (docs/12-PUBLICACAO.md).
+      - name: Confere o que o canal exige
         shell: bash
         run: |
-          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ] ||
-             [ "$VITE_OAZE_SYNC_ENABLED" != "true" ]; then
-            echo "::error::Configure URL, chave pública e OAZE_SYNC_ENABLED=true depois do teste real entre dois aparelhos."
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error::Configure OAZE_SUPABASE_URL e OAZE_SUPABASE_PUBLISHABLE_KEY nas variáveis do repositório."
             exit 1
           fi
+          if [ "$CANAL" = producao ] && [ "$VITE_OAZE_SYNC_ENABLED" != true ]; then
+            echo "::error::Canal de produção exige OAZE_SYNC_ENABLED=true, depois do teste real entre dois aparelhos. Use o canal 'teste' enquanto isso."
+            exit 1
+          fi
+          echo "canal: $CANAL · sincronização: ${VITE_OAZE_SYNC_ENABLED:-false}"
+
       - run: npm ci
       - run: npm run build
       - run: npm run verificar:seguranca
@@ -85,5 +103,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: oaze-android-aab
+          name: oaze-android-aab-${{ github.run_number }}
           path: app/android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error

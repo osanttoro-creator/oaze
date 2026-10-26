@@ -8,10 +8,12 @@
 #   ASC_KEY_P8                  conteúdo do arquivo .p8
 name: App · iOS (App Store)
 
+# Fora da rodada de 25/10/2026: as lojas em preparação são Google Play e
+# Microsoft Store. Por isso este workflow só roda quando alguém pede. Mantê-lo
+# na tag `app-v*` faria cada publicação gastar um runner macOS e falhar por
+# falta de credencial Apple — ruído que esconde o resultado que importa.
 on:
   workflow_dispatch:
-  push:
-    tags: ["app-v*"]
 
 jobs:
   verifica:

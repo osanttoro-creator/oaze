@@ -1,6 +1,5 @@
-# Pacotes de teste: APK instalável no Android e compilação iOS sem assinatura.
-# O iPhone exige TestFlight/assinatura Apple para instalar em aparelho real.
-name: App · teste mobile
+# Pacote de teste Android. O projeto iOS permanece no repositório, fora desta rodada.
+name: App · Android
 
 on:
   workflow_dispatch:
@@ -64,7 +63,7 @@ jobs:
         working-directory: app/android
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug
+          ./gradlew --no-daemon assembleDebug -PoazeVersionCode=${{ github.run_number }}
       - uses: actions/upload-artifact@v4
         with:
           name: oaze-android-teste-${{ github.run_number }}
@@ -73,33 +72,4 @@ jobs:
           retention-days: 14
       - name: Verifica AAB sem assinatura de loja
         working-directory: app/android
-        run: ./gradlew --no-daemon bundleRelease
-
-  ios:
-    needs: verifica
-    runs-on: macos-26
-    timeout-minutes: 60
-    defaults:
-      run:
-        working-directory: app
-    env:
-      VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
-      VITE_OAZE_ENV: staging
-      VITE_OAZE_SYNC_ENABLED: "false"
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: app/package-lock.json
-      - run: xcodebuild -version
-      - run: npm ci
-      - run: npm run build
-      - run: npx cap sync ios
-      - name: Compila para iPhone sem assinatura
-        run: |
-          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
-            -sdk iphoneos -destination 'generic/platform=iOS' \
-            CODE_SIGNING_ALLOWED=NO build
+        run: ./gradlew --no-daemon bundleRelease -PoazeVersionCode=${{ github.run_number }}

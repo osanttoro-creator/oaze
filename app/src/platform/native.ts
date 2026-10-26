@@ -231,7 +231,36 @@ export async function haptic(kind: HapticKind = 'light'): Promise<void> {
   }
 }
 
-/* ------------------------------------------------------------- deep links */
+/* --------------------------------------------------- botão voltar do aparelho */
+
+/**
+ * Entrega o botão voltar físico do Android para quem sabe o que está na tela.
+ *
+ * Registrar este ouvinte tem um efeito que não é óbvio: o Capacitor **deixa**
+ * de usar o histórico do webview e passa a decisão para o app. É o que
+ * queremos — mas é também por isso que `decide` precisa poder responder
+ * `exit`. Sem ouvinte nenhum, o Capacitor volta no histórico quando pode e,
+ * quando não pode, consome a tecla e não faz nada: na tela inicial o voltar
+ * viraria um botão morto, e sair do app só pelo gesto de início.
+ *
+ * Só o Android tem botão voltar de sistema. No iPhone o gesto é da tela, e no
+ * desktop não existe.
+ */
+export async function installHardwareBack(decide: () => 'consumed' | 'exit'): Promise<void> {
+  if (platform() !== 'android') return;
+  try {
+    const { App } = await import('@capacitor/app');
+    await App.addListener('backButton', () => {
+      if (decide() === 'exit') void App.exitApp();
+    });
+  } catch (err) {
+    /* Sem o ouvinte o voltar fica com o comportamento do Capacitor. Pior, não
+       quebrado — e derrubar o arranque por causa disso seria pior ainda. */
+    reportHandled(err, 'botão voltar');
+  }
+}
+
+/* ----------------------------------------------------------------- deep links */
 
 /**
  * `oaze://` e `https://oaze.site/app/...`. Serve a duas coisas: abrir o app

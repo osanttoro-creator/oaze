@@ -1,6 +1,20 @@
-# OAZE 2 — estado em 18/10/2026
+# OAZE 2 — estado em 25/10/2026
 
-O projeto canônico está em `G:\Meu Drive\sites\oaze app`. O remoto Git configurado é `https://github.com/osanttoro-creator/oaze.git`. O site público OAZE 1 continua separado.
+O projeto canônico está em `G:\Meu Drive\sites\oaze app`. O remoto Git configurado é `https://github.com/osanttoro-creator/oaze.git`. O site público OAZE 1 continua separado, e migrou junto para o Drive: ele está em `G:\Meu Drive\sites\OAZE\o site`, não mais em `Downloads`.
+
+## Rodada de 25/10/2026 — Android e Windows para loja
+
+As lojas em preparação são **Google Play** e **Microsoft Store**. iOS e macOS continuam no repositório, fora desta rodada.
+
+- Caminho da Microsoft Store definido como **MSIX**, não instalador assinado: no caminho empacotado a Microsoft assina e hospeda sem custo. `app/tools/empacotar-msix.mjs` monta o pacote a partir do binário do Tauri; o workflow é `App · Windows (Microsoft Store)`. Falta criar o produto no Partner Center para existirem os três valores de identidade — sem eles o script para antes de gerar nada.
+- Botão voltar do Android implementado em `state/route.ts` (`backIntent()`) e ligado pela plataforma. Antes, sem ouvinte de `backButton`, o Capacitor consumia a tecla na tela inicial e o app não fechava pelo voltar.
+- Workflows de loja passaram a ter canal `teste` ou `producao`: o canal de testes aceita a sincronização desligada, produção continua exigindo o teste entre dois aparelhos.
+- Corrigida uma etapa `xcodebuild` que tinha ficado solta no job Android e faria toda execução falhar.
+- `17-FICHAS-DE-LOJA.md` reúne textos e formulários das duas lojas, com o que depende de decisão marcado em vez de preenchido.
+- `npm run check` passou numa cópia local: typecheck, 241 testes em 25 arquivos, build e scanner. O `node_modules` **não funciona na pasta do Drive** — os arquivos chegam com zero byte, então verificar exige copiar o projeto para disco local.
+- Não verificado: empacotamento MSIX até o fim (falta `makeappx`/Windows SDK nesta máquina), instalação em aparelho e máquina reais, e o botão voltar num Android de verdade.
+
+Detalhe da rodada em `16-ANDROID-WINDOWS-2026-10-25.md`.
 
 ## Implementado e validado localmente
 

@@ -1,7 +1,8 @@
 import { installTheme } from '../design-system/theme';
 import { demoWorkspace } from '../domain/seed';
 import { installPrivacyCurtain } from '../platform';
-import { installNative } from '../platform/native';
+import { installHardwareBack, installNative } from '../platform/native';
+import { backIntent } from '../state/route';
 import { installAutoLock, unlock } from '../state/session';
 import { flushSave, freezeStateWrites, getState, hydrate, setState, type AppState } from '../state/store';
 import { persistedOwner, readPersisted } from '../state/persist';
@@ -54,6 +55,10 @@ export async function boot(): Promise<BootResult> {
 
   /* o resto em paralelo: nenhuma destas peças é pré-requisito da primeira tela */
   void installNative();
+  /* O arranque é o único lugar que pode costurar as duas pontas: a plataforma
+     sabe como sair do app e não conhece a tela; a rota sabe o que está na tela
+     e não sabe em qual loja o app está. */
+  void installHardwareBack(backIntent);
   if (hasAccountBackend()) {
     let syncOwner: string | null = null;
     let stopSync: () => void = () => {};
