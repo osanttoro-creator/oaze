@@ -1,0 +1,42 @@
+/* GIF oficial da Coco nos pontos de navegação; a moldura corta a legenda
+   gravada no rodapé do arquivo sem modificar o original. */
+.v3-coco-pet {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 23px;
+  height: 23px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #f5f3ee;
+  vertical-align: middle;
+}
+
+.v3-coco-pet picture { display: block; width: 100%; height: 100%; }
+.v3-coco-pet img {
+  display: block;
+  width: 135%;
+  height: 135%;
+  max-width: none;
+  margin-left: -5%;
+  margin-top: -28%;
+  object-fit: contain;
+}
+
+.v3-coco-fab .v3-coco-pet { width: 42px; height: 42px; }
+.v3-more button > .v3-coco-pet { width: 30px; height: 30px; }
+.v3-nav-editor-row > span .v3-coco-pet { width: 17px; height: 17px; }
+.v3-nav-editor-row > span .v3-coco-pet img { width: 135%; height: 135%; }
+
+@media (max-width: 900px) {
+  .v3-coco-fab .v3-coco-pet { width: 47px; height: 47px; }
+}
+
+@media (max-width: 599px) and (orientation: landscape) {
+  .v3-coco-fab .v3-coco-pet { width: 34px; height: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-coco-pet { background: transparent; }
+  .v3-coco-pet img { width: 100%; height: 100%; margin-left: 0; margin-top: 0; }
+}

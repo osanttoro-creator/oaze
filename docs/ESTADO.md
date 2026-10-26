@@ -1,5 +1,9 @@
 # OAZE app — estado em 26/10/2026
 
+## GIF da Coco em validação
+
+O botão flutuante e os acessos da Coco na navegação do painel empacotado usam o GIF oficial `COCO_PETS_idle.gif` da pasta `02_COCO/PET E GIF`. O arquivo foi copiado sem recompressão para `app/live-site/assets/coco/pets/`. A interface recorta a legenda embutida; com redução de movimento, usa a ilustração estática anterior. A prévia com dados de demonstração foi conferida em `docs/previews/coco-gif-android-demo.png` e `docs/previews/coco-gif-windows-demo.png`. Typecheck, 241 testes, builds e scanner passaram numa cópia local; instalação em aparelho ainda não foi verificada.
+
 ## Revisão 2.0.3 — pacotes de teste gerados
 
 Entrada animada, áreas seguras da câmera, layout adaptativo para aparelhos dobráveis, consulta de cobrança e portal Stripe autenticado, controle contextual de notificações e fundo WebGL refinado foram implementados na pasta do app. A função `oaze-billing-portal` está ativa no Supabase; ainda não foi testada com uma assinatura real. O AAB da Google Play omite compra e portal Stripe até existir Play Billing ou programa permitido. `docs/19-ENTRADA-COBRANCA-AVISOS-E-DOBRAVEIS.md` registra o comportamento e os testes pendentes. A suíte local passou (241 testes, typecheck, builds e scanner); essa suíte não comprova a operação instalada em Android/Windows.
