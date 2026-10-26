@@ -1,8 +1,12 @@
 # OAZE app — estado em 26/10/2026
 
-## Revisão 2.0.3 em preparação
+## Revisão 2.0.3 — pacotes de teste gerados
 
 Entrada animada, áreas seguras da câmera, layout adaptativo para aparelhos dobráveis, consulta de cobrança e portal Stripe autenticado, controle contextual de notificações e fundo WebGL refinado foram implementados na pasta do app. A função `oaze-billing-portal` está ativa no Supabase; ainda não foi testada com uma assinatura real. O AAB da Google Play omite compra e portal Stripe até existir Play Billing ou programa permitido. `docs/19-ENTRADA-COBRANCA-AVISOS-E-DOBRAVEIS.md` registra o comportamento e os testes pendentes. A suíte local passou (241 testes, typecheck, builds e scanner); essa suíte não comprova a operação instalada em Android/Windows.
+
+## Pacotes de teste 2.0.3
+
+Os workflows do commit `5f575ae` passaram em [Android 22](https://github.com/osanttoro-creator/oaze/actions/runs/40327400997), [Windows 19](https://github.com/osanttoro-creator/oaze/actions/runs/40327401002) e [verificação 24](https://github.com/osanttoro-creator/oaze/actions/runs/40327401010). O APK está em `builds/oaze-android-painel-2.0.3-22.apk` (SHA-256 `A270D808B3C1497B6F0CC75789A9F3965C60D613D3B30540C66B42828F0A2A2D`). Windows: `builds/oaze-windows-painel-2.0.3-19.exe` (SHA-256 `4291F850EF081CE842DEB5782D45FD2777C5BA726250270690B6D3375A23F55D`) e `.msi` (SHA-256 `0A81D29179A661E561349ADBEF0842EE84243848B9342E538EC071E60AA50C0F`). Os binários não foram instalados em aparelhos nesta sessão. O AAB assinado para a loja não foi gerado.
 
 ## Painel publicado no app
 
