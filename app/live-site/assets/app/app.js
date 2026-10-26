@@ -4646,6 +4646,12 @@
       }
       refreshSubscription();
       if (global.OAZE_NATIVE_OPEN_EXTERNAL) {
+        const billingReturn = () => {
+          try { sessionStorage.removeItem('oaze.native.billing-return'); } catch {}
+          go('plan'); void refreshSubscription();
+        };
+        global.addEventListener('oaze:billing-return', billingReturn);
+        try { if (sessionStorage.getItem('oaze.native.billing-return') === '1') billingReturn(); } catch {}
         const refreshOnReturn = () => {
           if (document.visibilityState === 'visible') void refreshSubscription();
           if (nativeNotificationsEnabled()) void syncNativeNotifications().catch(() => {});

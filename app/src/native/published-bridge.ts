@@ -119,6 +119,17 @@ async function finishAuth(url: string): Promise<void> {
   location.replace('/index.html');
 }
 
+async function handleAppUrl(url: string): Promise<void> {
+  const incoming = new URL(url);
+  if (android && incoming.origin === 'https://oaze.site' && incoming.pathname === '/app/planos') {
+    await Browser.close().catch(() => {});
+    try { sessionStorage.setItem('oaze.native.billing-return', '1'); } catch { /* storage indisponível */ }
+    dispatchEvent(new Event('oaze:billing-return'));
+    return;
+  }
+  await finishAuth(url);
+}
+
 function reportAuthFailure(error: unknown): void {
   const message = error instanceof Error ? error.message : 'Não foi possível concluir a entrada.';
   sessionStorage.setItem('oaze.native-auth-error', message);
@@ -144,10 +155,10 @@ nativeWindow.OAZE_NATIVE_AUTH_READY = (async () => {
       void App.exitApp();
     });
     await App.addListener('appUrlOpen', ({ url }) => {
-      void finishAuth(url).catch(reportAuthFailure);
+      void handleAppUrl(url).catch(reportAuthFailure);
     });
     const launch = await App.getLaunchUrl();
-    if (launch?.url) await finishAuth(launch.url);
+    if (launch?.url) await handleAppUrl(launch.url);
   } else if (desktop) {
     window.addEventListener('oaze:deep-link', (event) => {
       void finishAuth((event as CustomEvent<string>).detail).catch(reportAuthFailure);
