@@ -50,15 +50,15 @@ O que você encontra
 • Carteira com contas e cartões, fatura por fatura, sem somar duas vezes o que
   já foi pago.
 • Agenda financeira em ano, mês e semana, com vencimentos e recorrências.
-• Metas com acompanhamento e rendimento.
+• Metas com acompanhamento de depósitos e progresso.
 • Categorias de despesa e de receita, com o mês comparado ao anterior.
 • Lembretes locais de fatura e de lançamento fixo.
 • Relatórios e o OAZE Score.
 
 Funciona sem conta
-O OAZE funciona inteiro sem você criar conta — os dados ficam no seu aparelho.
-Conta serve para usar o mesmo espaço em mais de um aparelho, não para liberar
-funções.
+Você pode organizar seus dados neste aparelho sem criar uma conta.
+O login com sua conta OAZE está disponível, mas a sincronização dos dados
+financeiros entre aparelhos ainda não está ativa nesta versão de teste.
 
 Onde seus dados ficam
 No Android, o conteúdo fica cifrado com chave guardada no Keystore do aparelho.
@@ -100,9 +100,9 @@ Respostas para o build com sincronização **desligada**.
 ### Práticas de segurança
 
 - **Dados cifrados em trânsito:** sim — todo tráfego é HTTPS/WSS para o Supabase.
-- **Jeito de pedir exclusão dos dados:** sim — de dentro do app, em Conta →
-  Excluir conta. A exclusão apaga o usuário no Auth e as quatro tabelas
-  `oaze2_*` caem por `on delete cascade`.
+- **Jeito de pedir exclusão dos dados:** dentro do app, em Conta → Excluir
+  conta. Confirmar o resultado no ambiente de produção antes de preencher a
+  declaração da loja.
 - **URL de exclusão de conta:** 🟡 falta decidir — o Play pede uma página web
   para quem já desinstalou. Hoje a exclusão só existe dentro do app e em
   `oaze.site`; confirmar qual endereço informar.
