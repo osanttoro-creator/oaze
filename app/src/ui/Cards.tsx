@@ -77,15 +77,14 @@ export function BankCard({ item, style, onClick, full, label, hidden = false }: 
         <>
           <span className="card-chip" />
           <span className="card-nfc"><Icon name="nfc" size={24} /></span>
-          {item.last4 && <div className="card-number">•••• •••• •••• {item.last4}</div>}
           <svg className="card-wave" viewBox="0 0 320 60" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0 40 C60 12 110 18 170 34 S270 56 320 26" fill="none" stroke="currentColor" strokeWidth="1.2" />
           </svg>
           <div className="card-foot">
-            <div><small>TITULAR</small><b>{item.holder}</b></div>
+            <div><small>FINAL DO CARTÃO</small><b>{item.last4 || '—'}</b></div>
             {item.validThru && <div><small>VALIDADE</small><b>{item.validThru}</b></div>}
-            <span className="card-net">{item.network}</span>
           </div>
+          <span className="card-oaze" aria-hidden="true" />
         </>
       )}
     </div>

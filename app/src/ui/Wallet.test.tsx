@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Wallet } from './Wallet';
+import { BankCard } from './Cards';
 import type { WalletItem } from './Cards';
 
 const item: WalletItem = {
@@ -19,6 +20,15 @@ const item: WalletItem = {
 };
 
 describe('carteira da V4', () => {
+  it('exibe apenas o final do cartão e a marca OAZE no plástico aberto', () => {
+    render(<BankCard item={{ ...item, kind: 'credito', network: 'Visa' }} full />);
+    expect(screen.getByText('FINAL DO CARTÃO')).toBeInTheDocument();
+    expect(screen.getByText('FINAL DO CARTÃO').parentElement).toHaveTextContent('1234');
+    expect(screen.queryByText('Visa')).not.toBeInTheDocument();
+    expect(document.querySelector('.card-oaze')).toBeInTheDocument();
+    expect(screen.queryByText(/•••• ••••/)).not.toBeInTheDocument();
+  });
+
   it('mantém cartões recolhidos fora do foco e reabre o bolso por teclado', async () => {
     const onPocket = vi.fn();
     const onPick = vi.fn();

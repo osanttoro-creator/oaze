@@ -10,7 +10,7 @@ import {
 import { addDaysISO, addMonths, dayMonth, monthEnd, monthLabel, monthName, monthStart, parseISO, todayISO, todayYM } from '../domain/dates';
 import { Icon } from '../ui/Icon';
 import { TINTS } from '../ui/chart-colors';
-import { CocoFace, Money } from '../ui/bits';
+import { CocoFace, Money, Seg } from '../ui/bits';
 import { Wallet } from '../ui/Wallet';
 import { walletItems } from '../ui/Cards';
 import { Wave } from '../ui/Wave';
@@ -60,6 +60,7 @@ export function Home() {
   const [ym, setYm] = useState<YM>(todayYM());
   const [picked, setPicked] = useState<string | null>(null);
   const [cardsOpen, setCardsOpen] = useState(true);
+  const [categoryKind, setCategoryKind] = useState<'expense' | 'income'>('expense');
 
   const accounts = currentBalance(w);
   const invested = investedTotal(w);
@@ -76,7 +77,7 @@ export function Home() {
   const t = monthTotals(w, ym);
   const isNow = ym === todayYM();
   const today = isNow ? parseISO(todayISO()).getDate() : ym < todayYM() ? null : 0;
-  const cats = categoryTotals(w, 'expense', monthStart(ym), monthEnd(ym)).slice(0, 5);
+  const cats = categoryTotals(w, categoryKind, monthStart(ym), monthEnd(ym)).slice(0, 5);
   const top = cats[0]?.total ?? 1;
   const dueEnd = monthEnd(todayYM()) > addDaysISO(todayISO(), 10) ? monthEnd(todayYM()) : addDaysISO(todayISO(), 10);
   const due = dueItems(w, todayISO(), dueEnd).slice(0, 4);
@@ -153,10 +154,11 @@ export function Home() {
   const catPanel = (
     <section className="panel">
       <div className="panel-head">
-        <h2 className="h2">onde foi o mês</h2>
+        <h2 className="h2">{categoryKind === 'expense' ? 'onde foi o mês' : 'de onde veio o mês'}</h2>
         <button type="button" className="link" onClick={() => go('categorias')}>ver tudo</button>
       </div>
-      {cats.length === 0 && <p className="muted small">Nenhuma despesa confirmada em {monthName(ym)}.</p>}
+      <Seg label="Tipo de movimento" value={categoryKind} options={[["expense", "Despesas"], ["income", "Receitas"]]} onChange={setCategoryKind} />
+      {cats.length === 0 && <p className="muted small">Nenhuma {categoryKind === 'expense' ? 'despesa' : 'receita'} confirmada em {monthName(ym)}.</p>}
       {cats.map((c, i) => (
         <div className="cat-row" key={c.id}>
           <span className="cat-icon" style={{ background: TINTS[i % TINTS.length] }}><Icon name={c.icon} size={20} /></span>

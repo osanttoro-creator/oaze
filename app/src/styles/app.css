@@ -129,11 +129,10 @@ input[type='range'] { accent-color: var(--teal); width: 100%; }
 .card-last { font: 500 0.8438rem/1 var(--f-mono); letter-spacing: .06em; }
 .card-chip { position: absolute; left: 20px; top: 60px; width: 46px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #F0E5CF 0%, #C9BEA4 55%, #A89D86 100%); box-shadow: inset 0 0 0 1px rgba(13, 24, 33, .2); }
 .card-nfc { position: absolute; left: 76px; top: 66px; opacity: .8; }
-.card-number { position: absolute; left: 20px; right: 20px; top: 110px; font: 500 0.9375rem/1 var(--f-mono); letter-spacing: .16em; white-space: nowrap; }
 .card-foot { position: absolute; left: 20px; right: 20px; bottom: 14px; display: flex; align-items: flex-end; gap: 22px; }
 .card-foot small { display: block; font: 500 0.5938rem/1 var(--f-mono); letter-spacing: .14em; color: currentColor; opacity: .7; margin-bottom: 5px; }
 .card-foot b { font: 500 0.8125rem/1 var(--f-mono); letter-spacing: .08em; white-space: nowrap; }
-.card-net { margin-left: auto; font: italic 700 0.9375rem/1 var(--f-ui); letter-spacing: -.01em; opacity: .9; }
+.card-oaze { position: absolute; right: 20px; bottom: 16px; width: 58px; height: 23px; background: currentColor; -webkit-mask: url('/brand/oaze-logo-mono-milk.svg') center / contain no-repeat; mask: url('/brand/oaze-logo-mono-milk.svg') center / contain no-repeat; opacity: .9; }
 .card-wave { position: absolute; left: 0; right: 0; bottom: 30px; width: 100%; height: 60px; opacity: .35; }
 
 .pocket { position: absolute; top: 0; left: 0; right: 0; height: 224px; z-index: 20; cursor: pointer; container-type: inline-size; transition: transform .55s var(--ease-out); }

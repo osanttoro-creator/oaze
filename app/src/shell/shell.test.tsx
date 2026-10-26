@@ -56,6 +56,16 @@ describe('a faixa de largura escolhe a casca', () => {
 });
 
 describe('navegação', () => {
+  it('mostra a origem das receitas no Início sem trocar de tela', async () => {
+    setViewport(1280);
+    render(<Shell />);
+    await screen.findByRole('heading', { name: 'onde foi o mês' });
+    const tipo = screen.getByRole('radiogroup', { name: 'Tipo de movimento' });
+    await userEvent.click(within(tipo).getByRole('radio', { name: 'Receitas' }));
+    expect(screen.getByRole('heading', { name: 'de onde veio o mês' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Início/ })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('clicar troca a tela e marca a atual', async () => {
     setViewport(1280);
     render(<Shell />);
