@@ -22,6 +22,8 @@ Na pasta `app`, rodar `npm ci` e `npm run build:published`. Android: `npx cap sy
 ## Evidência e limite
 
 - `npm run build:published`, typecheck e scanner passaram na cópia local em 25/10/2026.
+- O [CI Android](https://github.com/osanttoro-creator/oaze/actions/runs/40259139243) passou e gerou `builds/oaze-android-painel-publicado-18.apk` (SHA-256 `480B63DD457EF3DDEB9ECB2DC0443EC66435135AE08B7403CB2D6BDFB3C28AC1`). O APK foi aberto como ZIP e contém `assets/public/index.html` em modo live, `entrar.html`, `assets/app/app.js` e a ponte nativa; não contém a raiz React como entrada.
+- O [CI Windows](https://github.com/osanttoro-creator/oaze/actions/runs/40259139311) passou e gerou `builds/oaze-windows-painel-publicado-15.exe` (SHA-256 `72DCFBD97AB1B822C7587E32CD8C9D8AB5AA2A10906112D66BE8EB4A45CD3147`) e `.msi` (SHA-256 `3F18DC9AD300ABEBF3ACBF9F37C410E951DAA6ADF48427C8F9E0FA3CB9C657B7`). Os instaladores ainda não foram executados em uma máquina Windows.
 - Um servidor estático da saída abriu a tela de entrada sem sessão; as capturas demonstrativas estão em `docs/previews/painel-publicado-android-demo.png` e `painel-publicado-desktop-demo.png`.
 - Ainda falta instalar o **novo** APK e o **novo** instalador Windows, entrar com uma conta real, validar OAuth de retorno e comparar dados em dois aparelhos. Captura demo e build CI não provam esses fluxos.
 - O painel do site mantém dados financeiros em `localStorage` do aparelho. Antes de produção, é necessário avaliar proteção de dados em repouso e o fluxo de recuperação, inclusive após logout e troca de conta.
