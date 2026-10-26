@@ -28,24 +28,30 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npm run build:published
       # Varre segredo no código e no pacote, e confere que a CSP cobre o que o
       # app realmente chama. Um domínio faltando na CSP não dá erro em lugar
       # nenhum: o navegador recusa calado, só em produção.
       - run: npm run verificar:seguranca
-      # Teto de peso do caminho crítico (meta D8 em docs/11-ARQUITETURA.md).
-      # Sem um número que falha, "ficou mais pesado" nunca vira conversa.
+      - name: Confere o painel distribuído
+        run: |
+          test -s dist-live/index.html
+          test -s dist-live/entrar.html
+          test -s dist-live/native/bridge.js
+          test -s dist-live/assets/app/app.js
+      # O script principal do painel publicado tem teto próprio.
       - name: Peso do primeiro carregamento
         run: |
           set -euo pipefail
-          bytes=$(gzip -c dist/assets/index-*.js | wc -c)
+          bytes=$(gzip -c dist-live/assets/app/app.js | wc -c)
           limite=$((184 * 1024))
-          echo "JS do primeiro carregamento: $((bytes / 1024)) KB comprimidos (teto $((limite / 1024)) KB)"
+          echo "JS principal do painel: $((bytes / 1024)) KB comprimidos (teto $((limite / 1024)) KB)"
           if [ "$bytes" -gt "$limite" ]; then
             echo "::error::o pacote principal passou do teto"
             exit 1
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: web-dist
-          path: app/dist
+          name: published-dist
+          path: app/dist-live
           retention-days: 7

@@ -4,7 +4,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'site.oaze.app',
   appName: 'OAZE',
-  webDir: 'dist',
+  webDir: 'dist-live',
   backgroundColor: '#0D1821',
   android: { allowMixedContent: false, captureInput: true, webContentsDebuggingEnabled: false },
   ios: { contentInset: 'never', scheme: 'OAZE', limitsNavigationsToAppBoundDomains: true },

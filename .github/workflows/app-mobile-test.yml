@@ -56,7 +56,7 @@ jobs:
             exit 1
           fi
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:published
       - run: npm run verificar:seguranca
       - run: npx cap sync android
       - name: Gera APK de teste

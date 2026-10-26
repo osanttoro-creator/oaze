@@ -1,5 +1,9 @@
 # OAZE 2 — estado em 25/10/2026
 
+## Correção em andamento: painel publicado no app
+
+Os pacotes de teste Android 16 e Windows 13 mostram uma interface diferente da disponível em `https://oaze.site/app`. Eles foram substituídos como alvo de desenvolvimento pela versão 2.0.2, que empacota o painel publicado em `app/live-site/` e usa `app/dist-live/` nos shells Android e Windows. Ver `18-PAINEL-PUBLICADO-NO-APP.md`. Até saírem e serem instalados os novos binários, os links antigos nesta página são apenas histórico de teste, não a entrega atual.
+
 O projeto canônico está em `G:\Meu Drive\sites\oaze app`. O remoto Git configurado é `https://github.com/osanttoro-creator/oaze.git`. O site público OAZE 1 continua separado, e migrou junto para o Drive: ele está em `G:\Meu Drive\sites\OAZE\o site`, não mais em `Downloads`.
 
 ## Rodada de 25/10/2026 — Android e Windows para loja

@@ -1,5 +1,7 @@
 node_modules/
 dist/
+app/dist-live/
+app/dist-bridge/
 builds/
 .DS_Store
 *.tsbuildinfo

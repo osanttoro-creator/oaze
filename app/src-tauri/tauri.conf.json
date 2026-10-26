@@ -1,13 +1,13 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "OAZE",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "identifier": "site.oaze.app",
   "build": {
-    "frontendDist": "../dist",
+    "frontendDist": "../dist-live",
     "devUrl": "http://localhost:5188",
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build"
+    "beforeBuildCommand": "npm run build:published"
   },
   "app": {
     "windows": [
@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' ipc: http://ipc.localhost https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'"
+      "csp": "default-src 'self'; script-src 'self'; img-src 'self' data: blob: https://*.googleusercontent.com https://*.supabase.co; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://*.supabase.co wss://*.supabase.co; media-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-src 'none'"
     }
   },
   "bundle": {

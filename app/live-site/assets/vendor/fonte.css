@@ -1,0 +1,32 @@
+/* =============================================================
+   fonte.css — GERADO por tools/gen-fonte.js. Nao edite a mao.
+   ------------------------------------------------------------
+   IBM Plex Sans, Newsreader e IBM Plex Mono (SIL Open Font
+   License 1.1) — subconjunto latin, por URL. Ate 21/09/2026 eram
+   embutidas em base64 (190 KB bloqueando a primeira pintura);
+   o porque da mudanca esta no gerador.
+   ============================================================= */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-display: swap;   /* o texto aparece na hora, na fonte do sistema */
+  font-weight: 400 600;
+  src: url('/assets/vendor/fontes/ibm-plex-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-display: swap;   /* o texto aparece na hora, na fonte do sistema */
+  font-weight: 400 600;
+  src: url('/assets/vendor/fontes/newsreader-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-display: swap;   /* o texto aparece na hora, na fonte do sistema */
+  font-weight: 400;
+  src: url('/assets/vendor/fontes/ibm-plex-mono-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
