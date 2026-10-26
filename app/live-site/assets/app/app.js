@@ -210,7 +210,7 @@
   function walletItems() { return items().filter((x) => x.kind === state.walletKind && !!x.data.hidden === !!state.walletHidden); }
   function itemById(id) { return items().find((x) => x.data.id === id); }
   function selectedItem() { const saved=global.V3Carteira?.ultimo('v3-'+state.walletKind+(state.walletHidden?'-hidden':''));return walletItems().find((x) => x.data.id === state.selected) || walletItems().find((x)=>x.data.id===saved) || walletItems()[0] || null; }
-  const cocoPetIcon = '<span class="v3-coco-pet" aria-hidden="true"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/assets/coco/corpo-neutra_acolhedora.webp"><img src="/assets/coco/pets/COCO_PETS_idle.gif" width="384" height="384" alt=""></picture></span>';
+  const cocoPetIcon = '<span class="v3-coco-pet" aria-hidden="true"><img src="/assets/coco/corpo-neutra_acolhedora.webp" width="900" height="337" alt=""></span>';
   function navButton(page) { return `<button class="v3-nav${state.page === page ? ' is-active' : ''}" type="button" data-go="${page}" aria-label="${esc(names[page])}" title="${esc(names[page])}" ${state.page === page ? 'aria-current="page"' : ''}>${page === 'coco' ? cocoPetIcon : icon(page)}<span>${esc(names[page])}</span></button>`; }
   function navEditorMarkup() {
     return `<div class="v3-nav-editor-head"><strong>Editar menu</strong><button type="button" data-action="sidebar-edit" aria-label="Fechar edição do menu">×</button></div><p>Escolha a ordem e o que aparece neste aparelho.</p><div class="v3-nav-editor-list">${navPrefs.order.map((page, index) => `<div class="v3-nav-editor-row"><span>${page === 'coco' ? cocoPetIcon : icon(page)}${esc(names[page])}</span><button type="button" data-nav-visibility="${page}" aria-label="${navPrefs.hidden.includes(page) ? 'Mostrar' : 'Ocultar'} ${esc(names[page])}" aria-pressed="${!navPrefs.hidden.includes(page)}" ${page === 'home' ? 'disabled title="Início sempre visível"' : ''}>${navPrefs.hidden.includes(page) ? 'Mostrar' : 'Visível'}</button><button type="button" data-nav-move="up" data-nav-page="${page}" aria-label="Mover ${esc(names[page])} para cima" ${index === 0 ? 'disabled' : ''}>↑</button><button type="button" data-nav-move="down" data-nav-page="${page}" aria-label="Mover ${esc(names[page])} para baixo" ${index === navPrefs.order.length - 1 ? 'disabled' : ''}>↓</button></div>`).join('')}</div><button class="v3-nav-reset" type="button" data-action="sidebar-reset">Restaurar menu padrão</button>`;
@@ -1977,7 +1977,7 @@
       ['Recorrências', 'recurring_items']
     ].map(([label,key]) => `<li>${label}: ${Limites.contar(key)} / ${Limites.limite(key) ?? 'sem limite'}</li>`).join('') : '';
     const ai = signed && global.Limites && Limites.consumoIA ? Limites.consumoIA() : null;
-    return `<div class="v3-grid v3-settings"><div><span class="v3-label v3-section-title">CONTA</span><section class="v3-panel">${row('Seus dados', '', 'data-action="account-profile"')}${row('Trocar conta', '', 'data-action="switch-account"')}${row('Sair', '', 'data-action="sign-out"')}${row('Excluir conta', '', 'data-action="delete-account"')}</section><span class="v3-label v3-section-title">SEGURANÇA</span><section class="v3-panel"><div class="v3-setting-row"><span>Sessão e sincronização</span><span>${signed?'Conectada':'Sem sessão'}</span></div><div class="v3-setting-row"><span>PIN do cofre</span><span>na carteira</span></div><div class="v3-setting-row"><span>Biometria</span><span>indisponível na web</span></div></section></div><div><span class="v3-label v3-section-title">PLANO E AJUDA</span><section class="v3-panel">${row('Plano e assinatura', '', 'data-go="plan"')}${signed?`<details class="v3-usage"><summary>Acompanhar recursos utilizados</summary><ul>${usage}${ai?`<li>Coco neste mês: ${ai.usado} / ${ai.limite ?? 'sem limite'}</li>`:''}</ul></details>`:''}<a class="v3-setting-row" href="/suporte"><span>Ajuda e suporte</span><span class="v3-muted">abrir ›</span></a></section><span class="v3-label v3-section-title">COCO E DADOS</span><section class="v3-panel">${row('Notificações', '', 'data-action="notifications"')}${row('Permissões do aparelho', '', 'data-action="device-permissions"')}</section></div></div>`;
+    return `<div class="v3-grid v3-settings"><div><span class="v3-label v3-section-title">CONTA</span><section class="v3-panel">${row('Seus dados', '', 'data-action="account-profile"')}${row('Trocar conta', '', 'data-action="switch-account"')}${row('Sair', '', 'data-action="sign-out"')}${row('Excluir conta', '', 'data-action="delete-account"')}</section><span class="v3-label v3-section-title">SEGURANÇA</span><section class="v3-panel"><div class="v3-setting-row"><span>Sessão e sincronização</span><span>${signed?'Conectada':'Sem sessão'}</span></div><div class="v3-setting-row"><span>PIN do cofre</span><span>na carteira</span></div>${global.OAZE_NATIVE_BIOMETRICS ? row('Desbloqueio do aparelho', '', 'data-action="biometric-toggle"', global.OAZE_NATIVE_BIOMETRICS.isEnabled()?'Ativado':'Ativar ›') : '<div class="v3-setting-row"><span>Desbloqueio do aparelho</span><span>disponível no app</span></div>'}</section></div><div><span class="v3-label v3-section-title">PLANO E AJUDA</span><section class="v3-panel">${row('Plano e assinatura', '', 'data-go="plan"')}${signed?`<details class="v3-usage"><summary>Acompanhar recursos utilizados</summary><ul>${usage}${ai?`<li>Coco neste mês: ${ai.usado} / ${ai.limite ?? 'sem limite'}</li>`:''}</ul></details>`:''}<a class="v3-setting-row" href="/suporte"><span>Ajuda e suporte</span><span class="v3-muted">abrir ›</span></a></section><span class="v3-label v3-section-title">COCO E DADOS</span><section class="v3-panel">${row('Notificações', '', 'data-action="notifications"')}${row('Permissões do aparelho', '', 'data-action="device-permissions"')}</section></div></div>`;
   }
   function openDevicePermissions() {
     const notifications = global.OAZE_NATIVE_NOTIFICATIONS
@@ -4117,7 +4117,7 @@
     if (action==='switch-account' || action==='sign-out') {
       stopVoice();
       if (demo) { toast('Demonstração sem sessão.'); return; }
-      V3Backend.signOut().catch((e)=>toast(e.message||'Não foi possível encerrar a sessão.'));
+      V3Backend.signOut().then(()=>{if(global.OAZE_NATIVE_BIOMETRICS)localStorage.removeItem('oaze.native.biometric-lock.v1');}).catch((e)=>toast(e.message||'Não foi possível encerrar a sessão.'));
       return;
     }
     if (action==='delete-account') { if (!demo) deleteAccountSheet(); return; }
@@ -4364,6 +4364,13 @@
     if (action==='vault'){openVault(target.dataset.walletId);return;}
     if (action==='privacy'){state.hideMoney=!state.hideMoney;render();return;}
     if (action==='notifications'){openNotifications();return;}
+    if (action==='biometric-toggle'){
+      const b=global.OAZE_NATIVE_BIOMETRICS;
+      if(!b) return;
+      const enabling=!b.isEnabled();
+      b.setEnabled(enabling).then((ok)=>{toast(ok?(enabling?'Desbloqueio do aparelho ativado.':'Desbloqueio do aparelho desativado.'):'Não foi possível confirmar pelo aparelho.');render();});
+      return;
+    }
     if (action==='device-permissions'){openDevicePermissions();return;}
     if (action==='toggle-native-notifications'){void toggleNativeNotifications();return;}
     if (action==='reset-asks'){askReset();render();openNotifications();toast('Os avisos voltarão a aparecer neste aparelho.');return;}

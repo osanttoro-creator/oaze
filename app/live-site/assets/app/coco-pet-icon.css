@@ -1,42 +1,13 @@
-/* GIF oficial da Coco nos pontos de navegação; a moldura corta a legenda
-   gravada no rodapé do arquivo sem modificar o original. */
-.v3-coco-pet {
-  position: relative;
-  display: inline-block;
-  flex: none;
-  width: 23px;
-  height: 23px;
-  overflow: hidden;
-  border-radius: 50%;
-  background: #f5f3ee;
-  vertical-align: middle;
-}
-
-.v3-coco-pet picture { display: block; width: 100%; height: 100%; }
-.v3-coco-pet img {
-  display: block;
-  width: 135%;
-  height: 135%;
-  max-width: none;
-  margin-left: -5%;
-  margin-top: -28%;
-  object-fit: contain;
-}
-
-.v3-coco-fab .v3-coco-pet { width: 42px; height: 42px; }
-.v3-more button > .v3-coco-pet { width: 30px; height: 30px; }
-.v3-nav-editor-row > span .v3-coco-pet { width: 17px; height: 17px; }
-.v3-nav-editor-row > span .v3-coco-pet img { width: 135%; height: 135%; }
-
-@media (max-width: 900px) {
-  .v3-coco-fab .v3-coco-pet { width: 47px; height: 47px; }
-}
-
-@media (max-width: 599px) and (orientation: landscape) {
-  .v3-coco-fab .v3-coco-pet { width: 34px; height: 34px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .v3-coco-pet { background: transparent; }
-  .v3-coco-pet img { width: 100%; height: 100%; margin-left: 0; margin-top: 0; }
-}
+/* O render oficial transparente permite deixar a Coco fora da moldura. */
+.v3-coco-pet{display:inline-flex;flex:none;align-items:center;justify-content:center;width:26px;height:24px;vertical-align:middle;background:transparent;overflow:visible}
+.v3-coco-pet img{display:block;width:100%;height:auto;max-width:none;object-fit:contain;transform-origin:50% 75%}
+.v3-coco-fab{min-width:80px;min-height:64px;border:0;background:transparent;box-shadow:none;padding:4px;overflow:visible}
+.v3-coco-fab .v3-coco-pet{width:70px;height:auto;filter:drop-shadow(0 8px 10px rgba(0,0,0,.6))}
+.v3-coco-fab .v3-coco-pet img{animation:oaze-coco-float 3.8s ease-in-out infinite}
+.v3-coco-fab:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+.v3-more button>.v3-coco-pet{width:38px;height:28px}
+.v3-nav-editor-row>span .v3-coco-pet{width:22px;height:18px}
+@keyframes oaze-coco-float{0%,100%{transform:translateY(2px) rotate(-1.5deg)}50%{transform:translateY(-4px) rotate(1.5deg)}}
+@media(max-width:900px){.v3-coco-fab{width:80px;height:72px;right:12px}.v3-coco-fab .v3-coco-pet{width:72px}}
+@media(max-width:599px) and (orientation:landscape){.v3-coco-fab{width:60px;height:54px}.v3-coco-fab .v3-coco-pet{width:58px}}
+@media(prefers-reduced-motion:reduce){.v3-coco-fab .v3-coco-pet img{animation:none}}

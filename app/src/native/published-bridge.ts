@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -25,13 +26,87 @@ type NativeWindow = Window & {
   };
   OAZE_NATIVE_OPEN_EXTERNAL?: (url: string) => Promise<void>;
   OAZE_BILLING_READONLY?: boolean;
+  OAZE_NATIVE_BIOMETRICS?: {
+    isEnabled(): boolean;
+    available(): Promise<boolean>;
+    verify(): Promise<boolean>;
+    setEnabled(value: boolean): Promise<boolean>;
+  };
 };
 
 const nativeWindow = window as NativeWindow;
 const android = Capacitor.getPlatform() === 'android';
 const desktop = !!nativeWindow.__TAURI_INTERNALS__;
 const auth = nativeWindow.SiteAuth;
+const biometricKey = 'oaze.native.biometric-lock.v1';
 nativeWindow.OAZE_BILLING_READONLY = android && import.meta.env.VITE_OAZE_DISTRIBUTION === 'play';
+
+if (android || desktop) {
+  const biometrics = {
+    isEnabled: () => localStorage.getItem(biometricKey) === '1',
+    async available() {
+      try {
+        if (android) return (await BiometricAuth.checkBiometry()).isAvailable;
+        return await nativeWindow.__TAURI_INTERNALS__!.invoke<boolean>('oaze_biometrics_available');
+      } catch { return false; }
+    },
+    async verify() {
+      try {
+        if (android) {
+          await BiometricAuth.authenticate({ reason: 'Confirme que é você para abrir o OAZE',
+            cancelTitle: 'Cancelar', allowDeviceCredential: true });
+          return true;
+        }
+        return await nativeWindow.__TAURI_INTERNALS__!.invoke<boolean>('oaze_biometrics_verify',
+          { reason: 'Confirme que é você para abrir o OAZE.' });
+      } catch { return false; }
+    },
+    async setEnabled(value: boolean) {
+      if (!(await this.available()) || !(await this.verify())) return false;
+      if (value) localStorage.setItem(biometricKey, '1');
+      else localStorage.removeItem(biometricKey);
+      return true;
+    },
+  };
+  nativeWindow.OAZE_NATIVE_BIOMETRICS = biometrics;
+}
+
+async function unlockApp(): Promise<void> {
+  const biometrics = nativeWindow.OAZE_NATIVE_BIOMETRICS;
+  if (!(location.pathname === '/' || location.pathname.endsWith('/index.html')) || !biometrics?.isEnabled()) return;
+  if (document.getElementById('oaze-native-lock')) return;
+  const gate = document.createElement('div');
+  gate.id = 'oaze-native-lock';
+  gate.setAttribute('role', 'dialog');
+  gate.setAttribute('aria-modal', 'true');
+  gate.setAttribute('aria-label', 'Desbloquear OAZE');
+  gate.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#080d10;color:#f0e5cf;display:grid;place-items:center;padding:24px;text-align:center;font:16px system-ui';
+  gate.innerHTML = '<div><img src="/assets/brand/oaze-logo-mono-milk.svg" alt="OAZE" width="148"><h1 style="font-size:23px;margin:32px 0 8px">Seu espaço está protegido</h1><p>Confirme sua identidade no aparelho para continuar.</p><button id="oaze-native-unlock" style="min-height:48px;margin:20px 8px;padding:12px 22px;border:0;border-radius:24px;background:#5fa99b;color:#071822;font-weight:700">Desbloquear</button><button id="oaze-native-signout" style="min-height:48px;margin:20px 8px;padding:12px 22px;border:1px solid #5fa99b;border-radius:24px;background:transparent;color:#f0e5cf">Sair da conta</button><p id="oaze-native-lock-message" role="status"></p></div>';
+  document.body.appendChild(gate);
+  await new Promise<void>((resolve) => {
+    const unlock = gate.querySelector<HTMLButtonElement>('#oaze-native-unlock')!;
+    const message = gate.querySelector<HTMLElement>('#oaze-native-lock-message')!;
+    unlock.addEventListener('click', async () => {
+      unlock.disabled = true;
+      if (await biometrics.verify()) { gate.remove(); resolve(); }
+      else { message.textContent = 'Não foi possível confirmar. Tente novamente ou saia da conta.'; unlock.disabled = false; }
+    });
+    gate.querySelector<HTMLButtonElement>('#oaze-native-signout')!.addEventListener('click', async () => {
+      localStorage.removeItem(biometricKey);
+      await auth?.cliente()?.auth.signOut();
+      location.replace('/entrar.html');
+    });
+    unlock.focus();
+    void unlock.click();
+  });
+}
+
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (hiddenAt && Date.now() - hiddenAt > 15_000) void unlockApp();
+  hiddenAt = 0;
+});
 
 if (android || desktop) {
   nativeWindow.OAZE_NATIVE_OPEN_EXTERNAL = async (url) => {
@@ -166,6 +241,7 @@ nativeWindow.OAZE_NATIVE_AUTH_READY = (async () => {
     const current = await nativeWindow.__TAURI_INTERNALS__!.invoke<string[]>('oaze_deep_link_ready');
     for (const url of current) await finishAuth(url);
   }
+  await unlockApp();
 })().catch(reportAuthFailure);
 
 const priorError = sessionStorage.getItem('oaze.native-auth-error');

@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "2.0.4"
+version = "2.0.5"
 description = "OAZE — gestão e inteligência financeira pessoal"
 authors = ["OAZE"]
 license = ""

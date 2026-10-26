@@ -1,5 +1,9 @@
 # OAZE app — estado em 26/10/2026
 
+## Revisão 2.0.5 — em validação
+
+Boas-vindas persistentes, fundo mais preto e fluido, Coco transparente sem círculo e desbloqueio opcional pelo Android/Windows Hello estão no código. O backend de pagamento foi corrigido para aceitar as origens dos aplicativos instalados. [Detalhes, evidência e pendências](20-REVISAO-2.0.5.md). As prévias `docs/previews/oaze-2.0.5-*` usam dados de demonstração. Builds instaláveis e teste de cobrança autenticada ainda pendem nesta revisão.
+
 ## GIF da Coco em validação
 
 O botão flutuante e os acessos da Coco na navegação do painel empacotado usam o GIF oficial `COCO_PETS_idle.gif` da pasta `02_COCO/PET E GIF`. O arquivo foi copiado sem recompressão para `app/live-site/assets/coco/pets/`. A interface recorta a legenda embutida; com redução de movimento, usa a ilustração estática anterior. A prévia com dados de demonstração foi conferida em `docs/previews/coco-gif-android-demo.png` e `docs/previews/coco-gif-windows-demo.png`. Typecheck, 241 testes, builds e scanner passaram numa cópia local; instalação em aparelho ainda não foi verificada.
