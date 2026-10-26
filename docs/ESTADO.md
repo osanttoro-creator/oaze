@@ -8,6 +8,8 @@ Entrada animada, áreas seguras da câmera, layout adaptativo para aparelhos dob
 
 Os workflows do commit `5f575ae` passaram em [Android 22](https://github.com/osanttoro-creator/oaze/actions/runs/40327400997), [Windows 19](https://github.com/osanttoro-creator/oaze/actions/runs/40327401002) e [verificação 24](https://github.com/osanttoro-creator/oaze/actions/runs/40327401010). O APK está em `builds/oaze-android-painel-2.0.3-22.apk` (SHA-256 `A270D808B3C1497B6F0CC75789A9F3965C60D613D3B30540C66B42828F0A2A2D`). Windows: `builds/oaze-windows-painel-2.0.3-19.exe` (SHA-256 `4291F850EF081CE842DEB5782D45FD2777C5BA726250270690B6D3375A23F55D`) e `.msi` (SHA-256 `0A81D29179A661E561349ADBEF0842EE84243848B9342E538EC071E60AA50C0F`). Os binários não foram instalados em aparelhos nesta sessão. O AAB assinado para a loja não foi gerado.
 
+Downloads de teste no Drive: [Android APK](https://drive.google.com/file/d/1QIduWvWX_XBkB-QWosl2NqEeu3zT4WhQ/view?usp=drivesdk), [Windows EXE](https://drive.google.com/file/d/1AmlQQUtw6jg26IQ2_DoMTc1Vpq6EJUZS/view?usp=drivesdk) e [Windows MSI](https://drive.google.com/file/d/1z342hdITtKBi17C05qr0L2j9oPI-g1Vx/view?usp=drivesdk).
+
 ## Painel publicado no app
 
 Os pacotes de teste Android 16 e Windows 13 mostravam uma interface diferente da disponível em `https://oaze.site/app`. A versão 2.0.2 passou a empacotar o painel publicado em `app/live-site/` e a usar `app/dist-live/` nos shells Android e Windows. Ver `18-PAINEL-PUBLICADO-NO-APP.md`. Os links de builds antigos nesta página são histórico; conferir o número de versão antes de instalar.
