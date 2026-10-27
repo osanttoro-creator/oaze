@@ -2,7 +2,7 @@
 
 ## Revisão 2.0.5 — em validação
 
-Boas-vindas persistentes, fundo mais preto e fluido, Coco transparente sem círculo e desbloqueio opcional pelo Android/Windows Hello estão no código. O backend de pagamento foi corrigido para aceitar as origens dos aplicativos instalados. [Detalhes, evidência e pendências](20-REVISAO-2.0.5.md). As prévias `docs/previews/oaze-2.0.5-*` usam dados de demonstração. Builds instaláveis e teste de cobrança autenticada ainda pendem nesta revisão.
+Boas-vindas persistentes, fundo mais preto e fluido, Coco transparente sem círculo e desbloqueio opcional pelo Android/Windows Hello estão no código. O backend de pagamento foi corrigido para aceitar as origens dos aplicativos instalados. [Detalhes, pacotes e pendências](20-REVISAO-2.0.5.md). As prévias `docs/previews/oaze-2.0.5-*` usam dados de demonstração. APK Android e EXE/MSI Windows foram gerados e salvos no Drive; instalação em aparelho e teste de cobrança autenticada ainda pendem nesta revisão.
 
 ## GIF da Coco em validação
 

@@ -20,4 +20,13 @@ Data: 26/10/2026. Escopo: pacote Android de teste e aplicativo Windows que empac
 - Prévia em largura real de 390 px e desktop 1440 px: sem erro JavaScript e sem rolagem horizontal. Imagens em `docs/previews/oaze-2.0.5-*`; os dados da tela inicial são de demonstração.
 - Ainda falta testar biometria em aparelho Android e Windows Hello numa instalação real. O checkout e o portal precisam ser testados com uma conta assinante, sem efetuar cobrança de teste em conta real sem escolha explícita.
 - O AAB da Google Play permanece sem compra Stripe dentro do app. Vender a assinatura digital no AAB exige integrar Google Play Billing e verificar compras no backend antes de liberar o plano. Este trabalho ainda depende dos produtos criados no Play Console e da configuração de acesso à API; o APK de teste fora da loja e o Windows usam Stripe.
+- IDs e sequência sugeridos para o Console estão em `docs/21-ASSINATURA-GOOGLE-PLAY.md`. Os produtos ainda não existem; a criação no Console e a integração não devem ser descritas como prontas.
 - A função de pagamento publicada estava numa revisão anterior ao arquivo local do site. O deploy v12 aplicou somente a alteração de CORS sobre a revisão publicada v11 para não alterar regras de planos por acidente. Antes de qualquer novo deploy a partir do site, comparar a versão local com a função publicada.
+
+## Pacotes de teste gerados
+
+- [APK Android 2.0.5 build 27](https://drive.google.com/file/d/1ndPKfThnR2E8L3axzb4EvtMmczAsAZWg/view?usp=drivesdk), SHA-256 `6D189D27875D4F76AE0A96DD243D84CF65E58ED1DB68E5237538F6C043B6D86B`.
+- [EXE Windows 2.0.5 build 24](https://drive.google.com/file/d/11jNjqWDmY-2HBOUcAlxhCDfpDExR8KJy/view?usp=drivesdk), SHA-256 `D7FB777554670ABE8A44C1BCDA4FE032C1C6A07649CB4E434BDA257103B50EEF`.
+- [MSI Windows 2.0.5 build 24](https://drive.google.com/file/d/1MBiUqiYWAjEOsFUDgWbrbhKP5X5ACrZt/view?usp=drivesdk), SHA-256 `30CFAD8A7F95B34E66C4361B3957DF0E5677BBBACA6024B87C8181222400E8A5`.
+
+[CI Android 27](https://github.com/osanttoro-creator/oaze/actions/runs/40416499968), [Windows 24](https://github.com/osanttoro-creator/oaze/actions/runs/40416498686) e [verificação 29](https://github.com/osanttoro-creator/oaze/actions/runs/40416498730) passaram no commit `e55bf19`. Os três arquivos estão em `builds/` da pasta canônica do app e foram enviados à mesma pasta no Google Drive. O APK foi aberto como ZIP e contém a entrada, a ponte nativa, o novo fundo e o render da Coco. O tamanho dos uploads foi conferido. Não foram instalados em aparelhos nesta sessão; os instaladores Windows seguem sem assinatura de código e não equivalem a submissão à Microsoft Store.
