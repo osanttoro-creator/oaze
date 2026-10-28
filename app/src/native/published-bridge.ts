@@ -25,6 +25,8 @@ type NativeWindow = Window & {
     cancel(): Promise<void>;
   };
   OAZE_NATIVE_OPEN_EXTERNAL?: (url: string) => Promise<void>;
+  OAZE_NATIVE_DESKTOP?: boolean;
+  OAZE_NATIVE_SAVE_PDF?: (fileName: string, base64: string) => Promise<void>;
   OAZE_BILLING_READONLY?: boolean;
   OAZE_NATIVE_BIOMETRICS?: {
     isEnabled(): boolean;
@@ -37,6 +39,7 @@ type NativeWindow = Window & {
 const nativeWindow = window as NativeWindow;
 const android = Capacitor.getPlatform() === 'android';
 const desktop = !!nativeWindow.__TAURI_INTERNALS__;
+nativeWindow.OAZE_NATIVE_DESKTOP = desktop;
 const auth = nativeWindow.SiteAuth;
 const biometricKey = 'oaze.native.biometric-lock.v1';
 nativeWindow.OAZE_BILLING_READONLY = android && import.meta.env.VITE_OAZE_DISTRIBUTION === 'play';
@@ -118,6 +121,22 @@ if (android || desktop) {
   };
 }
 
+if (android) {
+  nativeWindow.OAZE_NATIVE_SAVE_PDF = async (fileName, base64) => {
+    if (!/^estado-oaze-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.pdf$/.test(fileName) ||
+        !/^[A-Za-z0-9+/]+={0,2}$/.test(base64) || base64.length > 20_000_000) {
+      throw new Error('Relatório inválido.');
+    }
+    const [{ Filesystem, Directory }, { Share }] = await Promise.all([
+      import('@capacitor/filesystem'), import('@capacitor/share'),
+    ]);
+    const { uri } = await Filesystem.writeFile({ path: fileName, data: base64, directory: Directory.Cache });
+    await Share.share({ title: 'Estado do OAZE', url: uri, dialogTitle: 'Salvar ou compartilhar PDF' });
+    // O arquivo é temporário; quem quiser guardá-lo escolhe um destino no compartilhamento.
+    setTimeout(() => { void Filesystem.deleteFile({ path: fileName, directory: Directory.Cache }).catch(() => {}); }, 5 * 60_000);
+  };
+}
+
 if (android || desktop) {
   nativeWindow.OAZE_NATIVE_NOTIFICATIONS = {
     async request() {
@@ -196,6 +215,13 @@ async function finishAuth(url: string): Promise<void> {
 
 async function handleAppUrl(url: string): Promise<void> {
   const incoming = new URL(url);
+  if (incoming.protocol === 'oaze:' && incoming.hostname === 'billing') {
+    if (!['sucesso', 'cancelado', 'portal'].includes(incoming.searchParams.get('resultado') || '')) return;
+    if (android) await Browser.close().catch(() => {});
+    try { sessionStorage.setItem('oaze.native.billing-return', '1'); } catch { /* storage indisponível */ }
+    dispatchEvent(new Event('oaze:billing-return'));
+    return;
+  }
   if (android && incoming.origin === 'https://oaze.site' && incoming.pathname === '/app/planos') {
     await Browser.close().catch(() => {});
     try { sessionStorage.setItem('oaze.native.billing-return', '1'); } catch { /* storage indisponível */ }
@@ -236,10 +262,10 @@ nativeWindow.OAZE_NATIVE_AUTH_READY = (async () => {
     if (launch?.url) await handleAppUrl(launch.url);
   } else if (desktop) {
     window.addEventListener('oaze:deep-link', (event) => {
-      void finishAuth((event as CustomEvent<string>).detail).catch(reportAuthFailure);
+      void handleAppUrl((event as CustomEvent<string>).detail).catch(reportAuthFailure);
     });
     const current = await nativeWindow.__TAURI_INTERNALS__!.invoke<string[]>('oaze_deep_link_ready');
-    for (const url of current) await finishAuth(url);
+    for (const url of current) await handleAppUrl(url);
   }
   await unlockApp();
 })().catch(reportAuthFailure);

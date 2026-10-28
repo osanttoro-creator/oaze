@@ -208,7 +208,7 @@
       method: 'POST', cache: 'no-store',
       headers: { 'content-type': 'application/json', apikey: publicKey,
         authorization: 'Bearer ' + data.session.access_token },
-      body: '{}'
+      body: JSON.stringify(global.OAZE_NATIVE_DESKTOP ? { canal: 'windows' } : {})
     }));
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.url) throw new Error(result.mensagem || 'Não foi possível abrir suas cobranças.');

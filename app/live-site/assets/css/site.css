@@ -22,6 +22,7 @@
   src: url("/assets/fonts/InstrumentSans-Regular.ttf") format("truetype");
   font-weight: 400; font-style: normal; font-display: swap;
 }
+
 @font-face {
   font-family: "Instrument Sans";
   src: url("/assets/fonts/InstrumentSans-Medium.ttf") format("truetype");
@@ -1667,4 +1668,11 @@ p.leve { color: var(--bruma); }
      do cabeçalho, longe de tudo. */
   .topo .env .idioma-esfera { margin-left: auto; }
   .topo .env .hamburguer { order: 1; margin-left: 0; }
+}
+
+/* Formulários do pacote Android preservam o recorte da câmera. */
+@media (max-width: 900px) {
+  body .topo { padding-top: max(56px, calc(24px + env(safe-area-inset-top, 0px))); }
+  body main { padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+  body footer { padding-bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
 }

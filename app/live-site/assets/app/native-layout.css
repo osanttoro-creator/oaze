@@ -1,14 +1,19 @@
 /* Safe areas and viewport segments for the packaged Android app. */
 @media (max-width: 900px) {
   .v3-main {
-    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    /* WebView pode informar inset zero mesmo com câmera recortando a tela. */
+    padding-top: max(56px, calc(24px + env(safe-area-inset-top, 0px)));
     padding-left: max(18px, env(safe-area-inset-left, 0px));
     padding-right: max(18px, env(safe-area-inset-right, 0px));
     padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px));
   }
   .v3-bottom { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
   .v3-coco-fab { bottom: calc(101px + env(safe-area-inset-bottom, 0px)); }
-  .v3-sheet { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .v3-sheet {
+    padding-top: max(20px, env(safe-area-inset-top, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .v3-skip:focus { top: max(12px, env(safe-area-inset-top, 0px)); }
 }
 
 /* A fold may switch between phone and tablet widths without reloading. */

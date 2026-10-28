@@ -1,5 +1,5 @@
 .oaze-entrance[hidden],.oaze-entrance-skip[hidden]{display:none}
-body:has(.oaze-entrance) .topo{padding-top:env(safe-area-inset-top,0px)}
+body:has(.oaze-entrance) .topo{padding-top:max(56px,calc(24px + env(safe-area-inset-top,0px)))}
 body:has(.oaze-entrance) main{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .oaze-entrance{position:fixed;z-index:10001;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:32px;background:#0d1821;color:#f0e5cf;text-align:center;overflow:hidden}
 .oaze-entrance>*{position:relative;z-index:1}

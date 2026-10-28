@@ -36,6 +36,16 @@ Deno.serve(async (request) => {
   if (Number(request.headers.get('content-length') || '0') > 256) {
     return reply(origin, 413, 'Solicitação inválida.');
   }
+  let payload: unknown;
+  try { payload = await request.json(); } catch { return reply(origin, 400, 'Solicitação inválida.'); }
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return reply(origin, 400, 'Solicitação inválida.');
+  const fields = Object.keys(payload);
+  if (fields.some((field) => field !== 'canal') ||
+      (fields.includes('canal') && ((payload as { canal?: unknown }).canal !== 'windows' ||
+        !['http://tauri.localhost', 'tauri://localhost'].includes(origin || '')))) {
+    return reply(origin, 400, 'Canal de retorno inválido.');
+  }
+  const retornoWindows = fields.includes('canal');
   const token = request.headers.get('authorization')?.match(/^Bearer (.+)$/)?.[1];
   if (!token) return reply(origin, 401, 'Entre na sua conta novamente.');
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -74,7 +84,7 @@ Deno.serve(async (request) => {
 
     const body = new URLSearchParams({
       customer: stripeSubscription.customer,
-      return_url: 'https://oaze.site/app/planos',
+      return_url: retornoWindows ? 'https://oaze.site/retorno-app.html?resultado=portal' : 'https://oaze.site/app/planos',
     });
     const portalResponse = await fetch('https://api.stripe.com/v1/billing_portal/sessions', {
       method: 'POST',
