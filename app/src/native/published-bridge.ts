@@ -96,7 +96,7 @@ async function unlockApp(): Promise<void> {
     });
     gate.querySelector<HTMLButtonElement>('#oaze-native-signout')!.addEventListener('click', async () => {
       localStorage.removeItem(biometricKey);
-      await auth?.cliente()?.auth.signOut();
+      await auth?.cliente()?.auth.signOut({ scope: 'local' });
       location.replace('/entrar.html');
     });
     unlock.focus();
@@ -200,21 +200,30 @@ if (auth) {
   }
 }
 
+let authCallbackInFlight = false;
 async function finishAuth(url: string): Promise<void> {
   const callback = new URL(url);
   if (callback.protocol !== 'oaze:' || callback.hostname !== 'auth') return;
+  if (authCallbackInFlight) return;
   const code = callback.searchParams.get('code');
   if (!code) throw new Error('O provedor não devolveu o código de entrada.');
   const client = auth?.cliente();
   if (!client) throw new Error('Conta indisponível neste aparelho.');
-  const { error } = await client.auth.exchangeCodeForSession(code);
-  if (error) throw error;
-  if (android) await Browser.close().catch(() => {});
-  location.replace('/index.html');
+  authCallbackInFlight = true;
+  try {
+    const { error } = await client.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    if (android) await Browser.close().catch(() => {});
+    location.replace('/index.html');
+  } catch (error) {
+    authCallbackInFlight = false;
+    throw error;
+  }
 }
 
 async function handleAppUrl(url: string): Promise<void> {
-  const incoming = new URL(url);
+  let incoming: URL;
+  try { incoming = new URL(url); } catch { return; }
   if (incoming.protocol === 'oaze:' && incoming.hostname === 'billing') {
     if (!['sucesso', 'cancelado', 'portal'].includes(incoming.searchParams.get('resultado') || '')) return;
     if (android) await Browser.close().catch(() => {});

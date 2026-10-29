@@ -23,6 +23,7 @@ pub fn run() {
            deep link à janela que já está aberta antes de encerrar. */
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
                 let _ = window.set_focus();
             }
         }))
@@ -71,6 +72,8 @@ pub fn run() {
                         Err(_) => continue,
                     };
                     if let Some(window) = handle.get_webview_window("main") {
+                        let _ = window.unminimize();
+                        let _ = window.set_focus();
                         let _ = window.eval(&format!(
                             "window.dispatchEvent(new CustomEvent('oaze:deep-link',{{detail:{payload}}}))"
                         ));

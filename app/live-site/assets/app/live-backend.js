@@ -245,9 +245,13 @@
     Store.setOwnerName(name);
     return record;
   };
-  V3Backend.signOut = async function () {
+  V3Backend.signOut = async function (everywhere = false) {
     if (!client) throw new Error('Sessão indisponível.');
-    const { error } = await bounded(client.auth.signOut());
+    if (global.OAZE_NATIVE_NOTIFICATIONS) {
+      try { await global.OAZE_NATIVE_NOTIFICATIONS.cancel(); }
+      catch (error) { console.warn('V3/avisos pendentes:', error); }
+    }
+    const { error } = await bounded(client.auth.signOut({ scope: everywhere ? 'global' : 'local' }));
     if (error) throw error;
     global.location.replace(loginUrl);
   };
@@ -541,13 +545,7 @@
     });
   }
 
-  V3Backend.reload = async function () {
-    if (saving) { refreshPending = true; return false; }
-    const verified = await bounded(SiteAuth.quemEsta());
-    if (!verified || verified.id !== user?.id) {
-      global.location.replace(loginUrl);
-      return false;
-    }
+  const loadRemoteData = async function () {
     const { data, error } = await bounded(client.from('dados')
       .select('profiles,removidos').eq('user_id', user.id).maybeSingle());
     if (error) throw error;
@@ -559,6 +557,15 @@
     revisions = Object.fromEntries(Object.entries(valid).map(([id, profile]) => [id, stamp(profile)]));
     Store.loadRemoteMap(valid, ownerName(), active);
     return true;
+  };
+  V3Backend.reload = async function () {
+    if (saving) { refreshPending = true; return false; }
+    const verified = await bounded(SiteAuth.quemEsta());
+    if (!verified || verified.id !== user?.id) {
+      global.location.replace(loginUrl);
+      return false;
+    }
+    return loadRemoteData();
   };
 
   V3Backend.mutate = async function (change) {
@@ -750,7 +757,7 @@
        inicializa o Sync antigo nem sua cópia local compartilhada. */
     global.Sync = { currentUser: () => ({ uid: user.id, email: user.email, displayName: ownerName() }) };
     global.SupabaseBackend = { cliente: () => client };
-    await V3Backend.reload();
+    await loadRemoteData();
     if (V3Backend.receiptCleanupStatus().pending) await V3Backend.retryReceiptCleanup();
     channel = client.channel('oaze-v3-dados-' + user.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dados', filter: 'user_id=eq.' + user.id },

@@ -4135,7 +4135,11 @@
     if (action==='switch-account' || action==='sign-out') {
       stopVoice();
       if (demo) { toast('Demonstração sem sessão.'); return; }
-      V3Backend.signOut().then(()=>{if(global.OAZE_NATIVE_BIOMETRICS)localStorage.removeItem('oaze.native.biometric-lock.v1');}).catch((e)=>toast(e.message||'Não foi possível encerrar a sessão.'));
+      target.disabled = true;
+      const biometricKey = 'oaze.native.biometric-lock.v1';
+      const lockEnabled = !!global.OAZE_NATIVE_BIOMETRICS && localStorage.getItem(biometricKey) === '1';
+      if (lockEnabled) localStorage.removeItem(biometricKey);
+      V3Backend.signOut().catch((e)=>{if(lockEnabled)localStorage.setItem(biometricKey,'1');target.disabled=false;toast(e.message||'Não foi possível encerrar a sessão.');});
       return;
     }
     if (action==='delete-account') { if (!demo) deleteAccountSheet(); return; }
