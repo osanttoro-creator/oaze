@@ -1,0 +1,116 @@
+{
+ "salario": [
+  {
+   "id": "s1",
+   "text": "O salário caiu. E agora?"
+  },
+  {
+   "id": "s2",
+   "text": "Antes de pensar em guardar, olha o que vence este mês."
+  },
+  {
+   "id": "s3",
+   "text": "Aluguel, luz, internet, a fatura do cartão."
+  },
+  {
+   "id": "s4",
+   "text": "Esse dinheiro já tem dono."
+  },
+  {
+   "id": "s5",
+   "text": "Depois, separa o essencial até o próximo pagamento: mercado, transporte, farmácia."
+  },
+  {
+   "id": "s6",
+   "text": "O que sobrar é o que dá pra guardar de verdade."
+  },
+  {
+   "id": "s7",
+   "text": "Pode ser pouco. Pouco, todo mês, vira reserva."
+  },
+  {
+   "id": "s8",
+   "text": "Não existe porcentagem certa pra todo mundo."
+  },
+  {
+   "id": "s9",
+   "text": "Existe uma ordem: o que vence, o que é essencial. E só depois, o que dá pra guardar."
+  }
+ ],
+ "parcelinha": [
+  {
+   "id": "p1",
+   "text": "Só uma parcelinha..."
+  },
+  {
+   "id": "p2",
+   "text": "O fone, em dez vezes de trinta e nove reais."
+  },
+  {
+   "id": "p3",
+   "text": "O tênis, em seis de sessenta."
+  },
+  {
+   "id": "p4",
+   "text": "A blusa, em quatro de quarenta e cinco."
+  },
+  {
+   "id": "p5",
+   "text": "Cada parcela parece leve. Juntas, são cento e quarenta e quatro reais por mês."
+  },
+  {
+   "id": "p6",
+   "text": "Antes do aluguel, do mercado, de qualquer imprevisto."
+  },
+  {
+   "id": "p7",
+   "text": "Somando tudo, são novecentos e trinta reais de salários que você ainda nem recebeu."
+  },
+  {
+   "id": "p8",
+   "text": "Limite do cartão não é dinheiro seu. É o quanto o banco deixa você gastar do que ainda vai entrar."
+  },
+  {
+   "id": "p9",
+   "text": "Antes de parcelar, olha quanto dos próximos meses já está ocupado."
+  }
+ ],
+ "coco": [
+  {
+   "id": "c1",
+   "text": "Para onde foi o meu dinheiro?"
+  },
+  {
+   "id": "c2",
+   "text": "Quase nunca é uma compra grande."
+  },
+  {
+   "id": "c3",
+   "text": "É o café, a corrida de aplicativo, o lanche, a taxa de entrega."
+  },
+  {
+   "id": "c4",
+   "text": "Sozinho, cada gasto parece nada."
+  },
+  {
+   "id": "c5",
+   "text": "Faz um teste: pega só os últimos sete dias e junta tudo por tipo."
+  },
+  {
+   "id": "c6",
+   "text": "Comida fora, transporte, delivery, assinatura."
+  },
+  {
+   "id": "c7",
+   "text": "Agora dá pra ver o tamanho: cento e noventa e oito reais em uma semana."
+  },
+  {
+   "id": "c8",
+   "text": "Sem culpa. Não é pra cortar tudo."
+  },
+  {
+   "id": "c9",
+   "text": "É pra escolher o que vale a pena pra você."
+  }
+ ]
+}

@@ -1,0 +1,19 @@
+name: locucao-reels-temporario
+on:
+  push:
+    branches: [tmp/locucao-reels]
+    paths: [".locucao/request.json"]
+permissions:
+  contents: write
+jobs:
+  tts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install edge-tts
+      - run: python .locucao/gen.py
+      - run: |
+          git config user.name "locucao-bot"; git config user.email "locucao-bot@users.noreply.github.com"
+          git add .locucao/out && git commit -m "locucao gerada" && git push
