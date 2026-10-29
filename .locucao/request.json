@@ -1,36 +1,192 @@
 {
- "recebo": [
+ "d": [
   {
-   "id": "r1",
-   "text": "Recebo pouco. Por onde começo?"
+   "id": "d1",
+   "text": "Décimo terceiro salário: o que é, afinal?"
   },
   {
-   "id": "r2",
-   "text": "Se o dinheiro está contado, o plano precisa caber nele. Não o contrário."
+   "id": "d2",
+   "text": "É um salário a mais por ano, garantido por lei pra quem tem carteira assinada, e também pra aposentados e pensionistas do INSS."
   },
   {
-   "id": "r3",
-   "text": "Primeiro, o que mantém você em pé: casa, comida, luz e água."
+   "id": "d3",
+   "text": "A conta é simples: um doze avos do salário por mês trabalhado."
   },
   {
-   "id": "r4",
-   "text": "Depois, o que te leva pro trabalho. Sem transporte, o resto para."
+   "id": "d4",
+   "text": "Mês com quinze dias ou mais de trabalho já conta."
   },
   {
-   "id": "r5",
-   "text": "Se tiver dívida, a parcela mínima entra antes de qualquer compra."
+   "id": "d5",
+   "text": "Trabalhou seis meses? Recebe metade."
   },
   {
-   "id": "r6",
-   "text": "Talvez não sobre nada. E tudo bem. Esse mês, a meta é não atrasar o essencial."
+   "id": "d6",
+   "text": "Ele vem em duas parcelas. A primeira, até trinta de novembro, sem descontos."
   },
   {
-   "id": "r7",
-   "text": "Sobrou um pouco? Separa, nem que sejam dez reais. É o começo de uma folga."
+   "id": "d7",
+   "text": "A segunda, este ano, até dezoito de dezembro. É nela que saem o INSS e o imposto de renda."
   },
   {
-   "id": "r8",
-   "text": "Planejar não é ter muito. É saber o que vem primeiro."
+   "id": "d8",
+   "text": "Por isso a segunda parcela costuma ser menor. Não é erro, é desconto."
+  },
+  {
+   "id": "d9",
+   "text": "Sabendo quanto e quando cai, dá pra planejar antes de gastar."
+  }
+ ],
+ "e": [
+  {
+   "id": "e1",
+   "text": "O décimo terceiro caiu. Qual é o jeito mais caro de usar?"
+  },
+  {
+   "id": "e2",
+   "text": "Gastar tudo em dezembro e entrar em janeiro sem nada."
+  },
+  {
+   "id": "e3",
+   "text": "Janeiro tem IPVA, IPTU, material escolar e a fatura das compras de fim de ano."
+  },
+  {
+   "id": "e4",
+   "text": "Outro erro: parcelar presente contando com um dinheiro que já foi."
+  },
+  {
+   "id": "e5",
+   "text": "E o pior: deixar dívida cara rolando, como rotativo do cartão e cheque especial, com o décimo terceiro parado na conta."
+  },
+  {
+   "id": "e6",
+   "text": "Agora, a ordem que funciona: primeiro, quite ou reduza a dívida mais cara."
+  },
+  {
+   "id": "e7",
+   "text": "Depois, separe o que janeiro vai cobrar."
+  },
+  {
+   "id": "e8",
+   "text": "Sobrou? Comece ou reforce sua reserva."
+  },
+  {
+   "id": "e9",
+   "text": "E sim, dá pra guardar uma parte pra aproveitar. Sem culpa, mas com o valor definido antes."
+  }
+ ],
+ "f": [
+  {
+   "id": "f1",
+   "text": "Selic e CDB. Você escuta isso toda hora. O que significam?"
+  },
+  {
+   "id": "f2",
+   "text": "A Selic é a taxa básica de juros do Brasil. Quem define é o Banco Central, numa reunião chamada Copom."
+  },
+  {
+   "id": "f3",
+   "text": "Ela serve de referência pra quase tudo: o juro do empréstimo, do financiamento e quanto rendem muitos investimentos."
+  },
+  {
+   "id": "f4",
+   "text": "Hoje, a Selic está em treze vírgula setenta e cinco por cento ao ano."
+  },
+  {
+   "id": "f5",
+   "text": "Juros altos deixam o crédito mais caro, mas fazem a renda fixa render mais."
+  },
+  {
+   "id": "f6",
+   "text": "E o CDB? É quando você empresta dinheiro pro banco, e ele te devolve com juros."
+  },
+  {
+   "id": "f7",
+   "text": "Muitos CDBs rendem uma porcentagem do CDI, uma taxa que anda colada na Selic."
+  },
+  {
+   "id": "f8",
+   "text": "Tem garantia do FGC até duzentos e cinquenta mil reais por CPF e por instituição. E o imposto de renda cai com o tempo: de vinte e dois e meio a quinze por cento."
+  },
+  {
+   "id": "f9",
+   "text": "Antes de aplicar, olha três coisas: quanto rende, quando você pode resgatar e quem é o banco."
+  }
+ ],
+ "g": [
+  {
+   "id": "g1",
+   "text": "Quero comprar uma casa. Quais são os caminhos?"
+  },
+  {
+   "id": "g2",
+   "text": "À vista, juntando o dinheiro. Leva mais tempo, mas não paga juros."
+  },
+  {
+   "id": "g3",
+   "text": "Financiamento: o banco paga o imóvel e você devolve em parcelas, com juros, por até trinta e cinco anos."
+  },
+  {
+   "id": "g4",
+   "text": "Em geral, pede entrada de uns vinte por cento, e a parcela não pode passar de trinta por cento da renda."
+  },
+  {
+   "id": "g5",
+   "text": "Pelo Minha Casa Minha Vida, famílias com renda de até treze mil reais têm juros menores. Nas faixas mais baixas, pode ter subsídio na entrada."
+  },
+  {
+   "id": "g6",
+   "text": "O FGTS pode ajudar na entrada ou a abater o saldo."
+  },
+  {
+   "id": "g7",
+   "text": "E tem o consórcio: sem juros, mas sem data certa pra receber a carta de crédito."
+  },
+  {
+   "id": "g8",
+   "text": "Em qualquer caminho, separe dinheiro também pros custos da compra, como imposto de transmissão e cartório."
+  },
+  {
+   "id": "g9",
+   "text": "O melhor caminho é o que cabe na sua renda hoje, e daqui a dez anos."
+  }
+ ],
+ "h": [
+  {
+   "id": "h1",
+   "text": "Financiamento ou consórcio? Depende de uma pergunta: você tem pressa?"
+  },
+  {
+   "id": "h2",
+   "text": "No financiamento, você recebe o imóvel agora e paga juros por isso."
+  },
+  {
+   "id": "h3",
+   "text": "Precisa de entrada, aprovação de crédito e uma parcela que caiba em até trinta por cento da renda."
+  },
+  {
+   "id": "h4",
+   "text": "No consórcio, não tem juros. Tem taxa de administração e fundo de reserva."
+  },
+  {
+   "id": "h5",
+   "text": "Mas você só compra quando for contemplado, por sorteio ou por lance. Pode ser no primeiro mês, ou no último."
+  },
+  {
+   "id": "h6",
+   "text": "E as parcelas são reajustadas ao longo do contrato."
+  },
+  {
+   "id": "h7",
+   "text": "Precisa do imóvel agora, tem entrada e renda? O financiamento tende a fazer mais sentido."
+  },
+  {
+   "id": "h8",
+   "text": "Pode esperar e quer pagar menos no total? O consórcio pode valer a pena."
+  },
+  {
+   "id": "h9",
+   "text": "Antes de assinar, compare o custo total, e confira no Banco Central se a administradora é autorizada."
   }
  ]
 }
