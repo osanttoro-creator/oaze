@@ -44,3 +44,11 @@ Estado em 28/10/2026: código enviado para PRs de rascunho e builds de teste ger
 - [ANPD: controlador, encarregado e hipótese para agentes de pequeno porte](https://www.gov.br/anpd/pt-br/canais_atendimento/cidadao-titular-de-dados/denuncia-peticao-de-titular).
 - [Google Play: conteúdo e política de privacidade exigidos na revisão](https://support.google.com/googleplay/android-developer/answer/9859455).
 - [Google Play: declaração de segurança dos dados](https://support.google.com/googleplay/android-developer/answer/10787469).
+## Revisão incremental da COCO — 28/10/2026
+
+- O botão de áudio deixou de redesenhar a tela duas vezes quando começa a preparar a fala. O rótulo acessível agora diz “Cancelar preparo do áudio” durante o carregamento.
+- A chamada de texto à função remota agora expira em 30 segundos com mensagem de nova tentativa. Isto evita espera infinita; não comprova redução do tempo normal de resposta.
+- Verificação de código do commit `89d32f6`, build Android #32 e build Windows #29 passaram no CI. Ainda faltam testes com conta e serviço de IA conectados em dispositivos instalados.
+- APK atualizado: `builds/android-coco-20261028/app-debug.apk`; SHA-256 `7A936FC9449791D13D5957A5476CDBD59B8086A286CE3AA5620CCB493E46AB8F`.
+- Windows atualizado: `builds/windows-coco-20261028/nsis/OAZE_2.0.5_x64-setup.exe`; SHA-256 `A08E944721849C0D58EBB1403E3916C5DACE10444810032A92B995F5375A30B5`.
+- Voz, identidade vocal, idiomas em uso real e GIF transparente da COCO continuam pendentes. O APK e os instaladores anteriores desta pasta não contêm esta revisão.
