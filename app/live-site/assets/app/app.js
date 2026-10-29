@@ -195,6 +195,7 @@
   function categoryIcon(name) { const map={house:'home',utensils:'utensils',car:'car','heart-pulse':'heart','gamepad-2':'leisure',repeat:'subscription','circle-ellipsis':'more',banknote:'investments','trending-up':'investments','graduation-cap':'education','shopping-bag':'shopping',receipt:'receipt',briefcase:'work','arrow-left-right':'exchange',tag:'sales'}; return map[name] || name; }
   function categoryTotals(kind) {
     if (demo && kind === 'expense') return Object.entries(sample.categoryAmounts).map(([id,value]) => ({ id, name: categoryName(id), value, color: sample.categories.find((c) => c.id === id).color })).sort((a,b) => b.value - a.value);
+    if (demo && kind === 'income') return sample.transactions.filter((t) => t.kind === 'income' && t.confirmed).map((t) => ({ id: t.categoryId, name: categoryName(t.categoryId), value: t.amount, color: sample.categories.find((c) => c.id === t.categoryId)?.color || '#5fa99b' })).sort((a,b) => b.value - a.value);
     const map = new Map();
     currentTransactions().filter((t) => t.confirmed && t.contaNosTotais !== false && t.kind === kind).forEach((t) => map.set(t.categoryId || 'other', (map.get(t.categoryId || 'other') || 0) + +t.amount));
     return [...map].map(([id, value]) => ({ id, name: categoryName(id), value, color: safeColor((profile().categories.find((c) => c.id === id) || {}).color) })).sort((a, b) => b.value - a.value);
@@ -547,10 +548,11 @@
      novo no padrão, e isso é aceitável para uma preferência de tela.
      ============================================================= */
   const CHAVE_INICIO = 'oaze.v3.inicio';
+  let blocosSessao = null;
   const BLOCOS_INICIO = [
     { id: 'sobra', nome: 'Sobra e curva do mês', padrao: true },
     { id: 'categorias', nome: 'Onde foi o mês', padrao: true },
-    { id: 'receitas', nome: 'De onde veio o mês', padrao: false },
+    { id: 'receitas', nome: 'De onde veio o mês', padrao: true },
     { id: 'proximos', nome: 'Até o fim do mês', padrao: true },
     { id: 'investimentos', nome: 'Investimentos', padrao: true },
     { id: 'faturas', nome: 'Faturas a pagar', padrao: false },
@@ -575,6 +577,7 @@
     { id: 'assinaturas', nome: 'Assinaturas recorrentes', padrao: false }
   ];
   function blocosEscolhidos() {
+    if (blocosSessao) return blocosSessao;
     try { return JSON.parse(localStorage.getItem(CHAVE_INICIO) || '{}') || {}; }
     catch (e) { return {}; }
   }
@@ -586,6 +589,7 @@
   function alternarBloco(id) {
     const atual = blocosEscolhidos();
     atual[id] = !blocoLigado(id);
+    blocosSessao = atual;
     try { localStorage.setItem(CHAVE_INICIO, JSON.stringify(atual)); } catch (e) { /* sem armazenamento: vale só nesta sessão */ }
   }
   function painelBlocosInicio() {
@@ -1207,7 +1211,7 @@
       const limite = comTeto ? Number(orcamentos[r.id] || 0) : 0;
       const usou = limite > 0 ? Math.round(100 * r.value / limite) : null;
       const estourou = usou != null && usou > 100;
-      return `<div class="v3-cat-tile${estourou ? ' estourou' : ''}">`
+      return `<div class="v3-cat-tile${estourou ? ' estourou' : ''}" style="--swatch:${safeColor(r.color)};--swatch-ink:${U.inkFor(safeColor(r.color))}">`
         + `<span class="v3-cat-icon" style="--swatch:${safeColor(r.color)};--swatch-ink:${U.inkFor(safeColor(r.color))}">${categoryIconMarkup(categoryIcon((profile().categories.find((c)=>c.id===r.id)||{}).icon) || 'categories')}</span>`
         + `<span class="v3-cat-id"><strong>${esc(r.name)}</strong><small>${Math.round(r.value/total*100)}% do total</small></span>`
         + `<strong class="v3-mono v3-sensitive">${money(r.value)}</strong>`
@@ -1233,7 +1237,7 @@
       + `<button type="button" class="v3-primary v3-category-create" data-action="add-category">＋ Nova categoria</button></div>`
       + `<div class="v3-grid v3-categories"><section class="v3-panel v3-category-overview"><div class="v3-row"><h2>${comTeto ? 'onde foi o mês' : 'de onde veio o mês'}</h2><small>${esc(periodLabel(state.ym))}</small></div>${categoryBars(5, comTeto ? 'expense' : 'income')}</section>`
       + `<div class="v3-cat-grid">${rows.map(ladrilho).join('') || '<p class="v3-muted">Nenhuma movimentação confirmada neste período.</p>'}`
-      + semGasto.map((b) => `<div class="v3-cat-tile esta-vazia"><span class="v3-cat-icon" style="--swatch:#355565">${icon('categories')}</span>`
+      + semGasto.map((b) => `<div class="v3-cat-tile esta-vazia" style="--swatch:#355565;--swatch-ink:#fff"><span class="v3-cat-icon">${icon('categories')}</span>`
         + `<span class="v3-cat-id"><strong>${esc(b.nome)}</strong><small>nada gasto neste mês</small></span>`
         + `<strong class="v3-mono v3-sensitive">${money(0)}</strong>`
         + `<span class="v3-cat-teto"><button type="button" class="v3-link" data-budget="${esc(b.id)}">teto de ${money(b.limite)}</button></span></div>`).join('')
