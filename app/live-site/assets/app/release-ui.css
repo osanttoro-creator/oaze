@@ -1,4 +1,4 @@
-.v3-pro-shortcut{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 18px;border:1px solid rgba(95,169,155,.65);border-radius:99px;background:linear-gradient(125deg,rgba(95,169,155,.22),rgba(53,85,101,.48));color:#f0e5cf;font:600 12px/1 Instrument,Arial,sans-serif;white-space:nowrap;box-shadow:inset 0 1px rgba(240,229,207,.09)}
+.v3-pro-shortcut{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border:1px solid rgba(95,169,155,.65);border-radius:99px;background:linear-gradient(125deg,rgba(95,169,155,.22),rgba(53,85,101,.48));color:#f0e5cf;font:600 12px/1 Instrument,Arial,sans-serif;white-space:nowrap;box-shadow:inset 0 1px rgba(240,229,207,.09)}
 .v3-pro-shortcut:hover{background:rgba(95,169,155,.35)}
 .v3-pro-shortcut:focus-visible{outline:2px solid #5fa99b;outline-offset:3px}
 .v3-settings-extra{margin-top:16px}

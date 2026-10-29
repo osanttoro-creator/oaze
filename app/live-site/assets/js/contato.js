@@ -22,10 +22,10 @@
   var FRASES = {
     'Enviando…': { en: 'Sending…', fr: 'Envoi…', es: 'Enviando…' },
     'Enviar mensagem': { en: 'Send message', fr: 'Envoyer le message', es: 'Enviar mensaje' },
-    'Mensagem recebida. Respondemos no e-mail que você informou.': {
-      en: 'Message received. We will reply to the email you entered.',
-      fr: 'Message reçu. Nous répondrons à l’adresse e-mail indiquée.',
-      es: 'Mensaje recibido. Responderemos al correo que indicaste.'
+    'Mensagem registrada. Guarde o protocolo; usaremos o e-mail informado para responder.': {
+      en: 'Message recorded. Keep the reference number; we will use your email to reply.',
+      fr: 'Message enregistré. Conservez la référence ; nous utiliserons votre e-mail pour répondre.',
+      es: 'Mensaje registrado. Guarda el número de referencia; usaremos tu correo para responder.'
     },
     'Protocolo': { en: 'Reference', fr: 'Référence', es: 'Protocolo' },
     'Muitas mensagens em pouco tempo. Tente de novo daqui a alguns minutos.': {
@@ -111,7 +111,7 @@
         if (res.status === 200 && res.d && res.d.ok) {
           form.reset();
           [nome, email, msg].forEach(function (c) { c.setAttribute('aria-invalid', 'false'); });
-          avisa(t('Mensagem recebida. Respondemos no e-mail que você informou.') +
+          avisa(t('Mensagem registrada. Guarde o protocolo; usaremos o e-mail informado para responder.') +
             (res.d.protocolo ? ' ' + t('Protocolo') + ': ' + res.d.protocolo + '.' : ''), 'ok');
         } else if (res.status === 429) {
           avisa(t('Muitas mensagens em pouco tempo. Tente de novo daqui a alguns minutos.'), 'erro');

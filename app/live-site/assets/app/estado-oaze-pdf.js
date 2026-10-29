@@ -91,21 +91,34 @@
     doc.setFont(displayFont, 'normal'); doc.setFontSize(19); doc.setTextColor(...milk);
     doc.text('Como foi o período', 18, 30);
     let y = 47;
-    doc.setFont(bodyFont, 'normal'); doc.setFontSize(11); doc.setTextColor(...teal);
-    doc.text('DESPESAS POR CATEGORIA', 18, y); y += 9;
-    if (!report.categories.length) {
-      doc.setTextColor(...milk); doc.text('Sem despesas confirmadas neste período.', 18, y); y += 10;
-    } else for (const category of report.categories.slice(0, 9)) {
-      if (y > 252) break;
-      doc.setTextColor(...milk); doc.setFontSize(10);
-      doc.text(String(category.name).slice(0, 38), 18, y);
-      doc.text(money(category.value), 191, y, { align: 'right' });
-      doc.setDrawColor(...blue); doc.line(18, y + 3, 192, y + 3); y += 13;
-    }
+    const space = (height) => {
+      if (y + height <= 257) return;
+      doc.addPage(); background(doc.getNumberOfPages()); y = 30;
+    };
+    const categorySection = (title, categories, empty) => {
+      space(25);
+      doc.setFont(bodyFont, 'normal'); doc.setFontSize(11); doc.setTextColor(...teal);
+      doc.text(title, 18, y); y += 11;
+      if (!categories.length) {
+        doc.setTextColor(...milk); doc.setFontSize(10); doc.text(empty, 18, y); y += 12;
+        return;
+      }
+      for (const category of categories) {
+        space(14);
+        doc.setTextColor(...milk); doc.setFont(bodyFont, 'normal'); doc.setFontSize(10);
+        const name = doc.splitTextToSize(String(category.name), 118)[0] || 'Sem categoria';
+        doc.text(name, 18, y);
+        doc.text(money(category.value), 191, y, { align: 'right' });
+        doc.setDrawColor(...blue); doc.line(18, y + 3, 192, y + 3); y += 13;
+      }
+      y += 5;
+    };
+    categorySection('DESPESAS POR CATEGORIA', report.categories || [], 'Sem despesas confirmadas neste período.');
+    categorySection('RECEITAS POR CATEGORIA', report.incomeCategories || [], 'Sem receitas confirmadas neste período.');
     if (report.monthly?.length) {
-      y += 8; doc.setTextColor(...teal); doc.setFontSize(11); doc.text('MÊS A MÊS', 18, y); y += 10;
+      space(22); doc.setTextColor(...teal); doc.setFont(bodyFont, 'normal'); doc.setFontSize(11); doc.text('MÊS A MÊS', 18, y); y += 12;
       for (const month of report.monthly) {
-        if (y > 255) { doc.addPage(); background(doc.getNumberOfPages()); y = 30; }
+        space(12);
         doc.setTextColor(...milk); doc.setFontSize(9);
         doc.text(month.label, 18, y);
         doc.text(money(month.income), 109, y, { align: 'right' });

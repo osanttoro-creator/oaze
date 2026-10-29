@@ -23,12 +23,18 @@
     const items = global.Calc.entries(range.from, range.to, profile)
       .filter((item) => item.confirmed && item.contaNosTotais !== false && ['income', 'expense'].includes(item.kind));
     const categories = new Map();
+    const incomeCategories = new Map();
     const months = new Map();
     let income = 0, expense = 0;
     for (const item of items) {
       const value = Number(item.amount);
       if (!Number.isFinite(value) || value < 0) continue;
-      if (item.kind === 'income') income += value;
+      if (item.kind === 'income') {
+        income += value;
+        const category = profile.categories?.find((entry) => entry.id === item.categoryId);
+        const name = category?.name || 'Sem categoria';
+        incomeCategories.set(name, (incomeCategories.get(name) || 0) + value);
+      }
       else {
         expense += value;
         const category = profile.categories?.find((entry) => entry.id === item.categoryId);
@@ -41,6 +47,7 @@
     }
     const round = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
     return { income: round(income), expense: round(expense),
+      incomeCategories: [...incomeCategories].map(([name, value]) => ({ name, value: round(value) })).sort((a, b) => b.value - a.value),
       categories: [...categories].map(([name, value]) => ({ name, value: round(value) })).sort((a, b) => b.value - a.value),
       monthly: [...months.values()].sort((a, b) => a.ym.localeCompare(b.ym)).map((row) => ({
         label: new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date(row.ym + '-01T12:00:00')),
@@ -71,6 +78,7 @@
     }
   }
   function open() {
+    const returnFocus = document.activeElement;
     dialog?.remove();
     dialog = document.createElement('dialog');
     dialog.className = 'v3-estado-dialog';
@@ -82,16 +90,16 @@
     dialog.querySelector('[name="year"]').value = String(today.getFullYear());
     dialog.addEventListener('input', preview);
     dialog.addEventListener('change', preview);
-    dialog.addEventListener('close', () => { dialog.remove(); dialog = null; });
+    dialog.addEventListener('close', () => { dialog.remove(); dialog = null; if (returnFocus?.isConnected) returnFocus.focus(); });
     dialog.querySelector('[data-estado-pdf]').addEventListener('click', async () => {
       const button = dialog.querySelector('[data-estado-pdf]');
       const error = dialog.querySelector('[data-estado-error]');
       const context = reportContext();
       if (!context || context.profile?.id !== dialog.report?.profileId) { preview(); return; }
-      button.disabled = true; error.hidden = true;
+      button.disabled = true; button.setAttribute('aria-busy', 'true'); error.hidden = true;
       try { await global.OazeEstadoPDF.generate(dialog.report); }
       catch (problem) { error.textContent = problem.message || 'Não foi possível criar o PDF.'; error.hidden = false; }
-      finally { if (dialog?.isConnected) button.disabled = false; }
+      finally { if (dialog?.isConnected) { button.disabled = false; button.removeAttribute('aria-busy'); } }
     });
     dialog.showModal(); preview();
   }
