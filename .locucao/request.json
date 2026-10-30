@@ -562,5 +562,39 @@
    "id": "s9",
    "text": "Ouêiz. A Coco organiza. Você confirma."
   }
+ ],
+ "t": [
+  {
+   "id": "t1",
+   "text": "Sabe aquele amigo que te deve cinquenta reais há três anos?"
+  },
+  {
+   "id": "t2",
+   "text": "Um dia ele paga. E na mesma mensagem: mano, me empresta cem?"
+  },
+  {
+   "id": "t3",
+   "text": "Emprestar dinheiro pra amigo não é proibido. Mas tem jeito certo."
+  },
+  {
+   "id": "t4",
+   "text": "Primeiro: só empresta o que você aguentaria perder. Se fizer falta no seu mês, não empresta."
+  },
+  {
+   "id": "t5",
+   "text": "Segundo: combina por escrito. Valor, data e como vai pagar. Uma mensagem já serve."
+  },
+  {
+   "id": "t6",
+   "text": "Terceiro: anota. Dinheiro emprestado que ninguém anota vira dinheiro esquecido."
+  },
+  {
+   "id": "t7",
+   "text": "E se a pessoa não pagou o último, você não é obrigado a emprestar o próximo."
+  },
+  {
+   "id": "t8",
+   "text": "Dá pra ajudar um amigo sem virar o banco da turma."
+  }
  ]
 }
