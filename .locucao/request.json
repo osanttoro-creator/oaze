@@ -562,5 +562,19 @@
    "id": "s9",
    "text": "OAZE. A Coco organiza. Você confirma."
   }
+ ],
+ "amostra_oaze": [
+  {
+   "id": "a_ouz",
+   "text": "Prazer, essa é a Ôuz."
+  },
+  {
+   "id": "b_oueiz",
+   "text": "Prazer, essa é a Ouêiz."
+  },
+  {
+   "id": "c_oaze",
+   "text": "Prazer, essa é a Oáze."
+  }
  ]
 }
