@@ -58,5 +58,6 @@ jobs:
         with:
           name: oaze-windows-teste-${{ github.run_number }}
           path: |
+            app/src-tauri/target/release/app.exe
             app/src-tauri/target/release/bundle/msi/*.msi
             app/src-tauri/target/release/bundle/nsis/*.exe
