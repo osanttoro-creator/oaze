@@ -224,7 +224,7 @@
   },
   {
    "id": "i9",
-   "text": "Na OAZE, não importa o banco que você escolher. Suas contas e cartões ficam todos na sua frente, num lugar só."
+   "text": "Na Ouêiz, não importa o banco que você escolher. Suas contas e cartões ficam todos na sua frente, num lugar só."
   }
  ],
  "j": [
@@ -532,7 +532,7 @@
   },
   {
    "id": "s2",
-   "text": "Prazer, essa é a OAZE. Um organizador financeiro pra entender o seu dinheiro sem virar planilha."
+   "text": "Prazer, essa é a Ouêiz. Um organizador financeiro pra entender o seu dinheiro sem virar planilha."
   },
   {
    "id": "s3",
@@ -552,7 +552,7 @@
   },
   {
    "id": "s7",
-   "text": "A Coco nunca mexe no seu dinheiro. A OAZE não faz pagamento nem transferência. Ela organiza o registro, não o dinheiro."
+   "text": "A Coco nunca mexe no seu dinheiro. A Ouêiz não faz pagamento nem transferência. Ela organiza o registro, não o dinheiro."
   },
   {
    "id": "s8",
@@ -560,21 +560,7 @@
   },
   {
    "id": "s9",
-   "text": "OAZE. A Coco organiza. Você confirma."
-  }
- ],
- "amostra_oaze": [
-  {
-   "id": "a_ouz",
-   "text": "Prazer, essa é a Ôuz."
-  },
-  {
-   "id": "b_oueiz",
-   "text": "Prazer, essa é a Ouêiz."
-  },
-  {
-   "id": "c_oaze",
-   "text": "Prazer, essa é a Oáze."
+   "text": "Ouêiz. A Coco organiza. Você confirma."
   }
  ]
 }
