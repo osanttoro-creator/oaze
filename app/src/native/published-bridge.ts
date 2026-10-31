@@ -169,11 +169,15 @@ if (android) {
 /* Anúncio premiado do plano Semente (só Android; AdMob não existe no
    Windows). Quem libera os lançamentos é o servidor, quando o Google
    chama oaze-anuncio com a verificação assinada (SSV) — por isso o id do
-   usuário vai junto. Sem bloco real configurado no build, usa o bloco de
-   TESTE do Google: anúncio aparece, mas o Google não envia SSV para ele. */
+   usuário vai junto. Bloco real "Semente - liberar lancamentos", com a
+   URL de callback verificada na AdMob em 31/10/2026. Para testar no
+   próprio celular, cadastre-o como dispositivo de teste na AdMob
+   (clicar em anúncio real próprio viola a política). VITE_OAZE_ADMOB_REWARDED_ID
+   troca o bloco; o valor do bloco de teste do Google ainda é aceito. */
 const ADMOB_TESTE = 'ca-app-pub-3940256099942544/5224354917';
+const ADMOB_PREMIADO = 'ca-app-pub-3943764788328980/5294953962';
 if (android && import.meta.env.VITE_OAZE_DISTRIBUTION !== 'sem-anuncios') {
-  const adId = String(import.meta.env.VITE_OAZE_ADMOB_REWARDED_ID || '') || ADMOB_TESTE;
+  const adId = String(import.meta.env.VITE_OAZE_ADMOB_REWARDED_ID || '') || ADMOB_PREMIADO;
   const teste = adId === ADMOB_TESTE;
   let iniciado: Promise<void> | null = null;
   nativeWindow.OAZE_NATIVE_ADS = {
