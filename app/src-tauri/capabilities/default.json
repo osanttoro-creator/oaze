@@ -15,6 +15,7 @@
         { "url": "https://billing.stripe.com/*" },
         { "url": "https://oaze.site/*" },
         { "url": "https://www.flaticon.com/*" },
+        { "url": "https://www.openstreetmap.org/*" },
         { "url": "mailto:info@oaze.site" }
       ]
     },

@@ -525,6 +525,8 @@
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok && !j.erro) j.erro = r.status === 401 ? 'sem_sessao' : 'indisponivel';
+      /* A barra de uso da Coco (dia/semana) acompanha cada resposta. */
+      if (j && j.uso && global.Limites && Limites.registrarUsoCoco) Limites.registrarUsoCoco(j.uso);
       return j;
     } catch (error) {
       if (error && error.name === 'AbortError') return { erro: 'tempo_esgotado', mensagem: 'A Coco demorou para responder. Tente novamente.' };

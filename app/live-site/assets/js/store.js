@@ -346,6 +346,14 @@
     t.receiptPath = typeof t.receiptPath === 'string' && t.receiptPath.length <= 260
       && /^[\w/-]+\.(?:jpg|png|webp|pdf)$/.test(t.receiptPath) && !t.receiptPath.includes('..')
       ? t.receiptPath : null;
+    /* Local da compra (31/10/2026): opcional, escolhido pela pessoa no
+       formulário. Só latitude e longitude arredondadas a 3 casas
+       (~100 m) — nada de endereço, e nada é enviado à Coco. */
+    t.local = (t.local && typeof t.local === 'object'
+      && Number.isFinite(+t.local.lat) && Number.isFinite(+t.local.lng)
+      && Math.abs(+t.local.lat) <= 90 && Math.abs(+t.local.lng) <= 180)
+      ? { lat: Math.round(+t.local.lat * 1000) / 1000, lng: Math.round(+t.local.lng * 1000) / 1000 }
+      : null;
     /* Lançamento em outra moeda: `amount` continua em REAIS (é ele
        que todos os totais somam), e o valor original fica ao lado para
        a fatura e o extrato mostrarem o que foi cobrado de verdade.

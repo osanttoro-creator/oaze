@@ -44,6 +44,12 @@
 
         </activity>
 
+        <!-- AdMob: anúncio premiado do plano Semente. O valor vem de
+             build.gradle (oazeAdmobAppId); sem ele, o ID de teste do Google. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -64,6 +70,20 @@
          e só quando a pessoa liga um lembrete — nunca no primeiro arranque. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Voz da Coco. Pedida só quando a pessoa toca no microfone; o Android
+         pergunta na hora e o OAZE encerra o microfone ao fim da conversa. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Foto de recibo para a Coco ler. Só ao tocar em anexar foto. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Local da compra (opcional, por lançamento, arredondado a ~100 m).
+         A pessoa pode conceder só a localização aproximada. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <!-- O app funciona em aparelho sem leitor biométrico: a pessoa usa o PIN. -->
     <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 </manifest>

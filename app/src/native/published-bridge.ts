@@ -21,8 +21,12 @@ type NativeWindow = Window & {
   __TAURI_INTERNALS__?: { invoke: <T>(command: string, args?: Record<string, unknown>) => Promise<T> };
   OAZE_NATIVE_NOTIFICATIONS?: {
     request(): Promise<boolean>;
-    schedule(items: Array<{ id: number; at: string }>): Promise<void>;
+    status(): Promise<'granted' | 'denied' | 'prompt'>;
+    schedule(items: Array<NativeNotice>): Promise<void>;
     cancel(): Promise<void>;
+  };
+  OAZE_NATIVE_ADS?: {
+    mostrar(options: { userId: string }): Promise<{ recompensado: boolean }>;
   };
   OAZE_NATIVE_OPEN_EXTERNAL?: (url: string) => Promise<void>;
   OAZE_NATIVE_DESKTOP?: boolean;
@@ -35,6 +39,10 @@ type NativeWindow = Window & {
     setEnabled(value: boolean): Promise<boolean>;
   };
 };
+
+/* Um aviso do sistema. Título e texto vêm do painel; sem eles, o texto
+   genérico de sempre (nada de valor na tela bloqueada). */
+interface NativeNotice { id: number; at: string; title?: string; body?: string; channel?: 'contas' | 'insights' }
 
 const nativeWindow = window as NativeWindow;
 const android = Capacitor.getPlatform() === 'android';
@@ -121,10 +129,51 @@ if (android || desktop) {
   };
 }
 
+/* Anúncio premiado do plano Semente (só Android; AdMob não existe no
+   Windows). Quem libera os lançamentos é o servidor, quando o Google
+   chama oaze-anuncio com a verificação assinada (SSV) — por isso o id do
+   usuário vai junto. Sem bloco real configurado no build, usa o bloco de
+   TESTE do Google: anúncio aparece, mas o Google não envia SSV para ele. */
+const ADMOB_TESTE = 'ca-app-pub-3940256099942544/5224354917';
+if (android && import.meta.env.VITE_OAZE_DISTRIBUTION !== 'sem-anuncios') {
+  const adId = String(import.meta.env.VITE_OAZE_ADMOB_REWARDED_ID || '') || ADMOB_TESTE;
+  const teste = adId === ADMOB_TESTE;
+  let iniciado: Promise<void> | null = null;
+  nativeWindow.OAZE_NATIVE_ADS = {
+    async mostrar({ userId }) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+        throw new Error('Entre na sua conta para liberar lançamentos.');
+      }
+      const { AdMob, RewardAdPluginEvents } = await import('@capacitor-community/admob');
+      iniciado ??= AdMob.initialize({ initializeForTesting: teste });
+      await iniciado;
+      /* Formulário de consentimento do Google onde a lei exige (UMP). */
+      try {
+        const info = await AdMob.requestConsentInfo();
+        if (info.isConsentFormAvailable && String(info.status) === 'REQUIRED') await AdMob.showConsentForm();
+      } catch { /* sem formulário disponível: segue com anúncio não personalizado */ }
+      let recompensado = false;
+      const ouvintes = [await AdMob.addListener(RewardAdPluginEvents.Rewarded, () => { recompensado = true; })];
+      try {
+        const fechado = new Promise<void>((resolve) => {
+          void AdMob.addListener(RewardAdPluginEvents.Dismissed, () => resolve()).then((h) => ouvintes.push(h));
+          void AdMob.addListener(RewardAdPluginEvents.FailedToShow, () => resolve()).then((h) => ouvintes.push(h));
+        });
+        await AdMob.prepareRewardVideoAd({ adId, isTesting: teste, ssv: { userId } });
+        try { await AdMob.showRewardVideoAd(); } catch { /* fechado antes do fim */ }
+        await Promise.race([fechado, new Promise((resolve) => setTimeout(resolve, 120_000))]);
+      } finally {
+        for (const h of ouvintes) void h.remove().catch(() => {});
+      }
+      return { recompensado };
+    },
+  };
+}
+
 // No Windows, um link externo dentro do WebView2 tiraria a pessoa do app (ou
 // abriria uma janela solta). No Android o Capacitor já entrega https e mailto
 // ao sistema. Só endereços conhecidos saem; os demais são ignorados.
-const externalLinks = /^(?:https:\/\/(?:oaze\.site|www\.flaticon\.com)\/[^\s]*|mailto:info@oaze\.site)$/;
+const externalLinks = /^(?:https:\/\/(?:oaze\.site|www\.flaticon\.com|www\.openstreetmap\.org)\/[^\s]*|mailto:info@oaze\.site)$/;
 if (desktop) {
   document.addEventListener('click', (event) => {
     if (event.defaultPrevented || event.button !== 0) return;
@@ -171,11 +220,34 @@ if (android) {
   };
 }
 
+const textoAviso = (value: unknown, fallback: string, max: number) =>
+  typeof value === 'string' && value.trim() ? value.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim().slice(0, max) : fallback;
+
+let canaisCriados = false;
+async function criarCanais(): Promise<void> {
+  if (!android || canaisCriados) return;
+  /* Visibilidade privada: com tela bloqueada segura, o Android mostra só
+     "OAZE" e esconde o texto até a pessoa desbloquear. */
+  await LocalNotifications.createChannel({ id: 'oaze-contas', name: 'Contas e faturas',
+    description: 'Vencimentos de contas, faturas e metas', importance: 4, visibility: 0 }).catch(() => {});
+  await LocalNotifications.createChannel({ id: 'oaze-insights', name: 'Insights e cotações',
+    description: 'Orçamento, score, dólar e dicas do OAZE', importance: 3, visibility: 0 }).catch(() => {});
+  canaisCriados = true;
+}
+
 if (android || desktop) {
   nativeWindow.OAZE_NATIVE_NOTIFICATIONS = {
     async request() {
       if (android) return (await LocalNotifications.requestPermissions()).display === 'granted';
       return nativeWindow.__TAURI_INTERNALS__!.invoke<boolean>('oaze_notify_request');
+    },
+    async status() {
+      if (android) {
+        const state = (await LocalNotifications.checkPermissions()).display;
+        return state === 'granted' ? 'granted' : state === 'denied' ? 'denied' : 'prompt';
+      }
+      const ok = await nativeWindow.__TAURI_INTERNALS__!.invoke<boolean>('oaze_notify_granted').catch(() => false);
+      return ok ? 'granted' : 'prompt';
     },
     async cancel() {
       if (android) {
@@ -188,16 +260,24 @@ if (android || desktop) {
     },
     async schedule(items) {
       await this.cancel();
+      const validos = items.filter((item) => Number.isInteger(item.id) && item.id >= 3100000 && item.id < 4100000
+        && Number.isFinite(new Date(item.at).getTime())).slice(0, 60);
       if (android) {
-        if (!items.length) return;
-        await LocalNotifications.schedule({ notifications: items.map(({ id, at }) => ({
-          id, title: 'Lembrete OAZE', body: 'Você tem um compromisso financeiro próximo. Abra o OAZE para conferir.',
-          schedule: { at: new Date(at) },
+        if (!validos.length) return;
+        await criarCanais();
+        await LocalNotifications.schedule({ notifications: validos.map((item) => ({
+          id: item.id,
+          title: textoAviso(item.title, 'Lembrete OAZE', 80),
+          body: textoAviso(item.body, 'Você tem um compromisso financeiro próximo. Abra o OAZE para conferir.', 180),
+          channelId: item.channel === 'insights' ? 'oaze-insights' : 'oaze-contas',
+          schedule: { at: new Date(item.at), allowWhileIdle: true },
         })) });
       } else {
         await nativeWindow.__TAURI_INTERNALS__!.invoke('oaze_notify_schedule', {
-          items: items.map(({ id, at }) => ({ id,
-            title: 'Lembrete OAZE', body: 'Abra o OAZE para conferir seus próximos compromissos.', at: new Date(at).toISOString() })),
+          items: validos.map((item) => ({ id: item.id,
+            title: textoAviso(item.title, 'Lembrete OAZE', 80),
+            body: textoAviso(item.body, 'Abra o OAZE para conferir seus próximos compromissos.', 180),
+            at: new Date(item.at).toISOString() })),
         });
       }
     },

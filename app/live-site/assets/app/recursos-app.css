@@ -1,0 +1,16 @@
+.oz-coco-uso,.oz-anuncio-painel{margin:0 0 16px}
+.oz-uso-linha{display:flex;justify-content:space-between;margin-top:12px}
+.oz-barra{height:10px;border-radius:99px;background:rgba(240,229,207,.12);overflow:hidden;margin:6px 0 4px}
+.oz-barra i{display:block;height:100%;background:#5fa99b;border-radius:99px}
+.oz-barra.oz-alto i{background:#e0b25a}.oz-barra.oz-cheio i{background:#ff8f73}
+.oz-anuncio-botao{margin-top:12px;min-height:48px;width:100%}
+.oz-perms{display:grid;gap:12px}.oz-perm{padding:14px;border:1px solid rgba(240,229,207,.14);border-radius:14px}
+.oz-perm>div{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.oz-chip{font-size:12px;padding:3px 10px;border-radius:99px;background:rgba(240,229,207,.1)}
+.oz-chip-permitida{background:rgba(95,169,155,.3)}.oz-chip-negada{background:rgba(255,143,115,.25)}
+.oz-prefs{border:0;padding:0;margin:0;display:grid;gap:10px}.oz-prefs legend{font-weight:600;margin-bottom:6px}
+.oz-pref{display:flex!important;gap:10px;align-items:flex-start;min-height:44px}.oz-pref small{display:block;color:#b8c8ca}
+.oz-pref input{width:22px!important;min-height:22px!important}
+.oz-local{margin:12px 0;padding:12px;border:1px dashed rgba(240,229,207,.22);border-radius:14px;display:grid;gap:8px}
+.oz-local-cabeca,.oz-local-acoes{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.oz-viagem{margin:0;color:#e0b25a;font-size:13px}
