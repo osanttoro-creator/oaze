@@ -183,13 +183,16 @@
 
   async function indices() {
     if (indicesCache && Date.now() - indicesCache.quando < 3 * 3600_000) return indicesCache.dados;
+    if (!usuarioId()) return null;
     try {
       const cfg = global.SupabaseConfig || {};
       const base = String(cfg.url || '').replace(/\/+$/, '');
       const chave = String(cfg.publishableKey || cfg.anonKey || '');
-      const token = global.AI && AI.tokenDaSessao ? await AI.tokenDaSessao() : null;
+      const token = global.AI && AI.tokenDaSessao
+        ? await Promise.race([AI.tokenDaSessao(), new Promise((ok) => setTimeout(() => ok(null), 6000))]) : null;
       if (!base || !chave || !token) return null;
       const r = await fetch(base + '/functions/v1/oaze-invest-data', {
+        signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined,
         method: 'POST', headers: { 'content-type': 'application/json', apikey: chave, authorization: 'Bearer ' + token },
         body: JSON.stringify({ action: 'indices' })
       });
@@ -218,6 +221,47 @@
           corpo: p.detalhes ? brl(linha.total) + ' de ' + brl(limite) + ' neste mês.' : 'Abra o OAZE para ver qual categoria.',
           texto: 'Orçamento de ' + linha.name + ': ' + pct + '% usado (' + brl(linha.total) + ' de ' + brl(limite) + ').' });
       });
+    }
+    /* Detecção no aparelho (sem banco conectado): gasto fora do padrão e
+       possível cobrança duplicada. Usa só lançamentos já registrados. */
+    if (p.orcamento && global.Calc && Calc.categoryTotals) {
+      try {
+        const dia = Number(hoje.slice(8, 10));
+        const fimMes = new Date(+ym.slice(0, 4), +ym.slice(5, 7), 0).getDate();
+        const atual = Calc.categoryTotals('expense', ym + '-01', hoje, perfil);
+        const media = new Map();
+        [1, 2, 3].forEach((n) => {
+          const m = somarMeses(ym, -n);
+          const fim = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate();
+          Calc.categoryTotals('expense', m + '-01', m + '-' + String(fim).padStart(2, '0'), perfil)
+            .forEach((r) => media.set(r.id, (media.get(r.id) || 0) + r.total / 3));
+        });
+        atual.forEach((r) => {
+          const base = media.get(r.id) || 0;
+          const esperadoAteHoje = base * dia / fimMes;
+          if (base < 100 || dia < 7 || r.total < esperadoAteHoje * 1.5 || r.total - esperadoAteHoje < 80) return;
+          lista.push({ chave: 'padrao:' + ym + ':' + r.id, canal: 'insights',
+            titulo: p.detalhes ? r.name + ' acima do seu padrão' : 'Uma categoria está acima do seu padrão',
+            corpo: p.detalhes ? brl(r.total) + ' até hoje; a média dos últimos meses é ' + brl(base) + ' no mês inteiro.' : 'Abra o OAZE para ver qual.',
+            texto: r.name + ': ' + brl(r.total) + ' até hoje, contra média de ' + brl(base) + ' por mês nos últimos 3 meses.' });
+        });
+      } catch { /* sem histórico suficiente */ }
+      try {
+        const inicio = iso(new Date(Date.now() - 30 * 86400000));
+        const gastos = Calc.entries(inicio, hoje, perfil).filter((e) => e.kind === 'expense' && e.amount > 0 && !e.installment);
+        const vistos = new Set();
+        gastos.forEach((a, i) => gastos.slice(i + 1).forEach((b) => {
+          const mesma = String(a.description || '').trim().toLowerCase() === String(b.description || '').trim().toLowerCase();
+          if (!mesma || Math.abs(a.amount - b.amount) > 0.009 || Math.abs(dias(a.date, b.date)) > 3) return;
+          const chave = 'duplicada:' + [a.txId || a.id, b.txId || b.id].sort().join(':');
+          if (vistos.has(chave) || (a.txId && a.txId === b.txId)) return;
+          vistos.add(chave);
+          lista.push({ chave, canal: 'insights',
+            titulo: 'Possível cobrança duplicada',
+            corpo: p.detalhes ? a.description + ': ' + brl(a.amount) + ' duas vezes em poucos dias.' : 'Dois lançamentos iguais em poucos dias. Confira no OAZE.',
+            texto: a.description + ': ' + brl(a.amount) + ' em ' + a.date.split('-').reverse().slice(0, 2).join('/') + ' e ' + b.date.split('-').reverse().slice(0, 2).join('/') + '. Se for repetição, exclua um deles.' });
+        }));
+      } catch { /* sem lançamentos */ }
     }
     if (p.score && global.Calc && Calc.score) {
       try {
@@ -599,6 +643,7 @@
   setTimeout(aoAbrir, 4000);
 
   global.OazeAnuncios = OazeAnuncios;
+  OazeAvisos.atualizarInsights = calcularInsights;
   global.OazeAvisos = OazeAvisos;
   global.OazePermissoes = OazePermissoes;
   global.OazeRecursos = { emViagem, fusoAtual, painelCoco };
