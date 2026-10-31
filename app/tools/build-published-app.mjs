@@ -36,13 +36,39 @@ function harden(html, name) {
 mkdirSync(join(output, 'native'), { recursive: true });
 
 const routes = ['entrar', 'cadastro', 'recuperar-senha', 'redefinir-senha', 'confirmar-email', 'privacidade', 'termos', 'suporte'];
+const routePattern = 'entrar|cadastro|recuperar-senha|redefinir-senha|confirmar-email|privacidade|termos|suporte';
+// Páginas de leitura abertas de dentro do painel: no app elas não podem levar
+// ao menu de marketing do site (Recursos, Preços, Criar conta) nem às versões
+// traduzidas, que não estão no pacote. Ganham uma barra de volta ao painel.
+const readingPages = new Set(['privacidade', 'termos', 'suporte']);
+const appBar = '<style>.oaze-app-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;' +
+  'min-height:56px;padding:calc(env(safe-area-inset-top,0px) + 6px) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px));' +
+  'background:rgba(13,24,33,.94);border-bottom:1px solid rgba(240,229,207,.12);backdrop-filter:blur(12px)}' +
+  '.oaze-app-bar a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:99px;' +
+  'color:#f0e5cf;font-weight:600;text-decoration:none;border:1px solid rgba(95,169,155,.55)}' +
+  '.oaze-app-bar a:focus-visible{outline:2px solid #5fa99b;outline-offset:3px}</style>\n' +
+  '<nav class="oaze-app-bar" aria-label="Navegação do aplicativo"><a href="/index.html#settings">' +
+  '<span aria-hidden="true">‹</span> Voltar ao OAZE</a></nav>';
 for (const route of routes) {
   let html = readFileSync(join(source, `${route}.html`), 'utf8');
-  html = html.replace(/(href|action)="\/(entrar|cadastro|recuperar-senha|redefinir-senha|confirmar-email|privacidade|termos|suporte)(?=["?#])/g, '$1="/$2.html');
+  if (readingPages.has(route)) {
+    html = html.replace(/<header class="topo">[\s\S]*?<\/header>/, appBar);
+    html = html.replace(/<footer class="rodape">[\s\S]*?<\/footer>/, '');
+    html = html.replace(/<script src="\/assets\/js\/idioma-esfera\.js"[^>]*><\/script>\s*/, '');
+    if (!html.includes('class="oaze-app-bar"') || html.includes('class="rodape"')) {
+      throw new Error(`${route}.html: cabeçalho ou rodapé do site não foi substituído`);
+    }
+  }
+  html = html.replace(new RegExp(`(href|action)="\\/(${routePattern})(?=["?#])`, 'g'), '$1="/$2.html');
   html = html.replace(/href="\/"/g, 'href="/index.html"');
+  // Rotas que só existem no site abrem no navegador do sistema (a ponte intercepta).
+  html = html.replace(new RegExp(`(<a\\b[^>]*\\bhref=")\\/(?!assets\\/|native\\/|index\\.html|(?:${routePattern})\\.html)([^"]*)"`, 'g'),
+    '$1https://oaze.site/$2"');
   if (html.includes('<script src="/assets/js/site-auth.js"></script>')) {
     html = html.replace('<script src="/assets/js/site-auth.js"></script>',
       '<script src="/assets/js/site-auth.js"></script>\n<script src="/native/bridge.js"></script>');
+  } else {
+    html = html.replace('</body>', '<script src="/native/bridge.js"></script>\n</body>');
   }
   writeFileSync(join(output, `${route}.html`), harden(html, route));
 }
@@ -50,12 +76,23 @@ for (const route of routes) {
 let app = readFileSync(join(source, 'app-v3.html'), 'utf8');
 app = replaceRequired(app, '<script src="/assets/js/site-auth.js?v=20261014a"></script>',
   '<script src="/assets/js/site-auth.js?v=20261014a"></script>\n  <script src="/native/bridge.js"></script>', 'app-v3.html');
+app = app.replace(/href="\/app"/g, 'href="/index.html"');
 writeFileSync(join(output, 'index.html'), harden(app, 'index'));
 
 const backendPath = join(output, 'assets/app/live-backend.js');
 let backend = readFileSync(backendPath, 'utf8');
 backend = replaceRequired(backend, "const loginUrl = '/entrar?destino='", "const loginUrl = '/entrar.html?destino='", 'live-backend.js');
 backend = backend.replaceAll("global.location.replace('/');", "global.location.replace('/entrar.html');");
+// O pacote só tem arquivos .html: sem esta troca, /privacidade cairia no painel.
+// target=_blank abriria uma janela solta no Windows; dentro do app a leitura
+// acontece na mesma tela, com a barra de volta.
+function nativeLinks(text) {
+  return text
+    .replace(/href="\/(privacidade|termos|suporte)(#[\w-]*)?"(?:\s+target="_blank")?(?:\s+rel="noopener noreferrer")?/g, 'href="/$1.html$2"')
+    .replace(/href="\/app"/g, 'href="/index.html"');
+}
+backend = nativeLinks(backend);
+if (!backend.includes('href="/privacidade.html"')) throw new Error('live-backend.js: link da política não convertido');
 writeFileSync(backendPath, backend);
 
 const appPath = join(output, 'assets/app/app.js');
@@ -64,6 +101,11 @@ appJs = replaceRequired(appJs,
   "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();",
   "const nativeBoot=()=>Promise.resolve(global.OAZE_NATIVE_AUTH_READY).then(boot);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',nativeBoot);else nativeBoot();",
   'app.js');
+appJs = nativeLinks(appJs);
+for (const required of ['href="/suporte.html"', 'href="/privacidade.html#direitos"', 'href="/termos.html#acessibilidade"']) {
+  if (!appJs.includes(required)) throw new Error(`app.js: link interno não convertido (${required})`);
+}
+if (/href="\/(suporte|privacidade|termos)[#"]/.test(appJs)) throw new Error('app.js: rota sem .html no pacote');
 writeFileSync(appPath, appJs);
 
 // Vite empacota os plugins nativos em um único script clássico, carregado

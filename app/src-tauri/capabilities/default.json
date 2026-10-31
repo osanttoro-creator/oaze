@@ -9,7 +9,14 @@
     "deep-link:default",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://*.supabase.co/auth/v1/authorize*" }]
+      "allow": [
+        { "url": "https://*.supabase.co/auth/v1/authorize*" },
+        { "url": "https://checkout.stripe.com/*" },
+        { "url": "https://billing.stripe.com/*" },
+        { "url": "https://oaze.site/*" },
+        { "url": "https://www.flaticon.com/*" },
+        { "url": "mailto:info@oaze.site" }
+      ]
     },
     "dialog:allow-save",
     "dialog:allow-open",

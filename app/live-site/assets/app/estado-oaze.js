@@ -59,13 +59,13 @@
     if (!dialog) return;
     const output = dialog.querySelector('[data-estado-preview]');
     const button = dialog.querySelector('[data-estado-pdf]');
+    const form = dialog.querySelector('form');
+    const kind = form.elements.kind.value;
+    form.elements.month.hidden = kind !== 'month';
+    form.elements.year.hidden = kind !== 'year';
     try {
       const source = reportContext();
       if (!source || source.demo || !source.profile) throw new Error('Entre na sua conta para criar o relatório.');
-      const form = dialog.querySelector('form');
-      const kind = form.elements.kind.value;
-      form.elements.month.hidden = kind !== 'month';
-      form.elements.year.hidden = kind !== 'year';
       const range = period(kind, form.elements.month.value, Number(form.elements.year.value));
       const totals = aggregate(source.profile, range);
       dialog.report = { ...range, periodTitle: range.title,

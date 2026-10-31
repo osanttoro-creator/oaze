@@ -50,6 +50,39 @@ pub async fn oaze_save_file(app: tauri::AppHandle, name: String, content: String
     Ok(true)
 }
 
+/// "Salvar como" do relatório Estado do OAZE. O PDF é montado no aparelho;
+/// aqui só se confere que é um PDF e se grava onde a pessoa escolher.
+#[tauri::command]
+pub async fn oaze_save_pdf(app: tauri::AppHandle, name: String, bytes: Vec<u8>) -> Result<bool, String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    if bytes.len() > 20_000_000 || !bytes.starts_with(b"%PDF-") {
+        return Err("relatório inválido".to_string());
+    }
+    let sugerido = std::path::Path::new(&name)
+        .file_name()
+        .and_then(|s| s.to_str())
+        .filter(|s| s.starts_with("estado-oaze-") && s.ends_with(".pdf"))
+        .unwrap_or("estado-oaze.pdf")
+        .to_string();
+
+    let destino = app
+        .dialog()
+        .file()
+        .set_file_name(&sugerido)
+        .add_filter("PDF", &["pdf"])
+        .blocking_save_file();
+
+    let Some(destino) = destino else {
+        return Ok(false);
+    };
+    let caminho = destino
+        .into_path()
+        .map_err(|e| format!("caminho inválido: {e}"))?;
+    std::fs::write(&caminho, bytes).map_err(|e| format!("não foi possível salvar: {e}"))?;
+    Ok(true)
+}
+
 #[tauri::command]
 pub fn oaze_share(app: tauri::AppHandle, payload: Payload) -> Result<bool, String> {
     let mut parts: Vec<String> = Vec::new();

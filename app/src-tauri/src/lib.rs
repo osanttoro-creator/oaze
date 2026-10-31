@@ -44,6 +44,7 @@ pub fn run() {
             notify::oaze_notify_cancel_all,
             share::oaze_share,
             share::oaze_save_file,
+            share::oaze_save_pdf,
             oaze_deep_link_ready,
         ])
         .setup(|app| {

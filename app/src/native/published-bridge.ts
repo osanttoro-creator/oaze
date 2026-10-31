@@ -121,6 +121,40 @@ if (android || desktop) {
   };
 }
 
+// No Windows, um link externo dentro do WebView2 tiraria a pessoa do app (ou
+// abriria uma janela solta). No Android o Capacitor já entrega https e mailto
+// ao sistema. Só endereços conhecidos saem; os demais são ignorados.
+const externalLinks = /^(?:https:\/\/(?:oaze\.site|www\.flaticon\.com)\/[^\s]*|mailto:info@oaze\.site)$/;
+if (desktop) {
+  document.addEventListener('click', (event) => {
+    if (event.defaultPrevented || event.button !== 0) return;
+    const link = (event.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+    if (!link) return;
+    let url: URL;
+    try { url = new URL(link.getAttribute('href') || '', location.href); } catch { return; }
+    if (url.origin === location.origin && url.protocol === location.protocol) return;
+    event.preventDefault();
+    if (externalLinks.test(url.href)) void openUrl(url.href).catch(() => {});
+  });
+}
+
+if (desktop) {
+  // O download do WebView2 não tem destino garantido no app instalado:
+  // o relatório passa pelo "Salvar como" do Windows.
+  nativeWindow.OAZE_NATIVE_SAVE_PDF = async (fileName, base64) => {
+    if (!/^estado-oaze-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.pdf$/.test(fileName) ||
+        !/^[A-Za-z0-9+/]+={0,2}$/.test(base64) || base64.length > 20_000_000) {
+      throw new Error('Relatório inválido.');
+    }
+    const binary = atob(base64);
+    const bytes = new Array<number>(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    await nativeWindow.__TAURI_INTERNALS__!.invoke<boolean>('oaze_save_pdf', { name: fileName, bytes });
+  };
+}
+
+const readingPage =/\/(privacidade|termos|suporte)\.html$/.test(location.pathname);
+
 if (android) {
   nativeWindow.OAZE_NATIVE_SAVE_PDF = async (fileName, base64) => {
     if (!/^estado-oaze-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.pdf$/.test(fileName) ||
@@ -257,6 +291,12 @@ nativeWindow.OAZE_NATIVE_AUTH_READY = (async () => {
       if (location.pathname.endsWith('/index.html') && location.hash && location.hash !== '#home') {
         const home = document.querySelector('[data-go="home"]') as HTMLElement | null;
         if (home) { home.click(); return; }
+      }
+      if (readingPage) {
+        // Política, termos e suporte são abertos de dentro do painel.
+        if (history.length > 1) history.back();
+        else location.replace('/index.html');
+        return;
       }
       if (!location.pathname.endsWith('/index.html') && !location.pathname.endsWith('/entrar.html')) {
         location.replace('/entrar.html');
