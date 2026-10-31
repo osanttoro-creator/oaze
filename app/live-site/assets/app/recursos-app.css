@@ -14,3 +14,15 @@
 .oz-local{margin:12px 0;padding:12px;border:1px dashed rgba(240,229,207,.22);border-radius:14px;display:grid;gap:8px}
 .oz-local-cabeca,.oz-local-acoes{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
 .oz-viagem{margin:0;color:#e0b25a;font-size:13px}
+.oz-inicio-coco{margin:0 0 16px;display:grid;gap:12px}
+.oz-inicio-coco form{display:flex;gap:8px}
+.oz-inicio-coco input{flex:1;min-width:0;min-height:48px;padding:10px 16px;border-radius:99px;border:1px solid rgba(95,169,155,.5);background:#172d3a;color:#f0e5cf}
+.oz-inicio-coco input:focus-visible{outline:2px solid #5fa99b;outline-offset:2px}
+.oz-inicio-coco form .v3-primary{min-width:48px;min-height:48px;border-radius:50%;font-size:22px}
+.oz-atalhos{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.oz-atalho{flex:none;min-height:40px;padding:0 14px;border-radius:99px;border:1px solid rgba(240,229,207,.2);background:transparent;color:#f0e5cf;font-size:13px}
+.oz-atalho:focus-visible{outline:2px solid #5fa99b;outline-offset:2px}
+.oz-insights-inicio{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.oz-insights-inicio li{padding:10px 12px;border-left:3px solid #5fa99b;background:rgba(95,169,155,.08);border-radius:8px}
+.oz-insights-inicio small{display:block;color:#b8c8ca}
+.oz-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}

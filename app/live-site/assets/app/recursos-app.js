@@ -381,6 +381,9 @@
     const c = contexto();
     if (!c || c.demo || !c.profile) { ultimosInsights = []; return; }
     try { ultimosInsights = await insights(c.profile, Object.assign({}, prefs(), { dolar: true, dicas: true, orcamento: true })); } catch { ultimosInsights = []; }
+    /* O Início já pode estar desenhado: redesenha só o bloco da Coco. */
+    const bloco = document.querySelector('[data-oz-inicio]');
+    if (bloco) bloco.outerHTML = blocoInicio();
   }
 
   /* =============================================================
@@ -507,12 +510,66 @@
   }).observe(document.body, { childList: true, subtree: true });
 
   /* =============================================================
+     INÍCIO: CONVERSA E INSIGHTS (inspiração Pierre)
+     A Coco sai da aba e vira a primeira coisa do Início: uma barra
+     de pergunta com atalhos e os insights do mês, antes de a pessoa
+     precisar perguntar.
+     ============================================================= */
+  const ATALHOS = ['Para onde foi meu dinheiro este mês?', 'Quanto gastei no cartão?', 'Vou fechar o mês no azul?', 'Tenho conta vencendo esta semana?'];
+  function blocoInicio() {
+    const insightsHtml = (ultimosInsights || []).slice(0, 2).map((x) =>
+      '<li><strong>' + esc(x.titulo) + '</strong><small>' + esc(x.texto || x.corpo) + '</small></li>').join('');
+    return '<section class="v3-panel oz-inicio-coco" data-oz-inicio aria-label="Converse com a Coco">'
+      + '<form data-oz-pergunta><label class="oz-sr" for="oz-pergunta">Pergunte à Coco</label>'
+      + '<input id="oz-pergunta" name="pergunta" maxlength="500" autocomplete="off" placeholder="Pergunte à Coco">'
+      + '<button type="submit" class="v3-primary" aria-label="Enviar pergunta à Coco">›</button></form>'
+      + '<div class="oz-atalhos" role="group" aria-label="Perguntas prontas">' + ATALHOS.map((a) => '<button type="button" class="oz-atalho" data-oz-atalho="' + esc(a) + '">' + esc(a) + '</button>').join('') + '</div>'
+      + (insightsHtml ? '<ul class="oz-insights-inicio" aria-label="Insights do mês">' + insightsHtml + '</ul>' : '')
+      + '</section>';
+  }
+  function inserirInicio() {
+    const view = document.getElementById('v3-view');
+    if (!view || view.querySelector('[data-oz-inicio]')) return;
+    const ancora = view.querySelector('.v3-home-identity');
+    if (ancora) ancora.insertAdjacentHTML('afterend', blocoInicio());
+    else view.insertAdjacentHTML('afterbegin', blocoInicio());
+  }
+  function perguntarCoco(texto) {
+    const pergunta = String(texto || '').trim().slice(0, 500);
+    if (!pergunta) return;
+    const ir = document.querySelector('[data-go="coco"]');
+    if (!ir) return;
+    ir.click();
+    let tentativas = 0;
+    (function enviar() {
+      const form = document.getElementById('v3-chat-form');
+      if (form && form.elements.question) {
+        form.elements.question.value = pergunta;
+        if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        return;
+      }
+      if (++tentativas < 20) setTimeout(enviar, 50);
+    })();
+  }
+  document.addEventListener('submit', (ev) => {
+    const form = ev.target.closest && ev.target.closest('[data-oz-pergunta]');
+    if (!form) return;
+    ev.preventDefault();
+    perguntarCoco(form.elements.pergunta.value);
+  });
+  document.addEventListener('click', (ev) => {
+    const atalho = ev.target.closest('[data-oz-atalho]');
+    if (atalho) perguntarCoco(atalho.dataset.ozAtalho);
+  });
+
+  /* =============================================================
      LIGAÇÕES COM O PAINEL
      ============================================================= */
   let estadoPagina = 'home';
   document.addEventListener('oaze:render', (ev) => {
     const pagina = ev.detail && ev.detail.page;
     estadoPagina = pagina;
+    if (pagina === 'home') inserirInicio();
     if (pagina === 'coco' || pagina === 'settings') { inserirCoco(pagina); void atualizarCoco(false); }
     if (pagina === 'plan' || pagina === 'settings') {
       const view = document.getElementById('v3-view');
