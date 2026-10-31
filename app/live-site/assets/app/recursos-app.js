@@ -366,6 +366,14 @@
       const c = contexto();
       if (!nativo || !c || c.demo || !c.profile) return;
       const p = prefs();
+      /* Push do servidor: só o dólar, e só se a pessoa ligou esse aviso. */
+      if (global.OAZE_NATIVE_PUSH) {
+        const chave = 'oaze.push.topicos';
+        const topicos = p.dolar ? ['dolar'] : [];
+        if (armazenado.ler(chave, null) !== topicos.join(',')) {
+          global.OAZE_NATIVE_PUSH.registrar(topicos).then((ok) => { if (ok) armazenado.gravar(chave, topicos.join(',')); }).catch(() => {});
+        }
+      }
       const agendados = [];
       if (p.vencimentos) agendados.push(...vencimentos(c.profile, p));
       if (p.metas) agendados.push(...metas(c.profile, p));

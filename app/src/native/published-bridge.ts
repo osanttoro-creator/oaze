@@ -25,6 +25,9 @@ type NativeWindow = Window & {
     schedule(items: Array<NativeNotice>): Promise<void>;
     cancel(): Promise<void>;
   };
+  OAZE_NATIVE_PUSH?: {
+    registrar(topicos: string[]): Promise<boolean>;
+  };
   OAZE_NATIVE_ADS?: {
     mostrar(options: { userId: string }): Promise<{ recompensado: boolean }>;
   };
@@ -126,6 +129,40 @@ if (android || desktop) {
     }
     if (android) await Browser.open({ url });
     else await openUrl(url);
+  };
+}
+
+/* Push do Firebase (projeto oaze-finance). O token vai para
+   oaze2_push_tokens por registrar_push(), com os tópicos que a pessoa
+   ligou. O servidor só manda dado público (dólar do dia). */
+if (android) {
+  nativeWindow.OAZE_NATIVE_PUSH = {
+    async registrar(topicos) {
+      const client = auth?.cliente();
+      if (!client) return false;
+      const { data } = await client.auth.getSession();
+      if (!data.session) return false;
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+      const perm = await PushNotifications.checkPermissions();
+      if (perm.receive !== 'granted') return false;
+      let device = '';
+      try { device = localStorage.getItem('oaze.push.device') || ''; } catch { /* sem armazenamento */ }
+      if (!/^[A-Za-z0-9_-]{8,80}$/.test(device)) {
+        device = crypto.randomUUID().replace(/-/g, '');
+        try { localStorage.setItem('oaze.push.device', device); } catch { /* segue sem guardar */ }
+      }
+      const token = await new Promise<string | null>((resolve) => {
+        const parar = setTimeout(() => resolve(null), 15_000);
+        void PushNotifications.addListener('registration', (t) => { clearTimeout(parar); resolve(t.value); });
+        void PushNotifications.addListener('registrationError', () => { clearTimeout(parar); resolve(null); });
+        void PushNotifications.register().catch(() => { clearTimeout(parar); resolve(null); });
+      });
+      await PushNotifications.removeAllListeners().catch(() => {});
+      if (!token) return false;
+      const { error } = await client.rpc('registrar_push', { p_device: device, p_token: token,
+        p_topicos: topicos.filter((t) => t === 'dolar') });
+      return !error;
+    },
   };
 }
 
