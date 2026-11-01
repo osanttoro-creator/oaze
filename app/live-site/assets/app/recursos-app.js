@@ -123,6 +123,12 @@
       return '<button type="button" class="v3-primary oz-anuncio-botao" data-action="assistir-anuncio">Assistir anúncio e liberar +' + e.por_anuncio + ' lançamentos</button>'
         + '<p class="v3-muted oz-anuncio-nota">Hoje: ' + e.hoje + ' de ' + e.max_dia + ' anúncios. A liberação vale até o fim do mês.</p>';
     },
+    /* No Windows e no site não há anúncio: a dica aponta o celular. */
+    dica() {
+      const e = this.estado();
+      if (this.nativo() || plano() !== 'free' || !(e.por_anuncio > 0)) return '';
+      return '<p class="v3-muted" style="margin-top:12px">No app OAZE para Android, cada anúncio assistido libera +' + e.por_anuncio + ' lançamentos no mês. A liberação vale em todos os seus aparelhos.</p>';
+    },
     painel() {
       const c = contexto();
       if (!c || c.demo || plano() !== 'free' || !usuarioId() || !global.Limites) return '';
@@ -132,7 +138,7 @@
       const usado = Limites.contar ? Limites.contar('transactions_per_month', hojeISO().slice(0, 7)) : 0;
       const corpo = this.nativo()
         ? (e.restante > 0 ? this.botao() : '<p class="v3-muted">Você já assistiu os ' + e.max_dia + ' anúncios de hoje. Amanhã libera de novo.</p>')
-        : '<p class="v3-muted">No app OAZE para Android, cada anúncio assistido libera +' + (e.por_anuncio || 10) + ' lançamentos no mês, até ' + (e.max_dia || 5) + ' por dia.</p>';
+        : '<p class="v3-muted">No app OAZE para Android, cada anúncio assistido libera +' + (e.por_anuncio || 10) + ' lançamentos no mês, até ' + (e.max_dia || 5) + ' por dia. A liberação fica na sua conta e vale também aqui.</p>';
       return '<section class="v3-panel oz-anuncio-painel" data-oz-anuncio aria-label="Lançamentos do mês">'
         + '<h2>lançamentos de ' + esc(mes) + '</h2>'
         + '<p><strong>' + usado + '</strong> de <strong>' + (limite == null ? 'ilimitado' : limite) + '</strong>'
@@ -575,6 +581,9 @@
       + '<form data-oz-pergunta><label class="oz-sr" for="oz-pergunta">Pergunte à Coco</label>'
       + '<input id="oz-pergunta" name="pergunta" maxlength="500" autocomplete="off" placeholder="Pergunte à Coco">'
       + '<button type="submit" class="v3-primary" aria-label="Enviar pergunta à Coco">›</button></form>'
+      + '<div class="oz-captura"><button type="button" class="v3-secondary" data-oz-recibo>Foto do recibo</button>'
+      + '<button type="button" class="v3-secondary" data-action="new">Lançar à mão</button>'
+      + '<input id="v3-coco-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></div>'
       + '<div class="oz-atalhos" role="group" aria-label="Perguntas prontas">' + ATALHOS.map((a) => '<button type="button" class="oz-atalho" data-oz-atalho="' + esc(a) + '">' + esc(a) + '</button>').join('') + '</div>'
       + (insightsHtml ? '<ul class="oz-insights-inicio" aria-label="Insights do mês">' + insightsHtml + '</ul>' : '')
       + '</section>';
@@ -612,6 +621,77 @@
   document.addEventListener('click', (ev) => {
     const atalho = ev.target.closest('[data-oz-atalho]');
     if (atalho) perguntarCoco(atalho.dataset.ozAtalho);
+    if (ev.target.closest('[data-oz-recibo]')) capturarRecibo();
+  });
+  /* Captura rápida: a foto vai à Coco (com o aviso de privacidade de
+     sempre) e volta como proposta de lançamento já preenchida. */
+  function capturarRecibo() {
+    const c = contexto();
+    if (c && c.demo) { avisar('Na demonstração a foto não é enviada.'); return; }
+    let entrada = document.querySelector('[data-oz-inicio] #v3-coco-file');
+    if (!entrada) {
+      const ir = document.querySelector('[data-go="home"]');
+      if (ir) ir.click();
+      entrada = document.querySelector('[data-oz-inicio] #v3-coco-file');
+    }
+    if (!entrada) return;
+    global.__ozCapturaRecibo = true;
+    entrada.value = '';
+    entrada.click();
+  }
+  /* Importar comprovante (31/10/2026, inspiração Kontto): galeria,
+     câmera ou PDF. Foto vai à Coco e volta como proposta para revisar;
+     PDF, CSV e OFX são lidos neste aparelho pelo leitor de extratos.
+     O arquivo entra pelo mesmo caminho do anexo da Coco: um campo
+     temporário com o id que o painel já escuta. */
+  function entregarArquivo(arquivo) {
+    const temp = document.createElement('input');
+    temp.type = 'file'; temp.id = 'v3-coco-file'; temp.hidden = true;
+    const dt = new DataTransfer(); dt.items.add(arquivo); temp.files = dt.files;
+    global.__ozCapturaRecibo = /^image\//.test(arquivo.type);
+    document.body.appendChild(temp);
+    temp.dispatchEvent(new Event('change', { bubbles: true }));
+    temp.remove();
+  }
+  function abrirComprovante() {
+    const c = contexto();
+    if (c && c.demo) { avisar('Na demonstração nenhum arquivo é enviado.'); return; }
+    const opcoes = [
+      ['galeria', 'Galeria', 'Print ou foto do comprovante', 'image/jpeg,image/png,image/webp', false],
+      ['camera', 'Câmera', 'Tirar foto agora', 'image/jpeg,image/png,image/webp', true],
+      ['pdf', 'PDF ou extrato', 'Comprovante ou extrato do banco (PDF, CSV, OFX)', 'application/pdf,text/csv,.pdf,.csv,.ofx,.qfx', false]
+    ];
+    const d = dialogo('Importar comprovante',
+      '<p class="v3-muted">A Coco lê valor, descrição e data e monta o lançamento para você revisar antes de salvar.</p>'
+      + '<div class="oz-comprovante">' + opcoes.map(([id, t, s, accept, cam]) =>
+        '<label class="oz-comprovante-op" tabindex="0" role="button"><span><strong>' + esc(t) + '</strong><small>' + esc(s) + '</small></span><span aria-hidden="true">›</span>'
+        + '<input type="file" class="oz-arquivo-oculto" tabindex="-1" data-oz-comp="' + id + '" accept="' + accept + '"' + (cam ? ' capture="environment"' : '') + '></label>').join('')
+      + '</div><button type="submit" class="v3-secondary oz-comprovante-cancelar">Cancelar</button>', 'Importar comprovante');
+    d.addEventListener('keydown', (ev) => { const op = ev.target.closest && ev.target.closest('.oz-comprovante-op'); if (op && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); op.querySelector('input').click(); } });
+    d.addEventListener('change', (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      d.close();
+      entregarArquivo(f);
+    });
+  }
+  global.OazeComprovante = { abrir: abrirComprovante };
+  document.addEventListener('click', (ev) => {
+    if (ev.target.closest('[data-oz-comprovante]')) { ev.preventDefault(); abrirComprovante(); }
+  });
+  /* Botão de comprovante no topo do "novo lançamento". */
+  new MutationObserver(() => {
+    const form = document.getElementById('v3-form-tx');
+    if (!form || form.querySelector('[data-oz-comprovante]') || (form.elements.id && form.elements.id.value)) return;
+    form.insertAdjacentHTML('afterbegin', '<button type="button" class="v3-secondary oz-comprovante-botao" data-oz-comprovante>Ler comprovante (foto ou PDF)</button>');
+  }).observe(document.body, { childList: true, subtree: true });
+
+  /* Atalhos do ícone no Android (pressionar e segurar): oaze://acao/... */
+  global.addEventListener('oaze:acao', (ev) => {
+    const acao = ev.detail;
+    if (acao === 'recibo') { setTimeout(capturarRecibo, 300); return; }
+    if (acao === 'novo') { const b = document.querySelector('[data-action="new"]'); if (b) b.click(); return; }
+    if (acao === 'coco') { const b = document.querySelector('[data-go="coco"]'); if (b) b.click(); }
   });
 
   /* =============================================================
@@ -621,7 +701,7 @@
   document.addEventListener('oaze:render', (ev) => {
     const pagina = ev.detail && ev.detail.page;
     estadoPagina = pagina;
-    if (pagina === 'home') inserirInicio();
+    if (pagina === 'home') { inserirInicio(); try { atualizarWidget(); } catch { /* conforto */ } }
     if (pagina === 'coco' || pagina === 'settings') { inserirCoco(pagina); void atualizarCoco(false); }
     if (pagina === 'plan' || pagina === 'settings') {
       const view = document.getElementById('v3-view');
@@ -642,8 +722,53 @@
       OazeAvisos.preferencias();
     }
   });
+  /* =============================================================
+     WIDGET ANDROID: saldo e próximos vencimentos. Com "mostrar nomes e
+     valores" desligado (padrão), o widget não exibe valor nem nome.
+     ============================================================= */
+  let ultimoWidget = '';
+  function atualizarWidget() {
+    const w = global.OAZE_NATIVE_WIDGET;
+    if (!w) return;
+    const c = contexto();
+    if (!c || c.demo || !c.profile || !usuarioId()) { if (ultimoWidget) { ultimoWidget = ''; w.limpar(); } return; }
+    const p = prefs();
+    const hoje = hojeISO();
+    let saldo = null;
+    try { saldo = global.Calc && Calc.totalAccountsBalance ? Calc.totalAccountsBalance(hoje, c.profile) : null; } catch { saldo = null; }
+    const proximos = [];
+    try {
+      [hoje.slice(0, 7), somarMeses(hoje.slice(0, 7), 1)].forEach((mes) => {
+        const porDia = Calc.calendarEvents(mes, c.profile) || {};
+        Object.keys(porDia).forEach((dia) => {
+          const data = mes + '-' + String(dia).padStart(2, '0');
+          const falta = dias(hoje, data);
+          if (falta < 0 || falta > 15) return;
+          porDia[dia].filter((ev) => !ev.confirmado && (ev.tipo === 'due' || ev.tipo === 'out')).forEach((ev) => proximos.push({ data, falta, ev }));
+        });
+      });
+    } catch { /* agenda indisponível */ }
+    proximos.sort((a, b) => a.data.localeCompare(b.data));
+    const quando = (f) => f === 0 ? 'hoje' : f === 1 ? 'amanhã' : 'em ' + f + ' dias';
+    const linhas = p.detalhes
+      ? proximos.slice(0, 3).map((x) => x.ev.titulo + ' · ' + quando(x.falta) + ' · ' + brl(x.ev.valor))
+      : [proximos.length ? proximos.length + (proximos.length === 1 ? ' conta vence' : ' contas vencem') + ' nos próximos 15 dias' : 'Nenhum vencimento nos próximos 15 dias',
+        proximos.length ? 'A próxima vence ' + quando(proximos[0].falta) : '', ''];
+    const dados = {
+      titulo: 'OAZE · ' + (c.profile.name || 'Pessoal'),
+      destaque: p.detalhes && saldo != null ? brl(saldo) : 'Saldo oculto',
+      linha1: linhas[0] || '', linha2: linhas[1] || '', linha3: linhas[2] || '',
+      rodape: 'Atualizado às ' + new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date())
+    };
+    const assinatura = JSON.stringify(Object.assign({}, dados, { rodape: '' }));
+    if (assinatura === ultimoWidget) return;
+    ultimoWidget = assinatura;
+    w.atualizar(dados);
+  }
+
   /* Insights para a folha de notificações e agenda ao voltar ao app. */
   function aoAbrir() {
+    try { atualizarWidget(); } catch { /* widget é conforto */ }
     void calcularInsights();
     try { if (localStorage.getItem('oaze.native.reminders') === 'yes') void OazeAvisos.sincronizar().catch(() => {}); } catch { /* sem armazenamento */ }
   }

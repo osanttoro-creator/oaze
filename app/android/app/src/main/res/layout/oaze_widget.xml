@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget OAZE: fundo Night Ocean, texto creme. RemoteViews só aceita
+     views simples; nada de imagens remotas nem dados lidos aqui. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/oaze_widget_raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/oaze_widget_fundo">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/oaze_widget_titulo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#F0E5CF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/oaze_widget_novo"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="#0D1821"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:contentDescription="Novo lançamento"
+            android:background="@drawable/oaze_widget_botao" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/oaze_widget_destaque"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#F0E5CF"
+        android:textSize="22sp"
+        android:maxLines="1" />
+
+    <TextView
+        android:id="@+id/oaze_widget_linha1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textColor="#B8C8CA"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/oaze_widget_linha2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#B8C8CA"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/oaze_widget_linha3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#B8C8CA"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/oaze_widget_rodape"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#5FA99B"
+        android:textSize="11sp"
+        android:maxLines="1" />
+</LinearLayout>

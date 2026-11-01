@@ -340,18 +340,30 @@
      Brasil", que a lista nativa não achava. Sem JavaScript o campo
      some e a lista inteira continua lá.
      ============================================================= */
+  /* Banco escolhido nas boas-vindas (antes do login): só sugere a
+     primeira conta, nunca troca o de uma conta que já existe. */
+  function bancoBoasVindas() {
+    try { const k=(JSON.parse(localStorage.getItem('oaze.boasvindas')||'null')||{}).banco; return k&&BANK_NAMES[k]||''; } catch (e) { return ''; }
+  }
   function bankPicker(selected) {
     const known=global.BancosBR?.PRESETS || {};
     const selectedKey=bankKey(selected);
-    const chaves=BANK_GROUPS.reduce((acc,[,keys])=>acc.concat(keys.split(' ')),[])
+    const extras=global.Icons?.MARCAS_EXTRAS || {};
+    const bancos=BANK_GROUPS.reduce((acc,[,keys])=>acc.concat(keys.split(' ')),[])
       .filter((key)=>known[key])
       .map((key)=>({key,name:BANK_NAMES[key]||key}))
       .sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
-    const opcoes=chaves.map(({key,name})=>{
+    const doGrupo=(g)=>Object.keys(extras).filter((k)=>extras[k].grupo===g).map((key)=>({key,name:extras[key].nome}));
+    /* Seções como nos apps de cartão: bancos, vales, bandeiras e lojas. A
+       busca esconde o título da seção que ficar sem opção. */
+    const grupos=[['Bancos e carteiras',bancos],['Vale e benefícios',doGrupo('vale')],['Bandeiras',doGrupo('bandeira')],['Lojas e varejo',doGrupo('loja')]].filter(([,l])=>l.length);
+    let primeiro=true;
+    const opcoes=grupos.map(([titulo,lista])=>`<p class="v3-bank-grupo">${esc(titulo)}</p>`+lista.map(({key,name})=>{
       const brand=global.Icons?.bankBrand(name);
       const color=safeColor(brand?.bg || bankBrand(name)), ink=safeColor(brand?.fg || cardInk(color));
-      return `<label class="v3-bank-option" data-banco="${esc(U.norm(name))}"><input type="radio" name="bank" value="${esc(name)}" ${key==='itau'?'required':''} ${selectedKey===key?'checked':''}><span class="v3-bank-option-logo" style="--bank-bg:${color};--bank-ink:${ink}">${bankLogo(name,ink)}</span><span>${esc(name)}</span></label>`;
-    }).join('');
+      const req=primeiro?'required':''; primeiro=false;
+      return `<label class="v3-bank-option" data-banco="${esc(U.norm(name))}"><input type="radio" name="bank" value="${esc(name)}" ${req} ${selectedKey===key?'checked':''}><span class="v3-bank-option-logo" style="--bank-bg:${color};--bank-ink:${ink}">${bankLogo(name,ink)}</span><span>${esc(name)}</span></label>`;
+    }).join('')).join('');
     const ehOutro=!!selected && !selectedKey;
     return `<fieldset class="v3-bank-picker"><legend>BANCO OU INSTITUIÇÃO</legend>`
       + `<input type="search" class="v3-bank-busca" id="v3-bank-busca" placeholder="Buscar banco…" aria-label="Buscar banco" autocomplete="off">`
@@ -2060,7 +2072,20 @@
   }
   function renderMore() {
     const desc = { investments: `${money(invested())} investidos`, categories: `${profile().categories.length} em uso`, goals: `${profile().goals.length} metas ativas`, calendar: 'calendário e recorrências', coco: 'conversa e análises', settings: 'privacidade, ajuda e contato', plan: demo ? 'OAZE mensal' : 'planos vigentes' };
-    return `<div class="v3-row" style="margin-bottom:22px"><span class="v3-avatar" style="width:55px;height:55px;font-size:23px">${avatarMarkup(demo?sample.owner:Store.ownerName())}</span><span style="flex:1"><h2>${esc(demo?sample.owner:Store.ownerName()||'Seu OAZE')}</h2><small>Perfil ${esc(profile().name||'Pessoal')}</small></span></div><div class="v3-more">${['investments','categories','calendar','coco','settings'].map((p)=>`<button type="button" data-go="${p}">${p === 'coco' ? cocoPetIcon : icon(p)}<strong>${esc(names[p])}</strong><small>${esc(desc[p])}</small></button>`).join('')}<button type="button" data-action="estado-oaze">${icon('receipt')}<strong>Estado do OAZE</strong><small>relatório em PDF</small></button></div>`;
+    return `<div class="v3-row" style="margin-bottom:22px"><span class="v3-avatar" style="width:55px;height:55px;font-size:23px">${avatarMarkup(demo?sample.owner:Store.ownerName())}</span><span style="flex:1"><h2>${esc(demo?sample.owner:Store.ownerName()||'Seu OAZE')}</h2><small>Perfil ${esc(profile().name||'Pessoal')}</small></span></div>${moreSections(desc)}`;
+  }
+  /* "Mais" em seções, como lista (31/10/2026, inspiração Kontto):
+     cada linha leva a uma tela que já existe; nada aqui é atalho morto. */
+  function moreSections(desc) {
+    const nItems=items().length;
+    const secoes=[
+      ['Organizar','org',[['data-go="wallet"','wallet','Contas e cartões',`${nItems} na carteira`],['data-go="categories"','categories','Categorias',desc.categories]]],
+      ['Planejar','plan',[['data-go="goals"','goals','Orçamento e metas',desc.goals],['data-go="investments"','investments','Investimentos',desc.investments]]],
+      ['Acompanhar','track',[['data-go="calendar"','calendar','Agenda e recorrências','vencimentos, fixos e parcelas']]],
+      ['Analisar','analyze',[['data-action="estado-oaze"','receipt','Estado do OAZE','relatório em PDF'],['data-action="export-csv"','reports','Exportar lançamentos','planilha CSV']]],
+      ['Ferramentas','tools',[['data-go="coco"','coco','Coco','conversa e análises'],['data-oz-comprovante','receipt','Importar comprovante','foto, câmera ou PDF'],['data-go="settings"','settings','Configurações',desc.settings]]]
+    ];
+    return `<div class="v3-more-lista">${secoes.map(([titulo,tom,linhas])=>`<section class="v3-more-secao" data-tom="${tom}"><h2>${esc(titulo)}</h2>${linhas.map(([attr,ic,t,s])=>`<button type="button" ${attr}><span class="v3-more-ic">${ic==='coco'?cocoPetIcon:icon(ic)}</span><span class="v3-more-txt"><strong>${esc(t)}</strong><small>${esc(s||'')}</small></span><span class="v3-more-seta" aria-hidden="true">›</span></button>`).join('')}</section>`).join('')}</div>`;
   }
   function cocoMessages() {
     if (!state.chat.length) return `<div class="v3-coco-empty"><img src="/assets/coco/rostinhos/02_feliz.png" alt="Coco"></div>`;
@@ -2314,13 +2339,13 @@
   }
   function renderCocoImport() {
     const report = state.importPreview;
-    const picker='<input id="v3-coco-import-file" type="file" accept="application/pdf,text/csv,.pdf,.csv" hidden>';
-    if (!report) return `<div class="v3-import-empty"><h2>seus extratos, sem adivinhação</h2><p>Escolha um CSV ou PDF de extrato. A leitura acontece neste aparelho, sem envio à OpenAI. A Coco separa movimentos de saldos e mostra uma prévia para você revisar.</p><button type="button" class="v3-secondary" data-action="choose-coco-file">Escolher arquivo</button><small>Layouts ainda desconhecidos e PDFs digitalizados não são importados.</small>${picker}</div>`;
+    const picker='<input id="v3-coco-import-file" type="file" accept="application/pdf,text/csv,.pdf,.csv,.ofx,.qfx" hidden>';
+    if (!report) return `<div class="v3-import-empty"><h2>seus extratos, sem adivinhação</h2><p>Escolha um extrato OFX, CSV ou PDF. A leitura acontece neste aparelho, sem envio à OpenAI. A Coco separa movimentos de saldos e mostra uma prévia para você revisar.</p><button type="button" class="v3-secondary" data-action="choose-coco-file">Escolher arquivo</button><small>Layouts ainda desconhecidos e PDFs digitalizados não são importados.</small>${picker}</div>`;
     const accounts = profile().accounts.filter((account) => !account.archived && (!account.moeda || account.moeda === 'BRL'));
     const visible = report.rows.slice(0, state.importLimit);
     const positive = report.rows.filter((item) => item.cents > 0).reduce((sum, item) => sum + item.cents, 0) / 100;
     const negative = report.rows.filter((item) => item.cents < 0).reduce((sum, item) => sum - item.cents, 0) / 100;
-    return `<div class="v3-import"><h2>revisar extrato</h2><p class="v3-muted">${esc(report.format)} · ${report.rows.length} movimentos · ${report.checks.passed} conferências de saldo corretas</p>${report.warnings.map((warning) => `<p class="v3-import-warning" role="alert">${esc(warning)}</p>`).join('')}<div class="v3-import-totals"><span>Entradas <strong class="v3-positive v3-sensitive">${money(positive)}</strong></span><span>Saídas <strong class="v3-negative v3-sensitive">${money(negative)}</strong></span></div><label class="v3-import-account">CONTA DESTE EXTRATO<select id="v3-import-account"><option value="">Escolha a conta antes de revisar</option>${accounts.map((account) => `<option value="${esc(account.id)}" ${state.importAccountId === account.id ? 'selected' : ''}>${esc(account.bank || account.name)} •• ${esc(account.last4 || '')}</option>`).join('')}</select></label>${accounts.length ? '' : '<p class="v3-import-warning">Cadastre uma conta em reais antes de revisar os movimentos.</p>'}<p class="v3-muted">Nada foi salvo. Revise data, categoria, origem e possível duplicata em cada lançamento.</p><div class="v3-import-list">${visible.map((item, index) => { const suggestion=importCategorySuggestion(item,state.importAccountId);return `<div class="v3-import-row"><span><small>${esc(shortDate(item.date))} · ${item.cents > 0 ? 'entrada' : 'saída'}</small><strong>${esc(item.description)}</strong>${suggestion?`<small>Categoria sugerida: ${esc(suggestion.name)} · ${suggestion.count} anteriores iguais</small>`:''}</span><strong class="v3-mono ${item.cents > 0 ? 'v3-positive' : 'v3-negative'} v3-sensitive">${item.cents > 0 ? '+' : '−'} ${money(Math.abs(item.cents) / 100)}</strong><button type="button" class="v3-secondary" data-action="review-import-row" data-import-index="${index}" ${!state.importAccountId || report.checks.failed ? 'disabled' : ''}>${importDuplicate(item, state.importAccountId) ? 'Possível duplicata · revisar' : 'Revisar'}</button></div>`; }).join('')}</div>${state.importLimit < report.rows.length ? '<button type="button" class="v3-secondary" data-action="import-more">Ver mais movimentos</button>' : ''}<button type="button" class="v3-link" data-action="choose-coco-file">Ler outro arquivo</button>${picker}</div>`;
+    return `<div class="v3-import"><h2>revisar extrato</h2><p class="v3-muted">${esc(report.format)} · ${report.rows.length} movimentos · ${report.checks.passed} conferências de saldo corretas</p>${report.warnings.map((warning) => `<p class="v3-import-warning" role="alert">${esc(warning)}</p>`).join('')}<div class="v3-import-totals"><span>Entradas <strong class="v3-positive v3-sensitive">${money(positive)}</strong></span><span>Saídas <strong class="v3-negative v3-sensitive">${money(negative)}</strong></span></div><label class="v3-import-account">CONTA DESTE EXTRATO<select id="v3-import-account"><option value="">Escolha a conta antes de revisar</option>${accounts.map((account) => `<option value="${esc(account.id)}" ${state.importAccountId === account.id ? 'selected' : ''}>${esc(account.bank || account.name)} •• ${esc(account.last4 || '')}</option>`).join('')}</select></label>${accounts.length ? '' : '<p class="v3-import-warning">Cadastre uma conta em reais antes de revisar os movimentos.</p>'}<p class="v3-muted">Nada foi salvo. Revise data, categoria, origem e possível duplicata em cada lançamento.</p><div class="v3-import-list">${visible.map((item, index) => { const suggestion=importCategorySuggestion(item,state.importAccountId);return `<div class="v3-import-row"><span><small>${esc(shortDate(item.date))} · ${item.cents > 0 ? 'entrada' : 'saída'}</small><strong>${esc(item.description)}</strong>${suggestion?`<small>Categoria sugerida: ${esc(suggestion.name)} · ${suggestion.count} anteriores iguais</small>`:''}</span><strong class="v3-mono ${item.cents > 0 ? 'v3-positive' : 'v3-negative'} v3-sensitive">${item.cents > 0 ? '+' : '−'} ${money(Math.abs(item.cents) / 100)}</strong><button type="button" class="v3-secondary" data-action="review-import-row" data-import-index="${index}" ${!state.importAccountId || report.checks.failed ? 'disabled' : ''}>${importDuplicate(item, state.importAccountId) ? 'Possível duplicata · revisar' : 'Revisar'}</button></div>`; }).join('')}</div>${state.importLimit < report.rows.length ? '<button type="button" class="v3-secondary" data-action="import-more">Ver mais movimentos</button>' : ''}${state.importAccountId && !report.checks.failed ? `<button type="button" class="v3-primary" data-action="import-all">Importar todos os novos</button><small class="v3-muted">Pula os que já parecem registrados e usa a categoria sugerida. Você pode editar depois.</small>` : ''}<button type="button" class="v3-link" data-action="choose-coco-file">Ler outro arquivo</button>${picker}</div>`;
   }
   function openCoco() {
     if (state.cocoTab==='Conversa' || state.cocoTab==='Agora') { closeSheet();state.cocoView='conversation';go('coco');return; }
@@ -2783,7 +2808,7 @@
     const billAccounts=profile().accounts.filter((a)=>!a.archived).map((a)=>`<option value="${esc(a.id)}" ${card?.accountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('');
     /* Todos os meios disponíveis: a distinção é feita no lançamento. */
     const oferecidos=(Store.MEIOS_OFERECIVEIS||[]).map((m)=>m.id);
-    openSheet(`${sheetTop(existing?'editar '+(card?'cartão':'conta'):'adicionar à carteira',demo?'demonstração sem gravação':'conta ou cartão')}${existing?'':`<div class="v3-segment"><button type="button" data-account-type="account" class="${type==='account'?'is-active':''}">Conta</button><button type="button" data-account-type="card" class="${type==='card'?'is-active':''}">Crédito</button></div>`}<form class="v3-form" id="v3-form-account"><input type="hidden" name="id" value="${esc(existing?.id||'')}"><input type="hidden" name="type" value="${type}"><label>NOME DA CONTA OU CARTÃO<input name="name" maxlength="60" value="${esc(existing?.name||'')}" placeholder="Ex.: Conta corrente" required></label>${bankPicker(existing?.bank)}<label>ÚLTIMOS 4 DÍGITOS (OPCIONAL)<input name="last4" inputmode="numeric" pattern="[0-9]{0,4}" maxlength="4" value="${esc(existing?.last4||'')}"></label><label>MOEDA<select name="moeda">${currencyOptions}</select></label><label id="v3-cotacao" ${(existing?.moeda||"BRL")==="BRL"?"hidden":""}>COTAÇÃO (R$ POR 1 UNIDADE)<input name="cotacao" inputmode="decimal" value="${esc(existing?.cotacao==null?'':String(existing.cotacao).replace('.',','))}" placeholder="Ex.: 5,45"></label><label>VALOR INICIAL / LIMITE NA MOEDA ESCOLHIDA<input name="amount" inputmode="decimal" data-money="true" value="${esc(fmt(card?card.limit:account?.openingBalance))}" placeholder="0,00"></label><div id="v3-account-fields" ${type==='card'?'hidden':''}><label>TIPO DE CONTA<select name="accountType">${accountTypes}</select></label><label>CONSIDERAR SALDO A PARTIR DE<input type="date" name="openedAt" value="${esc(account?.openedAt||U.todayISO())}"></label><fieldset class="v3-meios"><legend>O QUE A CONTA OFERECE</legend>${(Store.MEIOS_OFERECIVEIS||[]).map((m)=>`<label class="v3-check"><input type="checkbox" name="meios" value="${esc(m.id)}" ${oferecidos.includes(m.id)?'checked':''}> ${esc(m.nome)}</label>`).join('')}<small class="v3-muted">Só o que estiver marcado aqui aparece como forma de pagamento nos lançamentos desta conta.</small></fieldset></div><div id="v3-card-dates" ${type==='account'?'hidden':''}><div class="v3-form-row"><label>DIA DE FECHAMENTO<input name="closing" type="number" min="1" max="31" value="${esc(card?.closingDay||28)}"></label><label>DIA DE VENCIMENTO<input name="due" type="number" min="1" max="31" value="${esc(card?.dueDay||5)}"></label></div><label>CONTA PARA PAGAR A FATURA<select name="billAccount"><option value="">Nenhuma</option>${billAccounts}</select></label></div><label class="v3-check"><input type="checkbox" name="considerado" ${existing?.considerado===false?'':'checked'}> Considerar nos totais</label>${account?`<label class="v3-check"><input type="checkbox" name="archived" ${account.archived?'checked':''}> Arquivar conta</label>`:''}<button type="submit" class="v3-primary">${demo?'Ver na demonstração':existing?'Salvar alterações':'Adicionar à carteira'}</button>${existing?`<button type="button" class="v3-secondary" data-action="delete-wallet-item" data-wallet-id="${esc(existing.id)}" data-wallet-type="${card?'card':'account'}">Excluir ${card?'cartão':'conta'}</button>`:''}</form>`,'Conta ou cartão');
+    openSheet(`${sheetTop(existing?'editar '+(card?'cartão':'conta'):'adicionar à carteira',demo?'demonstração sem gravação':'conta ou cartão')}${existing?'':`<div class="v3-segment"><button type="button" data-account-type="account" class="${type==='account'?'is-active':''}">Conta</button><button type="button" data-account-type="card" class="${type==='card'?'is-active':''}">Crédito</button></div>`}<form class="v3-form" id="v3-form-account"><input type="hidden" name="id" value="${esc(existing?.id||'')}"><input type="hidden" name="type" value="${type}"><label>NOME DA CONTA OU CARTÃO<input name="name" maxlength="60" value="${esc(existing?.name||'')}" placeholder="Ex.: Conta corrente" required></label>${bankPicker(existing?.bank || (!items().length ? bancoBoasVindas() : ''))}<label>ÚLTIMOS 4 DÍGITOS (OPCIONAL)<input name="last4" inputmode="numeric" pattern="[0-9]{0,4}" maxlength="4" value="${esc(existing?.last4||'')}"></label><label>MOEDA<select name="moeda">${currencyOptions}</select></label><label id="v3-cotacao" ${(existing?.moeda||"BRL")==="BRL"?"hidden":""}>COTAÇÃO (R$ POR 1 UNIDADE)<input name="cotacao" inputmode="decimal" value="${esc(existing?.cotacao==null?'':String(existing.cotacao).replace('.',','))}" placeholder="Ex.: 5,45"></label><label>VALOR INICIAL / LIMITE NA MOEDA ESCOLHIDA<input name="amount" inputmode="decimal" data-money="true" value="${esc(fmt(card?card.limit:account?.openingBalance))}" placeholder="0,00"></label><div id="v3-account-fields" ${type==='card'?'hidden':''}><label>TIPO DE CONTA<select name="accountType">${accountTypes}</select></label><label>CONSIDERAR SALDO A PARTIR DE<input type="date" name="openedAt" value="${esc(account?.openedAt||U.todayISO())}"></label><fieldset class="v3-meios"><legend>O QUE A CONTA OFERECE</legend>${(Store.MEIOS_OFERECIVEIS||[]).map((m)=>`<label class="v3-check"><input type="checkbox" name="meios" value="${esc(m.id)}" ${oferecidos.includes(m.id)?'checked':''}> ${esc(m.nome)}</label>`).join('')}<small class="v3-muted">Só o que estiver marcado aqui aparece como forma de pagamento nos lançamentos desta conta.</small></fieldset></div><div id="v3-card-dates" ${type==='account'?'hidden':''}><div class="v3-form-row"><label>DIA DE FECHAMENTO<input name="closing" type="number" min="1" max="31" value="${esc(card?.closingDay||28)}"></label><label>DIA DE VENCIMENTO<input name="due" type="number" min="1" max="31" value="${esc(card?.dueDay||5)}"></label></div><label>CONTA PARA PAGAR A FATURA<select name="billAccount"><option value="">Nenhuma</option>${billAccounts}</select></label></div><label class="v3-check"><input type="checkbox" name="considerado" ${existing?.considerado===false?'':'checked'}> Considerar nos totais</label>${account?`<label class="v3-check"><input type="checkbox" name="archived" ${account.archived?'checked':''}> Arquivar conta</label>`:''}<button type="submit" class="v3-primary">${demo?'Ver na demonstração':existing?'Salvar alterações':'Adicionar à carteira'}</button>${existing?`<button type="button" class="v3-secondary" data-action="delete-wallet-item" data-wallet-id="${esc(existing.id)}" data-wallet-type="${card?'card':'account'}">Excluir ${card?'cartão':'conta'}</button>`:''}</form>`,'Conta ou cartão');
     const form=document.getElementById('v3-form-account');
     const otherProfiles=!demo&&!state.sharedId?(Store.state()?.profiles||[]).filter((p)=>p.id!==Store.profile().id):[];
     if(otherProfiles.length){
@@ -3915,7 +3940,7 @@
   }
   async function readCocoMedia(file, sendRecording=false) {
     if (!file) return;
-    const statement=/\.(pdf|csv)$/i.test(file.name) || ['application/pdf','text/csv','application/vnd.ms-excel'].includes(file.type);
+    const statement=/\.(pdf|csv|ofx|qfx)$/i.test(file.name) || ['application/pdf','text/csv','application/vnd.ms-excel'].includes(file.type);
     if (statement) {
       toast('Lendo o extrato neste aparelho…');
       try {
@@ -3945,9 +3970,12 @@
     toast('Lendo arquivo…');
     try {
       const result=await V3Backend.cocoReadMedia(file,profile().id);
-      state.cocoTab='Conversa';state.cocoView='conversation';state.mediaDraft=String(result.texto||'').slice(0,500);state.voiceDraft=audio;
+      /* Captura rápida (Início ou atalho do ícone): a leitura da foto já
+         segue como pedido de registro e volta como proposta para revisar. */
+      const captura=image && global.__ozCapturaRecibo; global.__ozCapturaRecibo=false;
+      state.cocoTab='Conversa';state.cocoView='conversation';state.mediaDraft=(captura?'Registre este gasto já pago: ':'')+String(result.texto||'').slice(0,captura?470:500);state.voiceDraft=audio;
       closeSheet();go('coco');$('#v3-chat-form [name="question"]')?.focus();
-      if(sendRecording && state.mediaDraft){await askCoco($('#v3-chat-form'));}
+      if((sendRecording||captura) && state.mediaDraft){await askCoco($('#v3-chat-form'));}
       else toast('Revise o texto antes de enviar à Coco.');
     } catch (error) { toast(error.message || 'Não consegui ler o arquivo.'); }
   }
@@ -4240,6 +4268,37 @@
     }
     if (action==='choose-coco-file') { const picker=target.closest('#v3-sheet')?.querySelector('#v3-coco-import-file') || $('#v3-coco-file'); picker?.click();return; }
     if (action==='import-more') { state.importLimit=Math.min(state.importLimit+30,state.importPreview?.rows.length||30);openCoco();return; }
+    if (action==='import-all') {
+      if (demo) { toast('Demonstração: nenhum dado foi salvo.'); return; }
+      const report=state.importPreview;
+      const account=profile().accounts.find((entry)=>entry.id===state.importAccountId && !entry.archived && (!entry.moeda || entry.moeda==='BRL'));
+      if (!report || !account || report.checks.failed) { toast('Confira o extrato e escolha uma conta em reais.'); return; }
+      /* Duplicado: mesma conta, mesmo tipo e valor, até 2 dias de diferença
+         (o banco às vezes lança no dia útil seguinte). */
+      const parecido=(item)=>profile().transactions.some((tx)=>tx.accountId===account.id && !tx.cancelado &&
+        tx.kind===(item.cents>0?'income':'expense') && Math.round(Number(tx.amount)*100)===Math.abs(item.cents) &&
+        Math.abs((new Date(tx.date+'T12:00:00')-new Date(item.date+'T12:00:00'))/86400000)<=2);
+      const reserva=(kind)=>profile().categories.find((c)=>c.kind===kind && /^outr/i.test(c.name)) || profile().categories.find((c)=>c.kind===kind);
+      const usados={}, lista=[]; let pulados=0, semEspaco=0;
+      for (const item of report.rows) {
+        if (parecido(item)) { pulados++; continue; }
+        const ym=item.date.slice(0,7), teto=global.Limites?Limites.limite('transactions_per_month'):null;
+        usados[ym]=usados[ym]??(global.Limites?Limites.contar('transactions_per_month',ym):0);
+        if (teto!==null && teto!==undefined && usados[ym]>=teto) { semEspaco++; continue; }
+        const kind=item.cents>0?'income':'expense';
+        const sug=global.Categorizacao?Categorizacao.sugerir(item.description,kind,profile()):null;
+        const cat=(sug && sug.categoryId && sug.confidence!=='low' && profile().categories.some((c)=>c.id===sug.categoryId)) ? sug.categoryId : reserva(kind)?.id;
+        if (!cat) continue;
+        usados[ym]++;
+        lista.push({kind,description:item.description,amount:U.round2(Math.abs(item.cents)/100),date:item.date,categoryId:cat,accountId:account.id,cardId:null,toAccountId:null,confirmed:true,cancelado:false,recurring:false,notes:'',source:'import',meio:null});
+      }
+      if (!lista.length) { toast(semEspaco?'Sem espaço no limite de lançamentos do mês. Nada foi importado.':'Todos os movimentos já parecem registrados.'); return; }
+      V3Backend.mutate(()=>{ Store.transactions.addMany(lista); }).then(()=>{
+        state.importPreview=null; render();
+        toast(lista.length+' lançamentos importados'+(pulados?', '+pulados+' já existiam':'')+(semEspaco?', '+semEspaco+' ficaram fora pelo limite do plano':'')+'.');
+      }).catch(()=>toast('Não consegui salvar a importação. Nada foi alterado.'));
+      return;
+    }
     if (action==='review-import-row') {
       const index=Number(target.dataset.importIndex), item=state.importPreview?.rows[index];
       const account=profile().accounts.find((entry)=>entry.id===state.importAccountId && !entry.archived && (!entry.moeda || entry.moeda==='BRL'));
@@ -4491,7 +4550,7 @@
     if(global.Limites){
       Limites.avisar=(aviso)=>openSheet(sheetTop(String(aviso.titulo||'').toLowerCase(),'limite do seu plano')
         +aviso.linhas.map((linha)=>`<p class="v3-muted" style="margin-top:10px">${esc(linha)}</p>`).join('')
-        +(aviso.tipo==='transactions_per_month'&&global.OazeAnuncios?.disponivel()?global.OazeAnuncios.botao():'')
+        +(aviso.tipo==='transactions_per_month'&&global.OazeAnuncios?(global.OazeAnuncios.disponivel()?global.OazeAnuncios.botao():global.OazeAnuncios.dica()):'')
         +(aviso.verPlanos?'<button type="button" class="v3-primary" style="margin-top:18px" data-go="plan">Ver planos</button>':''),aviso.titulo);
       Limites.aoMudar=()=>{ if(state.page==='plan'||state.page==='settings') render(); };
     }
@@ -4662,6 +4721,11 @@
         const casa=outro||!q||String(n.dataset.banco||'').includes(q);
         n.hidden=!casa;
         if(casa&&!outro)achou++;
+      });
+      document.querySelectorAll('#v3-bank-options .v3-bank-grupo').forEach((t)=>{
+        let n=t.nextElementSibling,algum=false;
+        while(n&&!n.classList.contains('v3-bank-grupo')){if(!n.hidden&&!n.classList.contains('v3-bank-other'))algum=true;n=n.nextElementSibling;}
+        t.hidden=!algum;
       });
       const vazio=document.getElementById('v3-bank-vazio');
       if(vazio)vazio.hidden=achou>0;

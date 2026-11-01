@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -24,6 +24,10 @@ type NativeWindow = Window & {
     status(): Promise<'granted' | 'denied' | 'prompt'>;
     schedule(items: Array<NativeNotice>): Promise<void>;
     cancel(): Promise<void>;
+  };
+  OAZE_NATIVE_WIDGET?: {
+    atualizar(dados: { titulo: string; destaque: string; linha1: string; linha2: string; linha3: string; rodape: string }): Promise<void>;
+    limpar(): Promise<void>;
   };
   OAZE_NATIVE_PUSH?: {
     registrar(topicos: string[]): Promise<boolean>;
@@ -129,6 +133,19 @@ if (android || desktop) {
     }
     if (android) await Browser.open({ url });
     else await openUrl(url);
+  };
+}
+
+/* Widget da tela inicial (plugin nativo OazeWidget, MainActivity). */
+interface OazeWidgetPlugin {
+  atualizar(dados: { titulo: string; destaque: string; linha1: string; linha2: string; linha3: string; rodape: string }): Promise<void>;
+  limpar(): Promise<void>;
+}
+if (android) {
+  const widget = registerPlugin<OazeWidgetPlugin>('OazeWidget');
+  nativeWindow.OAZE_NATIVE_WIDGET = {
+    atualizar: (dados) => widget.atualizar(dados).catch(() => {}),
+    limpar: () => widget.limpar().catch(() => {}),
   };
 }
 
@@ -379,6 +396,17 @@ async function finishAuth(url: string): Promise<void> {
 async function handleAppUrl(url: string): Promise<void> {
   let incoming: URL;
   try { incoming = new URL(url); } catch { return; }
+  /* Atalhos do ícone e do widget: oaze://acao/novo | recibo | coco.
+     Na abertura a frio o painel ainda está montando; o evento sai depois. */
+  if (incoming.protocol === 'oaze:' && incoming.hostname === 'acao') {
+    const acao = incoming.pathname.replace(/^\/+/, '');
+    if (['novo', 'recibo', 'coco'].includes(acao)) {
+      const emitir = () => dispatchEvent(new CustomEvent('oaze:acao', { detail: acao }));
+      if (document.readyState === 'complete' && document.querySelector('#v3-view .v3-home-identity, #v3-view [data-oz-inicio]')) emitir();
+      else setTimeout(emitir, 2500);
+    }
+    return;
+  }
   if (incoming.protocol === 'oaze:' && incoming.hostname === 'billing') {
     if (!['sucesso', 'cancelado', 'portal'].includes(incoming.searchParams.get('resultado') || '')) return;
     if (android) await Browser.close().catch(() => {});

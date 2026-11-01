@@ -26,3 +26,36 @@
 .oz-insights-inicio li{padding:10px 12px;border-left:3px solid #5fa99b;background:rgba(95,169,155,.08);border-radius:8px}
 .oz-insights-inicio small{display:block;color:#b8c8ca}
 .oz-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.oz-captura{display:flex;gap:8px}
+.oz-captura .v3-secondary{flex:1;min-height:44px}
+.oz-constancia{margin:-6px 0 16px;font-size:13px;color:#b8c8ca}
+
+/* "Mais" em seções (31/10/2026) */
+.v3-more-lista{display:grid;gap:22px}
+.v3-more-secao h2{margin:0 0 6px;font-size:17px;font-weight:600}
+.v3-more-secao>button{display:flex;align-items:center;gap:14px;width:100%;min-height:62px;padding:10px 4px;border:0;border-bottom:1px solid rgba(240,229,207,.08);background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.v3-more-secao>button:focus-visible{outline:2px solid #5fa99b;outline-offset:2px;border-radius:12px}
+.v3-more-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--tom-bg,rgba(95,169,155,.14));color:var(--tom,#5fa99b)}
+.v3-more-ic svg,.v3-more-ic img{width:22px;height:22px}
+.v3-more-ic .v3-coco-pet{width:30px;height:24px}
+.v3-more-txt{flex:1;min-width:0}
+.v3-more-txt strong{display:block;font-size:15px}
+.v3-more-txt small{display:block;color:#b8c8ca;font-size:12px}
+.v3-more-seta{font-size:22px;color:rgba(240,229,207,.4)}
+.v3-more-secao[data-tom="plan"]{--tom:#3ecf8e;--tom-bg:rgba(62,207,142,.13)}
+.v3-more-secao[data-tom="track"]{--tom:#f2b33d;--tom-bg:rgba(242,179,61,.13)}
+.v3-more-secao[data-tom="analyze"]{--tom:#6aa8ff;--tom-bg:rgba(106,168,255,.13)}
+.v3-more-secao[data-tom="tools"]{--tom:#ee8f72;--tom-bg:rgba(238,143,114,.13)}
+
+/* Importar comprovante */
+.oz-comprovante{display:grid;border-radius:16px;overflow:hidden;border:1px solid rgba(240,229,207,.1);margin:14px 0}
+.oz-comprovante-op{position:relative;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;background:rgba(240,229,207,.04);border-bottom:1px solid rgba(240,229,207,.08)}
+.oz-comprovante-op:last-child{border-bottom:0}
+.oz-comprovante-op>span:first-child{flex:1}
+.oz-comprovante-op strong{display:block}
+.oz-comprovante-op small{display:block;color:#b8c8ca}
+.oz-comprovante-op:focus-within{outline:2px solid #5fa99b}
+.oz-comprovante-cancelar{width:100%}
+.oz-comprovante-botao{width:100%;margin-bottom:12px}
+.oz-arquivo-oculto{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
+.oz-dialogo .oz-comprovante-op{display:flex!important;flex-direction:row;align-items:center;margin:0}
