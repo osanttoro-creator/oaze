@@ -37,7 +37,7 @@ public class OazeBancoListener extends NotificationListenerService {
         "com.ton.app", "com.wise.android", "com.revolut.revolut", "br.com.inter.investimentos", "br.com.daycoval",
         "com.porto.bank", "br.com.recargapay", "com.paypal.android.p2pmobile", "br.com.ourocard", "com.credicard"
     ));
-    private static final Pattern VALOR = Pattern.compile("R\$\s?[\d.]+,\d{2}");
+    private static final Pattern VALOR = Pattern.compile("R\\$\\s?[\\d.]+,\\d{2}");
     private static final Pattern TIPO = Pattern.compile("(?i)(compra|aprovad|pix|transfer|recebid|pagamento|d[eé]bito|cr[eé]dito|saque|dep[oó]sito)");
 
     @Override
