@@ -383,6 +383,7 @@
       const agendados = [];
       if (p.vencimentos) agendados.push(...vencimentos(c.profile, p));
       if (p.metas) agendados.push(...metas(c.profile, p));
+      if (global.OazeTeste) agendados.push(...global.OazeTeste.lembretes());
       const ja = enviados();
       const novos = (await insights(c.profile, p)).filter((x) => !ja[x.chave]);
       const slot = proximoHorario(p).toISOString();

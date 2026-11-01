@@ -59,3 +59,105 @@
 .oz-comprovante-botao{width:100%;margin-bottom:12px}
 .oz-arquivo-oculto{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
 .oz-dialogo .oz-comprovante-op{display:flex!important;flex-direction:row;align-items:center;margin:0}
+
+/* Teste grátis de 7 dias (31/10/2026) */
+.tg-dialogo{border:0;padding:0;margin:auto auto 0;width:min(560px,100%);max-height:100dvh;background:transparent;color:#F0E5CF}
+.tg-dialogo::backdrop{background:rgba(3,10,15,.72)}
+.tg-folha{position:relative;background:#101b22;border-radius:28px 28px 0 0;padding:28px 22px max(22px,env(safe-area-inset-bottom));overflow-y:auto;max-height:100dvh;box-sizing:border-box}
+@media(min-width:700px){.tg-dialogo{margin:auto}.tg-folha{border-radius:28px}}
+.tg-fechar{position:absolute;top:14px;right:14px;width:44px;height:44px;border:0;border-radius:50%;background:rgba(240,229,207,.08);color:#F0E5CF;font-size:24px;cursor:pointer}
+.tg-folha h2{margin:6px 44px 8px 0;font-size:clamp(26px,7vw,34px);line-height:1.1}
+.tg-sub{color:rgba(240,229,207,.72);margin:0 0 18px;font-size:16px}
+.tg-tempo{list-style:none;margin:0 0 16px;padding:18px;border-radius:22px;background:rgba(240,229,207,.04);border:1px solid rgba(240,229,207,.08);display:grid;gap:18px}
+.tg-passo{display:flex;gap:14px;align-items:flex-start;position:relative}
+.tg-passo:not(:last-child)::after{content:'';position:absolute;left:21px;top:46px;bottom:-16px;width:2px;background:rgba(240,229,207,.12)}
+.tg-ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none}
+.tg-hoje .tg-ic{background:rgba(62,207,142,.16);color:#3ecf8e}
+.tg-aviso .tg-ic{background:rgba(242,179,61,.16);color:#f2b33d}
+.tg-pro .tg-ic{background:rgba(95,169,155,.18);color:#5fa99b}
+.tg-passo strong{display:block;font-size:16px;margin:2px 0 3px}
+.tg-passo small{display:block;color:rgba(240,229,207,.68);font-size:14px;line-height:1.4}
+.tg-chips{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.tg-chips li{padding:8px 13px;border-radius:999px;border:1px solid rgba(240,229,207,.12);font-size:14px}
+.tg-chips li::before{content:'✓ ';color:#3ecf8e;font-weight:700}
+.tg-principal{width:100%;padding:17px;border:0;border-radius:20px;background:#5fa99b;color:#0b141b;font-weight:700;font-size:18px;font-family:inherit;cursor:pointer}
+.tg-principal:disabled{opacity:.6;cursor:progress}
+.tg-principal:focus-visible,.tg-fechar:focus-visible,.tg-links button:focus-visible{outline:2px solid #F0E5CF;outline-offset:3px}
+.tg-garantia{text-align:center;color:rgba(240,229,207,.7);font-size:14px;margin:10px 0 4px}
+.tg-erro{color:#ffb4a2;text-align:center;font-size:14px}
+.tg-links{display:flex;justify-content:center;gap:22px;margin-top:10px}
+.tg-links button,.tg-links a{background:none;border:0;color:#F0E5CF;font:inherit;font-size:15px;text-decoration:underline;cursor:pointer;min-height:44px}
+.tg-legal{text-align:center;font-size:13px;margin:4px 0 0}
+.tg-legal a{color:rgba(240,229,207,.6)}
+.tg-faixa{display:flex;align-items:center;gap:14px;margin-bottom:16px;border:1px solid rgba(95,169,155,.5)}
+.tg-faixa>span{flex:1}
+.tg-faixa strong{display:block}
+.tg-faixa small{display:block;color:#b8c8ca}
+
+/* Telas novas do "Mais" (31/10/2026) */
+.oz-tela{border:0;padding:0;margin:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;background:#0d1821;color:#F0E5CF;overflow:hidden}
+.oz-tela::backdrop{background:#0d1821}
+@media(min-width:900px){.oz-tela{width:min(720px,100%);margin:0 auto;border-left:1px solid rgba(240,229,207,.08);border-right:1px solid rgba(240,229,207,.08)}.oz-tela::backdrop{background:rgba(3,10,15,.8)}}
+.oz-tela-topo{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px 10px;border-bottom:1px solid rgba(240,229,207,.07)}
+.oz-tela-topo h1{margin:0;text-align:center;font-size:19px}
+.oz-tela-voltar{width:44px;height:44px;border:0;border-radius:50%;background:rgba(240,229,207,.07);color:#F0E5CF;font-size:30px;line-height:1;cursor:pointer}
+.oz-tela-voltar:focus-visible{outline:2px solid #5fa99b;outline-offset:2px}
+.oz-tela-corpo{height:calc(100dvh - 66px);overflow-y:auto;padding:16px 18px max(28px,env(safe-area-inset-bottom));box-sizing:border-box}
+.oz-tela-intro{color:#b8c8ca;margin:0 0 16px;font-size:15px;line-height:1.45}
+.oz-vazio{color:#b8c8ca;text-align:center;padding:28px 10px}
+.oz-nota{color:rgba(240,229,207,.55);font-size:13px;margin-top:14px}
+.oz-linha-form{display:flex;gap:8px;margin-bottom:16px}
+.oz-linha-form input{flex:1;min-width:0}
+.oz-lista{list-style:none;margin:0;padding:0}
+.oz-lista li{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(240,229,207,.07);flex-wrap:wrap}
+.oz-lista li.is-quitado{opacity:.55}
+.oz-lista-txt{flex:1;min-width:150px}
+.oz-lista-txt strong{display:block}
+.oz-lista-txt small{display:block;color:#b8c8ca;font-size:13px}
+.oz-tag-cor{width:14px;height:14px;border-radius:50%;flex:none}
+.oz-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(95,169,155,.18);color:#5fa99b;font-weight:700;flex:none}
+.oz-valor{white-space:nowrap}
+.oz-perigo{color:#ff9f8a!important}
+.oz-neg{color:#ff9f8a}
+.oz-pos{color:#3ecf8e}
+.oz-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:0 0 16px}
+.oz-resumo>div{padding:14px;border-radius:16px;background:rgba(240,229,207,.05);border:1px solid rgba(240,229,207,.08)}
+.oz-resumo small{display:block;color:#b8c8ca;font-size:12px}
+.oz-resumo strong{display:block;font-size:19px;margin-top:3px}
+.oz-alerta{padding:12px 14px;border-radius:14px;background:rgba(255,159,138,.1);border:1px solid rgba(255,159,138,.35)}
+.oz-ok{padding:12px 14px;border-radius:14px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.3)}
+.oz-seg{margin-bottom:14px}
+.oz-proj{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:12px}
+.oz-proj li{display:grid;grid-template-columns:54px 1fr auto;gap:4px 10px;align-items:center}
+.oz-proj-mes{text-transform:capitalize;color:#b8c8ca;font-size:14px}
+.oz-proj-barra,.oz-rel-barra,.oz-barra-p{height:8px;border-radius:8px;background:rgba(240,229,207,.08);overflow:hidden}
+.oz-proj-barra i,.oz-rel-barra i,.oz-barra-p i{display:block;height:100%;border-radius:inherit;background:#5fa99b}
+.oz-proj-barra i.neg{background:#ff9f8a}
+.oz-proj small{grid-column:2/-1;color:rgba(240,229,207,.55);font-size:12px}
+.oz-cards{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:12px}
+.oz-card{padding:16px;border-radius:18px;background:rgba(240,229,207,.05);border:1px solid rgba(240,229,207,.08);display:grid;gap:10px}
+.oz-card-topo{display:flex;justify-content:space-between;gap:10px}
+.oz-card-topo small{display:block;color:#b8c8ca;font-size:13px;font-weight:400}
+.oz-card-sub{color:#b8c8ca;font-size:13px}
+.oz-card-acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.oz-form-box{margin-top:12px;border:1px solid rgba(240,229,207,.1);border-radius:16px;padding:4px 14px}
+.oz-form-box summary{padding:12px 0;cursor:pointer;font-weight:600;color:#5fa99b}
+.oz-form-box form{padding-bottom:14px}
+.oz-rel{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.oz-rel li{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:10px 0;border-bottom:1px solid rgba(240,229,207,.07)}
+.oz-rel-barra{grid-column:1/-1;height:6px}
+.oz-rel-acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.oz-rel-filtros{margin-bottom:12px}
+.oz-tags-campo{border:0;padding:0;margin:0}
+.oz-tags-campo legend{font-size:12px;letter-spacing:.06em;color:rgba(240,229,207,.7);margin-bottom:6px}
+.oz-tags-chips{display:flex;flex-wrap:wrap;gap:6px}
+.oz-chip{padding:7px 12px;border-radius:999px;border:1px solid rgba(240,229,207,.15);background:transparent;color:#F0E5CF;font:inherit;font-size:14px;cursor:pointer;min-height:36px}
+.oz-chip[aria-pressed="true"]{background:var(--chip,#5fa99b);border-color:var(--chip,#5fa99b);color:#0b141b;font-weight:600}
+.oz-chip-nova{border-style:dashed;color:#5fa99b}
+@media print{
+  html.oz-imprimindo body>*:not(dialog.oz-tela){display:none!important}
+  html.oz-imprimindo .oz-tela{position:static;height:auto;max-height:none;background:#fff;color:#000}
+  html.oz-imprimindo .oz-tela-corpo{height:auto;overflow:visible}
+  html.oz-imprimindo .oz-tela-voltar,html.oz-imprimindo .oz-rel-acoes,html.oz-imprimindo .oz-rel-filtros{display:none}
+  html.oz-imprimindo .oz-lista-txt small,html.oz-imprimindo .oz-resumo small{color:#333}
+}

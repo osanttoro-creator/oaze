@@ -12,3 +12,9 @@
 @media(max-width:900px){.v3-coco-fab{width:80px;height:72px;right:12px}.v3-coco-fab .v3-coco-pet{width:72px}}
 @media(max-width:599px) and (orientation:landscape){.v3-coco-fab{width:60px;height:54px}.v3-coco-fab .v3-coco-pet{width:58px}}
 @media(prefers-reduced-motion:reduce){.v3-coco-fab .v3-coco-pet img{animation:none;will-change:auto}}
+/* Coco viva (31/10/2026): estados animados em vez da dança em CSS. */
+.v3-coco-fab.coco-viva{translate:var(--coco-x,0px) 0;transition:translate .7s cubic-bezier(.3,.7,.3,1),transform .22s ease,opacity .22s ease}
+.v3-coco-fab.coco-viva .v3-coco-pet{width:84px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55))}
+.v3-coco-fab.coco-viva .v3-coco-pet img{animation:none;will-change:auto;transform:none}
+@media(max-width:900px){.v3-coco-fab.coco-viva .v3-coco-pet{width:80px}}
+@media(prefers-reduced-motion:reduce){.v3-coco-fab.coco-viva{transition:opacity .22s ease}}

@@ -341,6 +341,8 @@
        única empurraria todas para a mesma fatura. */
     t.faturaRef = (t.method === 'card' && !t.recurring && /^\d{4}-\d{2}$/.test(t.faturaRef || ''))
       ? t.faturaRef : null;
+    /* Tags (31/10/2026): ids das tags do perfil, no máximo 10. */
+    t.tags = Array.isArray(t.tags) ? [...new Set(t.tags.filter((x) => typeof x === 'string' && /^[A-Za-z0-9_-]{1,60}$/.test(x)))].slice(0, 10) : [];
     t.notes = String(t.notes || '');
     /* Só o caminho privado fica no perfil; bytes do comprovante não entram no JSON. */
     t.receiptPath = typeof t.receiptPath === 'string' && t.receiptPath.length <= 260
@@ -630,6 +632,32 @@
         proposalId: (d && d.proposalId) || null
       })).filter((d) => d.amount !== 0),
       createdAt: g.createdAt || U.todayISO()
+    }));
+    /* Telas do "Mais" (31/10/2026): tags, financiamentos/empréstimos e
+       quem me deve. Moram no mesmo JSON do perfil, então sincronizam
+       como o resto. Ausente = lista vazia. */
+    const txt = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+    const idOk = (v, pre) => (typeof v === 'string' && /^[A-Za-z0-9_-]{1,60}$/.test(v)) ? v : U.uid(pre);
+    prof.tags = (Array.isArray(prof.tags) ? prof.tags : []).filter((t) => t && txt(t.nome, 30)).slice(0, 100).map((t) => ({
+      id: idOk(t.id, 'tag'), nome: txt(t.nome, 30), cor: /^#[0-9a-fA-F]{6}$/.test(t.cor || '') ? t.cor : '#5FA99B'
+    }));
+    prof.dividas = (Array.isArray(prof.dividas) ? prof.dividas : []).filter((d) => d && txt(d.nome, 60)).slice(0, 100).map((d) => {
+      const parcelas = Math.min(600, Math.max(1, parseInt(d.parcelas, 10) || 1));
+      return {
+        id: idOk(d.id, 'div'), tipo: d.tipo === 'emprestimo' ? 'emprestimo' : 'financiamento',
+        nome: txt(d.nome, 60), instituicao: txt(d.instituicao, 60),
+        valorTotal: U.round2(Math.max(0, +d.valorTotal || 0)), parcela: U.round2(Math.max(0, +d.parcela || 0)),
+        parcelas, pagas: Math.min(parcelas, Math.max(0, parseInt(d.pagas, 10) || 0)),
+        dia: Math.min(31, Math.max(1, parseInt(d.dia, 10) || 10)),
+        juros: Number.isFinite(+d.juros) && +d.juros >= 0 && +d.juros < 100 ? Math.round(+d.juros * 100) / 100 : null,
+        criadoEm: U.isValidISO(d.criadoEm) ? d.criadoEm : U.todayISO()
+      };
+    });
+    prof.aReceber = (Array.isArray(prof.aReceber) ? prof.aReceber : []).filter((x) => x && txt(x.pessoa, 60)).slice(0, 300).map((x) => ({
+      id: idOk(x.id, 'rec'), pessoa: txt(x.pessoa, 60), descricao: txt(x.descricao, 120),
+      valor: U.round2(Math.max(0, +x.valor || 0)), recebido: U.round2(Math.max(0, +x.recebido || 0)),
+      data: U.isValidISO(x.data) ? x.data : U.todayISO(), vence: U.isValidISO(x.vence) ? x.vence : null,
+      quitado: !!x.quitado
     }));
     return prof;
   }
