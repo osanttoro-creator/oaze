@@ -13,7 +13,7 @@
 /// 01/11/2026. `hwnd` = 0 cai na chamada antiga.
 #[cfg(target_os = "windows")]
 mod imp {
-    use windows::Foundation::IAsyncOperation;
+    use windows_future::IAsyncOperation;
     use windows::Security::Credentials::UI::{
         UserConsentVerificationResult, UserConsentVerifier, UserConsentVerifierAvailability,
     };

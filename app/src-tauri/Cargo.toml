@@ -37,6 +37,8 @@ tokio = { version = "1", features = ["time"] }
 # Windows Hello
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.62", features = ["Security_Credentials_UI", "Foundation", "Win32_Foundation", "Win32_System_WinRT"] }
+# no windows 0.62 o IAsyncOperation mora neste crate (mesma versão que o windows usa)
+windows-future = "0.3"
 
 # Touch ID
 [target.'cfg(target_os = "macos")'.dependencies]
