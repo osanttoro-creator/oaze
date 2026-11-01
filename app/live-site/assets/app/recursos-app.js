@@ -537,6 +537,8 @@
       + '<div class="oz-local-acoes"><button type="button" class="v3-secondary" data-oz-local-usar>Usar minha localização</button>'
       + '<button type="button" class="v3-link" data-oz-local-remover' + (existente ? '' : ' hidden') + '>Remover</button></div>'
       + viagem + '</div>';
+    const mais = form.querySelector('.v3-mais .v3-mais-corpo');
+    if (mais) { mais.insertAdjacentHTML('beforeend', html); if (existente) form.querySelector('.v3-mais').open = true; return; }
     const enviar = form.querySelector('button[type="submit"]');
     const ancora = enviar ? enviar.closest('.v3-form-actions, .v3-sheet-actions, div') : null;
     if (ancora && ancora.parentElement === form) ancora.insertAdjacentHTML('beforebegin', html);
@@ -575,23 +577,64 @@
      precisar perguntar.
      ============================================================= */
   const ATALHOS = ['Para onde foi meu dinheiro este mês?', 'Quanto gastei no cartão?', 'Vou fechar o mês no azul?', 'Tenho conta vencendo esta semana?'];
+  /* O widget da Coco é um widget como os outros (01/11/2026): entra na
+     ordem escolhida, pode ser removido e editado (o que ele mostra). */
+  const CHAVE_COCO = 'oaze.v3.inicio.coco';
+  function opcoesCoco() {
+    let o = {};
+    try { o = JSON.parse(localStorage.getItem(CHAVE_COCO) || '{}') || {}; } catch { o = {}; }
+    return { captura: o.captura !== false, atalhos: o.atalhos !== false, insights: o.insights !== false };
+  }
+  function editarCoco() {
+    const o = opcoesCoco();
+    const d = document.createElement('dialog');
+    d.className = 'oz-coco-editar';
+    d.setAttribute('aria-labelledby', 'oz-coco-editar-t');
+    const linha = (k, t) => '<label class="v3-check"><input type="checkbox" name="' + k + '" ' + (o[k] ? 'checked' : '') + '> ' + t + '</label>';
+    d.innerHTML = '<form method="dialog" class="v3-form"><h2 id="oz-coco-editar-t">Widget da Coco</h2><p class="v3-muted">A barra de pergunta fica sempre. Escolha o resto.</p>'
+      + linha('captura', 'Botões "Foto do recibo" e "Lançar à mão"') + linha('atalhos', 'Perguntas prontas') + linha('insights', 'Insights do mês')
+      + '<button type="submit" class="v3-primary" value="ok">Salvar</button><button type="button" class="v3-secondary" data-oz-coco-remover>Remover da Início</button><button type="submit" class="v3-link" value="cancelar">Cancelar</button></form>';
+    document.body.appendChild(d);
+    d.addEventListener('close', () => {
+      if (d.returnValue === 'ok') {
+        const f = d.querySelector('form');
+        const novo = { captura: f.captura.checked, atalhos: f.atalhos.checked, insights: f.insights.checked };
+        try { localStorage.setItem(CHAVE_COCO, JSON.stringify(novo)); } catch { /* só nesta sessão */ }
+        const atual = document.querySelector('[data-oz-inicio]');
+        if (atual) atual.outerHTML = blocoInicio();
+      }
+      d.remove();
+    });
+    d.querySelector('[data-oz-coco-remover]').addEventListener('click', () => {
+      d.close('remover');
+      if (global.OazeInicio) global.OazeInicio.remover('coco');
+      avisar('Widget da Coco removido. Para trazer de volta: Gerenciar widgets.');
+    });
+    d.showModal();
+  }
   function blocoInicio() {
-    const insightsHtml = (ultimosInsights || []).slice(0, 2).map((x) =>
-      '<li><strong>' + esc(x.titulo) + '</strong><small>' + esc(x.texto || x.corpo) + '</small></li>').join('');
+    const o = opcoesCoco();
+    const insightsHtml = o.insights ? (ultimosInsights || []).slice(0, 2).map((x) =>
+      '<li><strong>' + esc(x.titulo) + '</strong><small>' + esc(x.texto || x.corpo) + '</small></li>').join('') : '';
     return '<section class="v3-panel oz-inicio-coco" data-oz-inicio aria-label="Converse com a Coco">'
+      + '<div class="oz-coco-topo"><span class="v3-label">COCO</span><button type="button" class="v3-link oz-coco-editar-botao" data-oz-coco-editar aria-label="Editar widget da Coco">editar</button></div>'
       + '<form data-oz-pergunta><label class="oz-sr" for="oz-pergunta">Pergunte à Coco</label>'
       + '<input id="oz-pergunta" name="pergunta" maxlength="500" autocomplete="off" placeholder="Pergunte à Coco">'
       + '<button type="submit" class="v3-primary" aria-label="Enviar pergunta à Coco">›</button></form>'
-      + '<div class="oz-captura"><button type="button" class="v3-secondary" data-oz-recibo>Foto do recibo</button>'
+      + '<div class="oz-captura"' + (o.captura ? '' : ' hidden') + '><button type="button" class="v3-secondary" data-oz-recibo>Foto do recibo</button>'
       + '<button type="button" class="v3-secondary" data-action="new">Lançar à mão</button>'
       + '<input id="v3-coco-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></div>'
-      + '<div class="oz-atalhos" role="group" aria-label="Perguntas prontas">' + ATALHOS.map((a) => '<button type="button" class="oz-atalho" data-oz-atalho="' + esc(a) + '">' + esc(a) + '</button>').join('') + '</div>'
+      + (o.atalhos ? '<div class="oz-atalhos" role="group" aria-label="Perguntas prontas">' + ATALHOS.map((a) => '<button type="button" class="oz-atalho" data-oz-atalho="' + esc(a) + '">' + esc(a) + '</button>').join('') + '</div>' : '')
       + (insightsHtml ? '<ul class="oz-insights-inicio" aria-label="Insights do mês">' + insightsHtml + '</ul>' : '')
       + '</section>';
   }
   function inserirInicio() {
     const view = document.getElementById('v3-view');
     if (!view || view.querySelector('[data-oz-inicio]')) return;
+    const vaga = view.querySelector('[data-oz-inicio-slot]');
+    if (vaga) { vaga.outerHTML = blocoInicio(); return; }
+    if (global.OazeInicio && !global.OazeInicio.ligado('coco')) return;
+    if (view.querySelector('.v3-home-widgets')) return;
     const ancora = view.querySelector('.v3-home-identity');
     if (ancora) ancora.insertAdjacentHTML('afterend', blocoInicio());
     else view.insertAdjacentHTML('afterbegin', blocoInicio());
@@ -623,6 +666,7 @@
     const atalho = ev.target.closest('[data-oz-atalho]');
     if (atalho) perguntarCoco(atalho.dataset.ozAtalho);
     if (ev.target.closest('[data-oz-recibo]')) capturarRecibo();
+    if (ev.target.closest('[data-oz-coco-editar]')) editarCoco();
   });
   /* Captura rápida: a foto vai à Coco (com o aviso de privacidade de
      sempre) e volta como proposta de lançamento já preenchida. */

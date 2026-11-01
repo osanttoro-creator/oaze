@@ -104,7 +104,9 @@
     const tx = id ? (P().transactions || []).find((t) => t.id === id) : null;
     const marcadas = new Set((tx && tx.tags) || []);
     const html = '<fieldset class="oz-tags-campo" data-oz-tags><legend>TAGS (OPCIONAL)</legend><input type="hidden" name="tags" value="' + esc([...marcadas].join(',')) + '"><div class="oz-tags-chips"></div></fieldset>';
-    ancora.insertAdjacentHTML('afterend', html);
+    const mais = form.querySelector('.v3-mais .v3-mais-corpo');
+    if (mais) { mais.insertAdjacentHTML('afterbegin', html); if (marcadas.size) form.querySelector('.v3-mais').open = true; }
+    else ancora.insertAdjacentHTML('afterend', html);
     pintarChips(form);
   }
   function pintarChips(form) {

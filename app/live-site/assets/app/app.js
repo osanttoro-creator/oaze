@@ -10,10 +10,32 @@
   const initialPaths = { '/app': 'home', '/app/financeiro': 'transactions', '/app/carteira': 'wallet', '/app/investimentos': 'investments', '/app/categorias': 'categories', '/app/metas': 'goals', '/app/orcamento': 'investments/planning', '/app/recorrencias': 'calendar', '/app/calendario': 'calendar', '/app/configuracoes': 'settings', '/app/planos': 'plan', '/app/limites': 'plan', '/app/analises': 'coco', '/app/uglez': 'coco' };
   const uiIcons = new Set(['home','transactions','wallet','investments','reports','categories','goals','calendar','reminders','settings','plan','more','plus','arrow','down','utensils','car','heart','leisure','subscription','contactless','education','shopping','receipt','work','exchange','sales']);
   const extraCategoryIcons = new Set(['baby','bus','cake','church','coffee','dog','droplet','dumbbell','film','flame','fuel','gift','glasses','hammer','key','laptop','map-pin','music','package','palmtree','percent','piggy-bank','pill','plane','scissors','shield','shirt','shopping-cart','smartphone','sofa','sparkles','star','stethoscope','ticket','truck','tv','umbrella','users','wifi','wrench','zap']);
-  const icon = (name) => `<span class="v3-fi v3-fi-${uiIcons.has(name) ? name : 'more'}" aria-hidden="true"></span>`;
+  /* ÍCONES EM LUCIDE (01/11/2026)
+     A navegação usava uma fonte de ícones (Flaticon) e as categorias,
+     Lucide: dois desenhos diferentes na mesma tela. Agora é tudo Lucide,
+     em SVG que herda a cor. A classe v3-li-<nome> liga a animação curta
+     (estilo lucide-animated) no passar do mouse, no toque e quando a aba
+     fica ativa — no celular o toque faz o papel do "gif". Sem o SVG
+     vendorizado, cai na fonte antiga. */
+  const LUCIDE_UI = { home:'house', transactions:'arrow-left-right', wallet:'wallet', investments:'trending-up', reports:'chart-column', categories:'shapes', goals:'target', calendar:'calendar', reminders:'bell', settings:'settings', plan:'crown', more:'layout-grid', plus:'plus', arrow:'chevron-right', down:'chevron-down', utensils:'utensils', car:'car', heart:'heart-pulse', leisure:'gamepad-2', subscription:'repeat', contactless:'nfc', education:'graduation-cap', shopping:'shopping-bag', receipt:'receipt', work:'briefcase', exchange:'arrow-left-right', sales:'tag' };
+  const icon = (name) => {
+    const key = uiIcons.has(name) ? name : 'more';
+    const svgBody = global.IconData?.lucide?.[LUCIDE_UI[key]];
+    if (svgBody) return `<span class="v3-fi v3-li v3-li-${key}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false">${svgBody}</svg></span>`;
+    return `<span class="v3-fi v3-fi-${key}" aria-hidden="true"></span>`;
+  };
   const categoryIconMarkup = (name) => extraCategoryIcons.has(name) && global.IconData?.lucide?.[name]
     ? `<svg class="v3-category-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${global.IconData.lucide[name]}</svg>`
     : icon(name);
+  /* Um caminho só para o ícone de categoria (01/11/2026): Lucide, o escolhido
+     ou o palpite pelo nome ("Mercado" vira carrinho). Antes, categoria sem
+     ícone salvo caía no mesmo símbolo genérico e as listas ficavam iguais. */
+  const categoryIconHtml = (cat) => {
+    const L = global.IconData?.lucide || {};
+    const nome = cat?.icon && L[cat.icon] ? cat.icon : (global.Icons && cat ? global.Icons.forCategory(cat) : "");
+    if (nome && L[nome]) return `<svg class="v3-category-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${L[nome]}</svg>`;
+    return categoryIconMarkup(categoryIcon(cat?.icon) || "categories");
+  };
   const statusLabels = { pago: 'Pago', pendente: 'Não pago', cancelado: 'Cancelado' };
   const statusDescriptions = { pago: 'Entra nos totais', pendente: 'Fica no previsto', cancelado: 'Não entra em nenhum total' };
   const NAV_PAGES = ['home','transactions','wallet','investments','categories','calendar','coco','settings'];
@@ -270,8 +292,9 @@
     $('#v3-demo-note').hidden = state.page === 'home';
     if (!demo) $('#v3-demo-note').textContent = global.V3Backend?.saving()
       ? 'Salvando no perfil…' : state.sharedId ? `Perfil compartilhado · ${sharedCanEdit()?'edição':'leitura'}` : 'Dados carregados da sua conta';
-    $('#v3-coco-count').hidden = !demo;
-    if (demo) $('#v3-coco-count').textContent = '4';
+    /* O contador saiu de cima da Coco flutuante: agora é o ícone de uso
+       dentro da barra de mensagem dela (cocoUsoMini). */
+    $('#v3-coco-count').hidden = true;
     const alerts = reminders();
     const notificationCount = notificationSeen() === notificationSignature(alerts) ? 0 : alerts.length;
     $('#v3-notification-dot').hidden = !notificationCount;
@@ -356,7 +379,8 @@
     const doGrupo=(g)=>Object.keys(extras).filter((k)=>extras[k].grupo===g).map((key)=>({key,name:extras[key].nome}));
     /* Seções como nos apps de cartão: bancos, vales, bandeiras e lojas. A
        busca esconde o título da seção que ficar sem opção. */
-    const grupos=[['Bancos e carteiras',bancos],['Vale e benefícios',doGrupo('vale')],['Bandeiras',doGrupo('bandeira')],['Lojas e varejo',doGrupo('loja')]].filter(([,l])=>l.length);
+    const todosBancos=bancos.concat(doGrupo('banco')).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+    const grupos=[['Bancos e carteiras',todosBancos],['Vale e benefícios',doGrupo('vale')],['Bandeiras',doGrupo('bandeira')],['Lojas e varejo',doGrupo('loja')]].filter(([,l])=>l.length);
     let primeiro=true;
     const opcoes=grupos.map(([titulo,lista])=>`<p class="v3-bank-grupo">${esc(titulo)}</p>`+lista.map(({key,name})=>{
       const brand=global.Icons?.bankBrand(name);
@@ -506,7 +530,7 @@
     const circumference = 2 * Math.PI * 76;
     let offset = 0;
     const arcs = all.map((r, i) => { const length = circumference * r.value / total; const visible = Math.max(0, length - 4); const arc = `<circle class="v3-spend-arc" data-oaze-color="${safeColor(r.color)}" data-spend-index="${i}" data-spend-name="${esc(r.name)}" data-spend-value="${esc(money(r.value))}" data-spend-share="${Math.round(100 * r.value / total)}" cx="100" cy="100" r="76" fill="none" stroke="${safeColor(r.color)}" stroke-width="24" stroke-dasharray="${visible} 478" stroke-dashoffset="${-offset}" style="--segment-length:${visible};--segment-offset:${-offset};--segment-order:${i}"/>`; offset += length; return arc; }).join('');
-    const list = rows.map((r, i) => `<button type="button" class="v3-spend-row" data-oaze-color="${safeColor(r.color)}" data-spend-index="${i}" data-spend-name="${esc(r.name)}" data-spend-value="${esc(money(r.value))}" data-spend-share="${Math.round(100 * r.value / total)}" style="--swatch:${safeColor(r.color)};--swatch-ink:${U.inkFor(safeColor(r.color))}"><span class="v3-cat-icon">${categoryIconMarkup(categoryIcon((profile().categories.find((c) => c.id === r.id) || {}).icon) || 'categories')}</span><span class="v3-spend-label"><strong>${esc(r.name)}</strong><small>${Math.round(100 * r.value / total)}% do mês</small></span><strong class="v3-mono v3-sensitive">${money(r.value)}</strong></button>`).join('');
+    const list = rows.map((r, i) => `<button type="button" class="v3-spend-row" data-oaze-color="${safeColor(r.color)}" data-spend-index="${i}" data-spend-name="${esc(r.name)}" data-spend-value="${esc(money(r.value))}" data-spend-share="${Math.round(100 * r.value / total)}" style="--swatch:${safeColor(r.color)};--swatch-ink:${U.inkFor(safeColor(r.color))}"><span class="v3-cat-icon">${categoryIconHtml(profile().categories.find((c) => c.id === r.id))}</span><span class="v3-spend-label"><strong>${esc(r.name)}</strong><small>${Math.round(100 * r.value / total)}% do mês</small></span><strong class="v3-mono v3-sensitive">${money(r.value)}</strong></button>`).join('');
     const remainder = all.length > rows.length ? `<p class="v3-spend-more">Mais ${all.length - rows.length} ${all.length - rows.length === 1 ? 'categoria' : 'categorias'} em “ver tudo”</p>` : '';
     return `<div class="v3-spend-overview" data-kind="${income ? 'income' : 'expense'}"><div class="v3-spend-ring" data-spend-total="${esc(money(total))}" data-spend-count="${all.length} ${all.length === 1 ? 'categoria' : 'categorias'}"><svg viewBox="0 0 200 200" role="img" aria-label="Distribuição das ${income ? 'receitas' : 'despesas'} por categoria"><circle class="v3-spend-track" cx="100" cy="100" r="76" fill="none" stroke-width="24"/>${arcs}</svg><div class="v3-spend-ring-center"><small class="v3-spend-caption">${income ? 'receitas recebidas' : 'gastos feitos'}</small><strong class="v3-sensitive v3-spend-value">${money(total)}</strong><span class="v3-spend-detail">${all.length} ${all.length === 1 ? 'categoria' : 'categorias'}</span></div></div><div class="v3-spend-breakdown"><p class="v3-spend-lead">${esc(rows[0].name)} representa <strong>${Math.round(100 * rows[0].value / total)}%</strong> ${income ? 'das receitas' : 'dos gastos'} deste mês.</p>${list}${remainder}</div></div>`;
   }
@@ -576,7 +600,8 @@
   const CHAVE_INICIO = 'oaze.v3.inicio';
   let blocosSessao = null;
   const BLOCOS_INICIO = [
-    { id: 'sobra', nome: 'Sobra e curva do mês', padrao: true },
+    { id: 'coco', nome: 'Converse com a Coco', padrao: true, largo: true },
+    { id: 'sobra', nome: 'Sobra e curva do mês', padrao: true, largo: true },
     { id: 'categorias', nome: 'Onde foi o mês', padrao: true },
     { id: 'receitas', nome: 'De onde veio o mês', padrao: true },
     { id: 'proximos', nome: 'Até o fim do mês', padrao: true },
@@ -584,7 +609,7 @@
     { id: 'faturas', nome: 'Faturas a pagar', padrao: false },
     { id: 'fluxo', nome: 'Fluxo de caixa', padrao: false },
     { id: 'metas', nome: 'Metas em andamento', padrao: false },
-    { id: 'indicadores', nome: 'Indicadores do mês', padrao: false },
+    { id: 'indicadores', nome: 'Indicadores do mês', padrao: false, largo: true },
     { id: 'atalhos', nome: 'Ações rápidas', padrao: false },
     { id: 'score', nome: 'OAZE Score', padrao: false },
     { id: 'contas', nome: 'Saldo por conta', padrao: false },
@@ -607,6 +632,26 @@
     try { return JSON.parse(localStorage.getItem(CHAVE_INICIO) || '{}') || {}; }
     catch (e) { return {}; }
   }
+  /* ORDEM DOS WIDGETS (01/11/2026): a pessoa arrasta ou usa ↑ ↓ em
+     "Gerenciar widgets". Guardada no aparelho, como a escolha de ligar. */
+  const CHAVE_ORDEM = 'oaze.v3.inicio.ordem';
+  const ORDEM_PADRAO = ['coco','proximos','sobra','categorias','receitas','investimentos'];
+  function ordemBlocos() {
+    let salva = [];
+    try { salva = JSON.parse(localStorage.getItem(CHAVE_ORDEM) || '[]'); } catch (e) { salva = []; }
+    const ids = BLOCOS_INICIO.map((b) => b.id);
+    const base = (Array.isArray(salva) && salva.length ? salva : ORDEM_PADRAO).filter((id) => ids.includes(id));
+    return [...new Set(base.concat(ids))];
+  }
+  function moverBloco(id, para) {
+    const ordem = ordemBlocos();
+    const de = ordem.indexOf(id);
+    if (de < 0) return ordem;
+    ordem.splice(de, 1);
+    ordem.splice(Math.max(0, Math.min(ordem.length, para)), 0, id);
+    try { localStorage.setItem(CHAVE_ORDEM, JSON.stringify(ordem)); } catch (e) { /* vale só nesta sessão */ }
+    return ordem;
+  }
   function blocoLigado(id) {
     const escolhido = blocosEscolhidos()[id];
     if (typeof escolhido === 'boolean') return escolhido;
@@ -618,9 +663,22 @@
     blocosSessao = atual;
     try { localStorage.setItem(CHAVE_INICIO, JSON.stringify(atual)); } catch (e) { /* sem armazenamento: vale só nesta sessão */ }
   }
+  /* Ponte para módulos de fora (o widget da Coco mora em recursos-app.js). */
+  global.OazeInicio = { ligado: (id) => blocoLigado(id), remover: (id) => { if (blocoLigado(id)) alternarBloco(id); if (state.page === 'home') render(); } };
+  function painelBlocosInicioHtml(alvo) {
+    const nomes = Object.fromEntries(BLOCOS_INICIO.map((b) => [b.id, b.nome]));
+    const ordem = ordemBlocos();
+    alvo.innerHTML = `<ol class="v3-panel v3-widget-picker v3-bloco-lista" id="v3-bloco-lista" style="margin-top:16px">${linhasBlocos(ordem, nomes)}</ol>`;
+  }
+  function linhasBlocos(ordem, nomes) {
+    return ordem.map((id, i) => `<li class="v3-bloco-item${blocoLigado(id) ? '' : ' is-off'}" data-bloco-item="${esc(id)}"><button type="button" class="v3-bloco-alca" data-bloco-alca aria-label="Arrastar ${esc(nomes[id])}">${alcaIcone()}</button><label class="v3-bloco-nome"><input type="checkbox" data-bloco="${esc(id)}" ${blocoLigado(id) ? 'checked' : ''}><span>${esc(nomes[id])}</span></label><span class="v3-bloco-setas"><button type="button" data-bloco-mover="-1" aria-label="Subir ${esc(nomes[id])}" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" data-bloco-mover="1" aria-label="Descer ${esc(nomes[id])}" ${i === ordem.length - 1 ? 'disabled' : ''}>↓</button></span></li>`).join('');
+  }
+  const alcaIcone = () => global.Icons?.has?.('grip-vertical') ? global.Icons.lucide('grip-vertical', 18).outerHTML : '<span aria-hidden="true">⋮⋮</span>';
   function painelBlocosInicio() {
-    const linhas = BLOCOS_INICIO.map((b) => `<label class="v3-setting-row v3-bloco-linha"><span>${esc(b.nome)}</span><input type="checkbox" data-bloco="${esc(b.id)}" ${blocoLigado(b.id) ? 'checked' : ''}></label>`).join('');
-    openSheet(`${sheetTop('gerenciar widgets', 'o que aparece na Início')}<p class="v3-muted">A carteira e a saudação ficam sempre. Ative só o que você consulta. A escolha vale neste aparelho.</p><section class="v3-panel v3-widget-picker" style="margin-top:16px">${linhas}</section>`, 'Gerenciar widgets');
+    const nomes = Object.fromEntries(BLOCOS_INICIO.map((b) => [b.id, b.nome]));
+    const ordem = ordemBlocos();
+    const linhas = linhasBlocos(ordem, nomes);
+    openSheet(`${sheetTop('gerenciar widgets', 'o que aparece na Início')}<p class="v3-muted">A carteira e a saudação ficam sempre. Marque o que aparece e arraste (ou use ↑ ↓) para mudar a ordem. Vale neste aparelho.</p><ol class="v3-panel v3-widget-picker v3-bloco-lista" id="v3-bloco-lista" style="margin-top:16px">${linhas}</ol>`, 'Gerenciar widgets');
   }
   /* O bloco de investimentos na Início usa a mesma conta da tela de
      investimentos: valor hoje, quanto foi aportado e a diferença. */
@@ -746,13 +804,32 @@
        vence esta semana" é pergunta que se faz com pressa — e era a
        que estava mais embaixo. Curva e categorias continuam na tela,
        logo abaixo: acessíveis, sem disputar a primeira olhada. */
-    const direita = [blocoLigado('proximos') ? painelVence7() : '', blocoLigado('sobra') ? wave() : ''].filter(Boolean).join('');
-    const gastos = blocoLigado('categorias') ? `<section class="v3-panel v3-widget-spending"><div class="v3-row"><h2>onde foi o mês</h2><button type="button" class="v3-link" data-go="categories">ver tudo</button></div>${categoryBars(5)}</section>` : '';
-    const receitas = blocoLigado('receitas') ? `<section class="v3-panel v3-widget-spending v3-widget-income"><div class="v3-row"><h2>de onde veio o mês</h2><button type="button" class="v3-link" data-go="categories" data-category-kind="income">ver tudo</button></div>${categoryBars(5, 'income')}</section>` : '';
-    const extraIds = BLOCOS_INICIO.slice(11).filter((b)=>blocoLigado(b.id));
-    const extraContext = extraIds.length ? { p: profile(), ts: currentTransactions().filter((t)=>!t.cancelado && t.contaNosTotais !== false), t: totals() } : null;
-    const extras = [blocoLigado('investimentos') ? painelInvestimentos() : '', blocoLigado('faturas') ? painelFaturasInicio() : '', blocoLigado('fluxo') ? painelFluxoInicio() : '', blocoLigado('metas') ? painelMetasInicio() : '', ...extraIds.map((b)=>extraHomeWidget(b.id, extraContext)), blocoLigado('score') ? painelScore() : ''].filter(Boolean).join('');
-    return `<div class="v3-home-identity"><div class="v3-home-identity-title"><span class="v3-label">VISÃO GERAL</span><h1>início</h1></div><button type="button" class="v3-greeting" data-action="profiles" aria-label="Trocar perfil financeiro"><span class="v3-avatar">${avatarMarkup(owner)}</span><span><small>${greeting},</small><strong>${esc(owner)}</strong></span></button></div>${blocoLigado('indicadores') ? renderHomeMetrics() : ''}<div class="v3-grid v3-home"><div class="v3-stack">${wallet('SALDO TOTAL',false)}${blocoLigado('atalhos') ? quickActions() : ''}</div>${gastos}<div class="v3-stack">${direita}</div>${receitas}${extras ? `<div class="v3-home-extras">${extras}</div>` : ''}</div><button type="button" class="v3-gerenciar" data-action="home-blocks">Gerenciar widgets</button>`;
+    /* WIDGETS NA ORDEM DA PESSOA (01/11/2026)
+       Antes a posição de cada bloco era fixa no código (duas colunas
+       montadas à mão). Agora a carteira fica sempre primeiro e os widgets
+       ligados entram numa grade na ordem escolhida em "Gerenciar widgets".
+       A grade é densa: um widget estreito sobe para ocupar o buraco ao lado
+       de outro, e os largos (Coco, curva, indicadores) ocupam a linha toda. */
+    const ligados = ordemBlocos().filter((id) => blocoLigado(id));
+    const extraContext = { p: profile(), ts: currentTransactions().filter((t)=>!t.cancelado && t.contaNosTotais !== false), t: totals() };
+    const largos = new Set(BLOCOS_INICIO.filter((b) => b.largo).map((b) => b.id));
+    const desenhar = (id) => {
+      if (id === 'coco') return '<div data-oz-inicio-slot></div>';
+      if (id === 'sobra') return wave();
+      if (id === 'proximos') return painelVence7();
+      if (id === 'categorias') return `<section class="v3-panel v3-widget-spending"><div class="v3-row"><h2>onde foi o mês</h2><button type="button" class="v3-link" data-go="categories">ver tudo</button></div>${categoryBars(5)}</section>`;
+      if (id === 'receitas') return `<section class="v3-panel v3-widget-spending v3-widget-income"><div class="v3-row"><h2>de onde veio o mês</h2><button type="button" class="v3-link" data-go="categories" data-category-kind="income">ver tudo</button></div>${categoryBars(5, 'income')}</section>`;
+      if (id === 'investimentos') return painelInvestimentos();
+      if (id === 'faturas') return painelFaturasInicio();
+      if (id === 'fluxo') return painelFluxoInicio();
+      if (id === 'metas') return painelMetasInicio();
+      if (id === 'indicadores') return renderHomeMetrics();
+      if (id === 'atalhos') return quickActions();
+      if (id === 'score') return painelScore();
+      return extraHomeWidget(id, extraContext);
+    };
+    const widgets = ligados.map((id) => { const html = desenhar(id); return html ? `<div class="v3-widget-slot${largos.has(id) ? ' is-largo' : ''}" data-widget="${esc(id)}">${html}</div>` : ''; }).join('');
+    return `<div class="v3-home-identity"><div class="v3-home-identity-title"><span class="v3-label">VISÃO GERAL</span><h1>início</h1></div><button type="button" class="v3-greeting" data-action="profiles" aria-label="Trocar perfil financeiro"><span class="v3-avatar">${avatarMarkup(owner)}</span><span><small>${greeting},</small><strong>${esc(owner)}</strong></span></button></div><div class="v3-home-layout"><div class="v3-stack v3-home-carteira">${wallet('SALDO TOTAL',false)}</div><div class="v3-home-widgets">${widgets}</div></div><button type="button" class="v3-gerenciar" data-action="home-blocks">Gerenciar widgets</button>`;
   }
   function closeStatusMenu(restoreFocus = true) {
     if (!statusMenu) return;
@@ -890,6 +967,23 @@
       + `<button type="button" class="v3-secondary" data-action="limpar-filtros">Limpar filtros</button>`
       + `<p class="v3-muted">O período continua sendo o mês escolhido no topo. Os filtros valem só nesta sessão.</p></form>`, 'Filtros');
   }
+  /* Selo do lançamento: ícone da categoria na cor dela e, no canto, o logo
+     do banco ou cartão na cor da marca (01/11/2026). Antes era um
+     retângulo cinza igual para todos, com só o final do cartão. */
+  function txBadge(x, card) {
+    const cat = profile().categories.find((c) => c.id === x.categoryId) || null;
+    const cor = x.kind === 'transfer' ? '#C9A44C' : cat ? categoryColor(cat) : '#5A6B75';
+    const miolo = x.kind === 'transfer' ? (global.Icons?.lucide('arrow-left-right', 18)?.outerHTML || '') : categoryIconHtml(cat);
+    const inst = card ? (card.bank || card.name || '') : '';
+    let banco = '';
+    if (inst) {
+      const brand = global.Icons?.bankBrand(inst);
+      const bg = safeColor(card.customColor ? card.color : (brand?.bg || bankBrand(inst, card.color)));
+      const ink = safeColor(brand?.fg || cardInk(bg));
+      banco = `<span class="v3-tx-banco" style="--bank-bg:${bg};--bank-ink:${ink}" title="${esc(inst)}">${walletLogo(card, ink)}</span>`;
+    }
+    return `<span class="v3-mini-card v3-tx-selo" style="--swatch:${cor};--swatch-ink:${U.inkFor(cor)}">${miolo}${banco}</span>`;
+  }
   function renderTransactions() {
     const rows = currentTransactions({ comCancelados: true }).filter(passaNoFiltro).sort((a, b) => b.date.localeCompare(a.date));
     const t = totals();
@@ -904,7 +998,7 @@
       }
       const tone=x.kind==='income'?'v3-positive':x.kind==='transfer'?'v3-transfer':'v3-negative';
       const sign=x.kind==='income'?'+':x.kind==='transfer'?'↔':'−';
-      return `<div class="v3-tx${x.cancelado ? ' is-cancelada' : x.confirmed ? '' : ' is-pending'}"><span class="v3-mini-card" style="--card-light:${esc((card || {}).color || '#446779')};--card-dark:#1d3442" data-last="${esc((card || {}).last4 || '')}"></span><span class="v3-tx-main"><button class="v3-tx-open" type="button" data-transaction="${esc(x.id)}" aria-label="Editar ${esc(x.description)}">${esc(x.description)}</button><small>${esc(shortDate(x.date))} · ${esc(categoryName(x.categoryId))} · ${esc(method)}</small></span><span class="v3-tx-amount v3-mono ${tone} v3-sensitive">${sign} ${money(x.amount)}</span><button class="v3-status${x.cancelado ? ' is-cancel' : x.confirmed ? ' is-done' : ''}" type="button" data-confirm="${esc(x.id)}" data-confirm-month="${esc(x.ym || ymOf(x.date))}" aria-label="Situação de ${esc(x.description)}: ${statusLabels[x.cancelado ? 'cancelado' : x.confirmed ? 'pago' : 'pendente']}. Escolher situação" aria-haspopup="dialog" aria-expanded="false" title="Escolher situação">${statusGlyph(x.cancelado ? 'cancelado' : x.confirmed ? 'pago' : 'pendente')}</button></div>`;
+      return `<div class="v3-tx${x.cancelado ? ' is-cancelada' : x.confirmed ? '' : ' is-pending'}">${txBadge(x, card)}<span class="v3-tx-main"><button class="v3-tx-open" type="button" data-transaction="${esc(x.id)}" aria-label="Editar ${esc(x.description)}">${esc(x.description)}</button><small>${esc(shortDate(x.date))} · ${esc(categoryName(x.categoryId))} · ${esc(method)}</small></span><span class="v3-tx-amount v3-mono ${tone} v3-sensitive">${sign} ${money(x.amount)}</span><button class="v3-status${x.cancelado ? ' is-cancel' : x.confirmed ? ' is-done' : ''}" type="button" data-confirm="${esc(x.id)}" data-confirm-month="${esc(x.ym || ymOf(x.date))}" aria-label="Situação de ${esc(x.description)}: ${statusLabels[x.cancelado ? 'cancelado' : x.confirmed ? 'pago' : 'pendente']}. Escolher situação" aria-haspopup="dialog" aria-expanded="false" title="Escolher situação">${statusGlyph(x.cancelado ? 'cancelado' : x.confirmed ? 'pago' : 'pendente')}</button></div>`;
     };
 
     const ativos = filtrosAtivos() + (state.filter !== 'Todos' ? 1 : 0);
@@ -1238,7 +1332,7 @@
       const usou = limite > 0 ? Math.round(100 * r.value / limite) : null;
       const estourou = usou != null && usou > 100;
       return `<div class="v3-cat-tile${estourou ? ' estourou' : ''}" data-oaze-color="${safeColor(r.color)}" style="--swatch:${safeColor(r.color)};--swatch-ink:${U.inkFor(safeColor(r.color))}">`
-        + `<span class="v3-cat-icon" style="--swatch:${safeColor(r.color)};--swatch-ink:${U.inkFor(safeColor(r.color))}">${categoryIconMarkup(categoryIcon((profile().categories.find((c)=>c.id===r.id)||{}).icon) || 'categories')}</span>`
+        + `<span class="v3-cat-icon" style="--swatch:${safeColor(r.color)};--swatch-ink:${U.inkFor(safeColor(r.color))}">${categoryIconHtml(profile().categories.find((c) => c.id === r.id))}</span>`
         + `<span class="v3-cat-id"><strong>${esc(r.name)}</strong><small>${Math.round(r.value/total*100)}% do total</small></span>`
         + `<strong class="v3-mono v3-sensitive">${money(r.value)}</strong>`
         + (comTeto ? (limite > 0
@@ -1269,7 +1363,7 @@
         + `<span class="v3-cat-teto"><button type="button" class="v3-link" data-budget="${esc(b.id)}">teto de ${money(b.limite)}</button></span></div>`).join('')
       + `</div></div>`
       + `<section class="v3-panel"><div class="v3-row"><h2>suas categorias</h2><span class="v3-muted">${defined.length} cadastradas</span></div>`
-      + `<div class="v3-cat-manage">${defined.map((c)=>`<button type="button" data-category="${esc(c.id)}" aria-label="Editar categoria ${esc(c.name)}"><span class="v3-cat-icon" data-oaze-color="${categoryColor(c)}" style="--swatch:${categoryColor(c)};--swatch-ink:${U.inkFor(categoryColor(c))}">${categoryIconMarkup(categoryIcon(c.icon))}</span><span>${esc(c.name)}</span><small>Editar ›</small></button>`).join('')}</div></section></div>`;
+      + `<div class="v3-cat-manage">${defined.map((c)=>`<button type="button" data-category="${esc(c.id)}" aria-label="Editar categoria ${esc(c.name)}"><span class="v3-cat-icon" data-oaze-color="${categoryColor(c)}" style="--swatch:${categoryColor(c)};--swatch-ink:${U.inkFor(categoryColor(c))}">${categoryIconHtml(c)}</span><span>${esc(c.name)}</span><small>Editar ›</small></button>`).join('')}</div></section></div>`;
   }
   /* =============================================================
      QUANTO POR MÊS, E SE CABE
@@ -1329,7 +1423,7 @@
     const categories = profile().categories.filter((c) => c.kind === 'expense').sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
     const planned = U.round2(Object.values(budgets).reduce((sum, amount)=>sum + Number(amount || 0), 0));
     const remain = U.round2(salary - planned);
-    return `<div class="v3-planning"><section class="v3-panel v3-planning-income"><div><span class="v3-label">SALÁRIO MENSAL PLANEJADO</span><strong class="v3-money v3-sensitive">${money(salary)}</strong><small>Referência manual para os tetos. Não vira lançamento.</small></div><form id="v3-form-planning-salary" class="v3-form"><label>VALOR POR MÊS (R$)<input name="salary" data-money="true" inputmode="decimal" value="${esc(salary ? salary.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '')}" placeholder="0,00" required></label><button type="submit" class="v3-primary">Salvar salário</button></form></section><section class="v3-panel"><div class="v3-row"><div><h2>tetos por categoria</h2><small>Você define cada valor; nenhum teto é criado automaticamente.</small></div><button type="button" class="v3-secondary" data-action="add-budget">Definir teto</button></div><div class="v3-planning-summary"><span>Tetos definidos <strong class="v3-sensitive">${money(planned)}</strong></span><span>Salário menos tetos <strong class="v3-sensitive ${remain<0?'v3-negative':''}">${salary ? money(remain) : '—'}</strong></span></div><div class="v3-planning-list">${categories.map((c)=>{const limit=Number(budgets[c.id]||0);const spent=Number(used.find((r)=>r.id===c.id)?.value||0);return `<button type="button" class="v3-planning-row" ${limit?`data-budget="${esc(c.id)}"`:`data-budget-novo="${esc(c.id)}"`}><span class="v3-cat-icon" data-oaze-color="${categoryColor(c)}" style="--swatch:${categoryColor(c)};--swatch-ink:${U.inkFor(categoryColor(c))}">${categoryIconMarkup(categoryIcon(c.icon))}</span><span><strong>${esc(c.name)}</strong><small>${limit?`Gasto ${money(spent)} de ${money(limit)}`:'Sem teto definido'}</small></span><span>${limit?'Editar teto':'Definir teto'} ›</span></button>`}).join('')}</div></section></div>`;
+    return `<div class="v3-planning"><section class="v3-panel v3-planning-income"><div><span class="v3-label">SALÁRIO MENSAL PLANEJADO</span><strong class="v3-money v3-sensitive">${money(salary)}</strong><small>Referência manual para os tetos. Não vira lançamento.</small></div><form id="v3-form-planning-salary" class="v3-form"><label>VALOR POR MÊS (R$)<input name="salary" data-money="true" inputmode="decimal" value="${esc(salary ? salary.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '')}" placeholder="0,00" required></label><button type="submit" class="v3-primary">Salvar salário</button></form></section><section class="v3-panel"><div class="v3-row"><div><h2>tetos por categoria</h2><small>Você define cada valor; nenhum teto é criado automaticamente.</small></div><button type="button" class="v3-secondary" data-action="add-budget">Definir teto</button></div><div class="v3-planning-summary"><span>Tetos definidos <strong class="v3-sensitive">${money(planned)}</strong></span><span>Salário menos tetos <strong class="v3-sensitive ${remain<0?'v3-negative':''}">${salary ? money(remain) : '—'}</strong></span></div><div class="v3-planning-list">${categories.map((c)=>{const limit=Number(budgets[c.id]||0);const spent=Number(used.find((r)=>r.id===c.id)?.value||0);return `<button type="button" class="v3-planning-row" ${limit?`data-budget="${esc(c.id)}"`:`data-budget-novo="${esc(c.id)}"`}><span class="v3-cat-icon" data-oaze-color="${categoryColor(c)}" style="--swatch:${categoryColor(c)};--swatch-ink:${U.inkFor(categoryColor(c))}">${categoryIconHtml(c)}</span><span><strong>${esc(c.name)}</strong><small>${limit?`Gasto ${money(spent)} de ${money(limit)}`:'Sem teto definido'}</small></span><span>${limit?'Editar teto':'Definir teto'} ›</span></button>`}).join('')}</div></section></div>`;
   }
   function renderPlanningGuide() {
     const income=Number(profile().planningSalary||0);
@@ -2291,9 +2385,18 @@
       finally { analysisBusy = false; }
     }, 750);
   }
+  /* Uso da Coco no dia, em ícone pequeno dentro da barra de mensagem. */
+  function cocoUsoMini() {
+    const c = demo ? { carregado: true, pct_dia: 18, pct_semana: 31 } : (global.Limites?.consumoCoco?.() || {});
+    if (!c.carregado || c.ilimitado) return '';
+    const pct = Math.max(0, Math.min(100, Math.round(Number(c.pct_dia) || 0)));
+    const corpo = global.IconData?.lucide?.['bookmark-check'] || '';
+    const nivel = pct >= 100 ? ' is-cheio' : pct >= 80 ? ' is-alto' : '';
+    return `<button type="button" class="v3-coco-uso-mini${nivel}" data-action="coco-uso" aria-label="Uso da Coco hoje: ${pct}%. Esta semana: ${Math.round(Number(c.pct_semana)||0)}%." title="Uso da Coco hoje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${corpo}</svg><span>${pct}%</span></button>`;
+  }
   function cocoMediaControls() {
     const audio = `<button type="button" class="v3-coco-icon" data-action="voice-start" data-voice-mode="continuous" aria-label="Conversar por voz" title="Conversar por voz" ${state.mediaDraft.trim()?'hidden':''}>${cocoMediaIcon('mic')}</button>`;
-    return `<form class="v3-chat-form" id="v3-chat-form"><div class="v3-coco-media"><button type="button" class="v3-coco-icon" data-action="choose-coco-file" aria-label="Anexar arquivo" title="Anexar arquivo">${cocoMediaIcon('attach')}</button><input id="v3-coco-file" type="file" hidden></div><input name="question" maxlength="500" value="${esc(state.mediaDraft)}" placeholder="Mensagem para a Coco" aria-label="Pergunta para a Coco" required ${state.cocoAsking?'disabled':''}>${audio}<button type="submit" aria-label="Enviar mensagem" ${state.mediaDraft.trim()?'':'hidden'} ${state.cocoAsking?'disabled':''}>↑</button></form>`;
+    return `<form class="v3-chat-form" id="v3-chat-form">${cocoUsoMini()}<div class="v3-coco-media"><button type="button" class="v3-coco-icon" data-action="choose-coco-file" aria-label="Anexar arquivo" title="Anexar arquivo">${cocoMediaIcon('attach')}</button><input id="v3-coco-file" type="file" hidden></div><input name="question" maxlength="500" value="${esc(state.mediaDraft)}" placeholder="Mensagem para a Coco" aria-label="Pergunta para a Coco" required ${state.cocoAsking?'disabled':''}>${audio}<button type="submit" aria-label="Enviar mensagem" ${state.mediaDraft.trim()?'':'hidden'} ${state.cocoAsking?'disabled':''}>↑</button></form>`;
   }
   function voiceControls() {
     const active = !!voiceSession?.active;
@@ -2380,7 +2483,7 @@
     const optionArtwork=(name,value)=>{
       if(name==='category'){
         const item=profile().categories.find((category)=>category.id===value);
-        return item ? `<span class="v3-picker-icon" style="--picker-accent:${categoryColor(item)}">${categoryIconMarkup(item.icon||'categories')}</span>` : `<span class="v3-picker-icon">${icon('categories')}</span>`;
+        return item ? `<span class="v3-picker-icon" style="--picker-accent:${categoryColor(item)}">${categoryIconHtml(item)}</span>` : `<span class="v3-picker-icon">${icon('categories')}</span>`;
       }
       if(name==='source'||name==='destination'){
         const [type,id]=name==='source'?String(value).split(':'):['account',value];
@@ -2535,7 +2638,9 @@
     receiptField.className='v3-receipt-field';
     const canAttach=!demo&&!state.sharedId;
     receiptField.innerHTML=`<span class="v3-receipt-title">Comprovante ou foto</span>${editing?.receiptPath&&canAttach?'<button type="button" class="v3-receipt-open">Ver anexo atual</button><label class="v3-check"><input type="checkbox" name="removeReceipt"> Remover anexo atual</label>':''}<label class="v3-receipt-upload"><span>＋ ${editing?.receiptPath?'Substituir anexo':'Adicionar anexo'}</span><input type="file" name="receipt" accept="image/jpeg,image/png,image/webp,application/pdf" ${canAttach?'':'disabled'}></label><small>${canAttach?'JPG, PNG, WebP ou PDF até 5 MB. Arquivo privado, associado a este lançamento.':demo?'A demonstração não salva anexos.':'Anexos existentes e novos estão indisponíveis neste perfil compartilhado.'}</small><span class="v3-receipt-name" aria-live="polite"></span>`;
-    txForm.insertBefore(receiptField,more);
+    /* Anexo, local e tags ficam em "Mais opções" (pedido de 01/11/2026): o principal é valor, descrição, categoria, conta e data. */
+    moreBody.append(receiptField);
+    if(editing?.receiptPath)more.open=true;
     receiptField.querySelector('[name="receipt"]')?.addEventListener('change',(event)=>{
       const file=event.target.files?.[0];
       receiptField.querySelector('.v3-receipt-name').textContent=file?file.name:'';
@@ -4480,6 +4585,7 @@
     if (action==='toggle-native-notifications'){void toggleNativeNotifications();return;}
     if (action==='reset-asks'){askReset();render();openNotifications();toast('Os avisos voltarão a aparecer neste aparelho.');return;}
     if (action==='home-blocks'){painelBlocosInicio();return;}
+    if (action==='coco-uso'){const c=demo?{pct_dia:18,pct_semana:31}:(global.Limites?.consumoCoco?.()||{});toast(`Coco hoje: ${Math.round(Number(c.pct_dia)||0)}% usado · semana: ${Math.round(Number(c.pct_semana)||0)}%. Detalhes em Configurações › Plano.`);return;}
     if (action==='filtros'){painelFiltros();return;}
     if (action==='limpar-filtros'){limparFiltros();state.filter='Todos';closeSheet();render();toast('Filtros limpos.');return;}
     if (action==='tirar-rapido'){state.filter='Todos';render();return;}
@@ -4609,13 +4715,52 @@
     document.addEventListener('input',(event)=>{
       if(event.target.matches?.('[data-voice-volume]'))voiceSession?.setVolume(Number(event.target.value)/100);
     });
+    /* Ordem dos widgets: setas (teclado e leitor de tela) e arrasto pela
+       alça (mouse e dedo). A lista da gaveta é refeita no lugar, sem
+       fechar a gaveta, e a Início por baixo acompanha. */
+    const redesenharBlocos=(foco)=>{
+      const lista=$('#v3-bloco-lista');
+      if(lista){const corpo=document.createElement('div');painelBlocosInicioHtml(corpo);const nova=corpo.querySelector('#v3-bloco-lista');if(nova)lista.replaceWith(nova);}
+      if(foco)$('[data-bloco-item="'+foco.id+'"] [data-bloco-mover="'+foco.dir+'"]')?.focus();
+      if(state.page==='home'){const vista=$('#v3-view');if(vista)vista.innerHTML=renderHome();document.dispatchEvent(new CustomEvent('oaze:render',{detail:{page:'home',demo}}));}
+    };
+    document.addEventListener('click',(event)=>{
+      const seta=event.target.closest?.('[data-bloco-mover]');
+      if(!seta)return;
+      const id=seta.closest('[data-bloco-item]').dataset.blocoItem, dir=Number(seta.dataset.blocoMover);
+      const ordem=ordemBlocos();moverBloco(id,ordem.indexOf(id)+dir);
+      redesenharBlocos({id,dir});
+    });
+    document.addEventListener('pointerdown',(event)=>{
+      const alca=event.target.closest?.('[data-bloco-alca]');
+      if(!alca)return;
+      const item=alca.closest('[data-bloco-item]'), lista=item.parentElement;
+      event.preventDefault();
+      alca.setPointerCapture?.(event.pointerId);
+      item.classList.add('is-arrastando');
+      const mover=(ev)=>{
+        const irmaos=[...lista.children].filter((n)=>n!==item);
+        const alvo=irmaos.find((n)=>{const r=n.getBoundingClientRect();return ev.clientY<r.top+r.height/2;});
+        if(alvo)lista.insertBefore(item,alvo);else lista.appendChild(item);
+      };
+      const soltar=()=>{
+        alca.removeEventListener('pointermove',mover);alca.removeEventListener('pointerup',soltar);alca.removeEventListener('pointercancel',soltar);
+        item.classList.remove('is-arrastando');
+        const ordem=[...lista.querySelectorAll('[data-bloco-item]')].map((n)=>n.dataset.blocoItem);
+        try{localStorage.setItem('oaze.v3.inicio.ordem',JSON.stringify(ordem));}catch(e){}
+        redesenharBlocos(null);
+      };
+      alca.addEventListener('pointermove',mover);alca.addEventListener('pointerup',soltar);alca.addEventListener('pointercancel',soltar);
+    });
     document.addEventListener('change',(event)=>{
       /* A escolha dos blocos muda a Início por baixo da gaveta aberta:
          redesenhar a tela inteira fecharia a gaveta e a pessoa
          perderia o lugar onde estava marcando. */
       if(event.target.matches?.('[data-bloco]')){
-        alternarBloco(event.target.dataset.bloco);
-        if(state.page==='home'){const vista=$('#v3-view');if(vista)vista.innerHTML=renderHome();}
+        const bloco=event.target.dataset.bloco;
+        alternarBloco(bloco);
+        redesenharBlocos(null);
+        $('[data-bloco="'+bloco+'"]')?.focus();
         return;
       }
       if(event.target.matches?.('[data-voice-device]')){

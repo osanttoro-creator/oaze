@@ -106,7 +106,33 @@
     marisa: { nome: 'Marisa', sigla: 'M', fundo: '#E6007E', cor: '#FFFFFF', re: /^marisa\b/, grupo: 'loja' },
     havan: { nome: 'Havan', sigla: 'H', fundo: '#003DA5', cor: '#FFFFFF', re: /\bhavan\b/, grupo: 'loja' },
     shein: { nome: 'Shein', sigla: 'S', fundo: '#000000', cor: '#FFFFFF', re: /shein/, grupo: 'loja' },
-    aliexpress: { nome: 'AliExpress', sigla: 'AE', fundo: '#E62E04', cor: '#FFFFFF', re: /aliexpress/, grupo: 'loja' }
+    aliexpress: { nome: 'AliExpress', sigla: 'AE', fundo: '#E62E04', cor: '#FFFFFF', re: /aliexpress/, grupo: 'loja' },
+    /* Bancos fora do pacote MIT (01/11/2026): selo com sigla na cor aproximada da marca. */
+    banrisul: { nome: 'Banrisul', sigla: 'B', fundo: '#004B8D', cor: '#FFFFFF', re: /banrisul/, grupo: 'banco' },
+    brb: { nome: 'BRB', sigla: 'BRB', fundo: '#0B3B8C', cor: '#FFFFFF', re: /^brb\b|banco de brasilia/, grupo: 'banco' },
+    bancodaamazonia: { nome: 'Banco da Amazônia', sigla: 'BASA', fundo: '#006E3C', cor: '#FFFFFF', re: /amazonia|\bbasa\b/, grupo: 'banco' },
+    bnb: { nome: 'Banco do Nordeste', sigla: 'BNB', fundo: '#A6192E', cor: '#FFFFFF', re: /banco do nordeste|\bbnb\b/, grupo: 'banco' },
+    banestes: { nome: 'Banestes', sigla: 'b', fundo: '#00529B', cor: '#FFFFFF', re: /banestes/, grupo: 'banco' },
+    banese: { nome: 'Banese', sigla: 'b', fundo: '#005CA9', cor: '#FFFFFF', re: /banese/, grupo: 'banco' },
+    banpara: { nome: 'Banpará', sigla: 'b', fundo: '#0067B1', cor: '#FFFFFF', re: /banpara/, grupo: 'banco' },
+    citi: { nome: 'Citibank', sigla: 'citi', fundo: '#056DAE', cor: '#FFFFFF', re: /\bciti(bank)?\b/, grupo: 'banco' },
+    daycoval: { nome: 'Daycoval', sigla: 'D', fundo: '#00205B', cor: '#FFFFFF', re: /daycoval/, grupo: 'banco' },
+    sofisa: { nome: 'Sofisa', sigla: 'S', fundo: '#0A2240', cor: '#F5A800', re: /sofisa/, grupo: 'banco' },
+    willbank: { nome: 'Will Bank', sigla: 'will', fundo: '#FFD400', cor: '#1A1A1A', re: /will ?bank/, grupo: 'banco' },
+    bancopine: { nome: 'Banco Pine', sigla: 'P', fundo: '#F26F21', cor: '#FFFFFF', re: /banco pine|^pine\b/, grupo: 'banco' },
+    modal: { nome: 'Modal', sigla: 'M', fundo: '#111111', cor: '#FFFFFF', re: /modal(mais)?\b/, grupo: 'banco' },
+    genial: { nome: 'Genial', sigla: 'G', fundo: '#1B2A4A', cor: '#FFFFFF', re: /genial/, grupo: 'banco' },
+    toro: { nome: 'Toro', sigla: 'T', fundo: '#5A2D82', cor: '#FFFFFF', re: /^toro\b|toro invest/, grupo: 'banco' },
+    warren: { nome: 'Warren', sigla: 'W', fundo: '#E02B56', cor: '#FFFFFF', re: /warren/, grupo: 'banco' },
+    ailos: { nome: 'Ailos', sigla: 'A', fundo: '#00A859', cor: '#FFFFFF', re: /ailos/, grupo: 'banco' },
+    cresol: { nome: 'Cresol', sigla: 'C', fundo: '#00843D', cor: '#FFFFFF', re: /cresol/, grupo: 'banco' },
+    unicred: { nome: 'Unicred', sigla: 'U', fundo: '#004C3F', cor: '#FFFFFF', re: /unicred/, grupo: 'banco' },
+    portobank: { nome: 'Porto Bank', sigla: 'P', fundo: '#0046C0', cor: '#FFFFFF', re: /porto ?(seguro|bank)/, grupo: 'banco' },
+    credicard: { nome: 'Credicard', sigla: 'cc', fundo: '#00205B', cor: '#FFFFFF', re: /credicard/, grupo: 'banco' },
+    superdigital: { nome: 'Superdigital', sigla: 'S', fundo: '#E2001A', cor: '#FFFFFF', re: /superdigital/, grupo: 'banco' },
+    recargapay: { nome: 'RecargaPay', sigla: 'R', fundo: '#00C08B', cor: '#FFFFFF', re: /recarga ?pay/, grupo: 'banco' },
+    ame: { nome: 'Ame Digital', sigla: 'ame', fundo: '#E60014', cor: '#FFFFFF', re: /\bame\b/, grupo: 'banco' },
+    tribanco: { nome: 'Tribanco', sigla: 'T', fundo: '#003D7C', cor: '#FFFFFF', re: /tribanco/, grupo: 'banco' }
   };
   Icons.MARCAS_EXTRAS = MARCAS_EXTRAS;
 

@@ -119,10 +119,29 @@ async function unlockApp(): Promise<void> {
   });
 }
 
+/* Quem sai para o navegador por um caminho do próprio app (entrar com
+   Google, pagar, portal) não está "abandonando" o aparelho: a volta não
+   pede biometria. Antes, voltar de um pagamento de mais de 15 s abria o
+   Windows Hello por cima da janela que ainda recarregava, e o app parecia
+   travado. A janela vale 15 minutos. */
+const externalFlowKey = 'oaze.native.external-flow';
+function markExternalFlow(): void {
+  try { sessionStorage.setItem(externalFlowKey, String(Date.now())); } catch { /* sem armazenamento */ }
+}
+function inExternalFlow(): boolean {
+  try {
+    const at = Number(sessionStorage.getItem(externalFlowKey)) || 0;
+    return at > 0 && Date.now() - at < 15 * 60_000;
+  } catch { return false; }
+}
+function endExternalFlow(): void {
+  try { sessionStorage.removeItem(externalFlowKey); } catch { /* sem armazenamento */ }
+}
+
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { hiddenAt = Date.now(); return; }
-  if (hiddenAt && Date.now() - hiddenAt > 15_000) void unlockApp();
+  if (hiddenAt && Date.now() - hiddenAt > 15_000 && !inExternalFlow()) void unlockApp();
   hiddenAt = 0;
 });
 
@@ -131,6 +150,7 @@ if (android || desktop) {
     if (!/^https:\/\/(checkout|billing)\.stripe\.com\//.test(url)) {
       throw new Error('Endereço de cobrança inválido.');
     }
+    markExternalFlow();
     if (android) await Browser.open({ url });
     else await openUrl(url);
   };
@@ -365,6 +385,7 @@ if (auth) {
       if (!data.url || !/^https:\/\/[\w.-]+\.supabase\.co\/auth\/v1\/authorize\?/.test(data.url)) {
         throw new Error('Endereço de entrada inválido.');
       }
+      markExternalFlow();
       if (android) await Browser.open({ url: data.url });
       else await openUrl(data.url);
       return { error: null };
@@ -372,30 +393,66 @@ if (auth) {
   }
 }
 
+/* LINK DE VOLTA É LIDO UMA VEZ SÓ
+   O Windows (get_current) e o Android (getLaunchUrl) devolvem o link que
+   abriu o app a CADA carregamento de página, não só no primeiro. Depois de
+   entrar, o app vai para /index.html, pergunta de novo e recebe o mesmo
+   oaze://auth?code=…, já gasto: a troca falhava, a pessoa voltava para
+   /entrar com erro e o ciclo se repetia — o "trava e tem que reabrir".
+   Cada link tratado fica anotado nesta sessão da janela e é ignorado
+   na próxima vez. */
+const handledLinksKey = 'oaze.native.handled-links';
+function alreadyHandled(url: string): boolean {
+  try { return (JSON.parse(sessionStorage.getItem(handledLinksKey) || '[]') as string[]).includes(url); }
+  catch { return false; }
+}
+function markHandled(url: string): void {
+  try {
+    const list = (JSON.parse(sessionStorage.getItem(handledLinksKey) || '[]') as string[]).filter((u) => u !== url);
+    list.push(url);
+    sessionStorage.setItem(handledLinksKey, JSON.stringify(list.slice(-20)));
+  } catch { /* sem armazenamento: segue sem memória */ }
+}
+
 let authCallbackInFlight = false;
 async function finishAuth(url: string): Promise<void> {
   const callback = new URL(url);
   if (callback.protocol !== 'oaze:' || callback.hostname !== 'auth') return;
   if (authCallbackInFlight) return;
-  const code = callback.searchParams.get('code');
-  if (!code) throw new Error('O provedor não devolveu o código de entrada.');
+  endExternalFlow();
   const client = auth?.cliente();
   if (!client) throw new Error('Conta indisponível neste aparelho.');
+  if (android) await Browser.close().catch(() => {});
+  const code = callback.searchParams.get('code');
+  if (!code) {
+    const motivo = callback.searchParams.get('error_description') || callback.searchParams.get('error');
+    if (motivo) throw new Error('A entrada foi cancelada. Tente de novo.');
+    throw new Error('O provedor não devolveu o código de entrada.');
+  }
   authCallbackInFlight = true;
   try {
     const { error } = await client.auth.exchangeCodeForSession(code);
-    if (error) throw error;
-    if (android) await Browser.close().catch(() => {});
-    location.replace('/index.html');
+    if (error) {
+      /* Código já usado (outra janela, clique duplo no "Abrir OAZE"): se a
+         sessão existe, a pessoa já está dentro — segue sem erro. */
+      const { data } = await client.auth.getSession();
+      if (!data.session) throw error;
+    }
+    if (!location.pathname.endsWith('/index.html') && location.pathname !== '/') location.replace('/index.html');
+    else authCallbackInFlight = false;
   } catch (error) {
     authCallbackInFlight = false;
     throw error;
   }
 }
 
-async function handleAppUrl(url: string): Promise<void> {
+/* fromLaunch: o link veio de "o que abriu o app" (repete a cada página).
+   Links que chegam com o app aberto são eventos novos e sempre valem. */
+async function handleAppUrl(url: string, fromLaunch = false): Promise<void> {
   let incoming: URL;
   try { incoming = new URL(url); } catch { return; }
+  if (fromLaunch && alreadyHandled(url)) return;
+  markHandled(url);
   /* Atalhos do ícone e do widget: oaze://acao/novo | recibo | coco.
      Na abertura a frio o painel ainda está montando; o evento sai depois. */
   if (incoming.protocol === 'oaze:' && incoming.hostname === 'acao') {
@@ -409,6 +466,7 @@ async function handleAppUrl(url: string): Promise<void> {
   }
   if (incoming.protocol === 'oaze:' && incoming.hostname === 'billing') {
     if (!['sucesso', 'cancelado', 'portal'].includes(incoming.searchParams.get('resultado') || '')) return;
+    endExternalFlow();
     if (android) await Browser.close().catch(() => {});
     try { sessionStorage.setItem('oaze.native.billing-return', '1'); } catch { /* storage indisponível */ }
     dispatchEvent(new Event('oaze:billing-return'));
@@ -457,13 +515,13 @@ nativeWindow.OAZE_NATIVE_AUTH_READY = (async () => {
       void handleAppUrl(url).catch(reportAuthFailure);
     });
     const launch = await App.getLaunchUrl();
-    if (launch?.url) await handleAppUrl(launch.url);
+    if (launch?.url) await handleAppUrl(launch.url, true);
   } else if (desktop) {
     window.addEventListener('oaze:deep-link', (event) => {
       void handleAppUrl((event as CustomEvent<string>).detail).catch(reportAuthFailure);
     });
     const current = await nativeWindow.__TAURI_INTERNALS__!.invoke<string[]>('oaze_deep_link_ready');
-    for (const url of current) await handleAppUrl(url);
+    for (const url of current) await handleAppUrl(url, true);
   }
   await unlockApp();
 })().catch(reportAuthFailure);

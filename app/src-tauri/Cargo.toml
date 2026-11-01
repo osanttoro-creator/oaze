@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "2.1.0"
+version = "2.1.1"
 description = "OAZE — gestão e inteligência financeira pessoal"
 authors = ["OAZE"]
 license = ""
@@ -36,7 +36,7 @@ tokio = { version = "1", features = ["time"] }
 
 # Windows Hello
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.62", features = ["Security_Credentials_UI", "Foundation"] }
+windows = { version = "0.62", features = ["Security_Credentials_UI", "Foundation", "Win32_Foundation", "Win32_System_WinRT"] }
 
 # Touch ID
 [target.'cfg(target_os = "macos")'.dependencies]

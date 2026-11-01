@@ -6,12 +6,20 @@
 //! resposta normal, não falha.
 
 /// Windows: `UserConsentVerifier` do WinRT.
+///
+/// O pedido vai PRESO À JANELA do OAZE (`RequestVerificationForWindowAsync`).
+/// Sem a janela, num app Win32 o Windows Hello pode abrir atrás dela ou sem
+/// foco, e a pessoa vê só o app parado esperando — o "travou" relatado em
+/// 01/11/2026. `hwnd` = 0 cai na chamada antiga.
 #[cfg(target_os = "windows")]
 mod imp {
+    use windows::Foundation::IAsyncOperation;
     use windows::Security::Credentials::UI::{
         UserConsentVerificationResult, UserConsentVerifier, UserConsentVerifierAvailability,
     };
-    use windows::core::HSTRING;
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::System::WinRT::IUserConsentVerifierInterop;
+    use windows::core::{HSTRING, factory};
 
     pub fn available() -> bool {
         UserConsentVerifier::CheckAvailabilityAsync()
@@ -20,12 +28,19 @@ mod imp {
             .unwrap_or(false)
     }
 
-    pub fn verify(reason: &str) -> bool {
+    pub fn verify(hwnd: isize, reason: &str) -> bool {
         let message = HSTRING::from(reason);
-        UserConsentVerifier::RequestVerificationAsync(&message)
-            .and_then(|op| op.join())
-            .map(|r| r == UserConsentVerificationResult::Verified)
-            .unwrap_or(false)
+        let result = if hwnd != 0 {
+            factory::<UserConsentVerifier, IUserConsentVerifierInterop>().and_then(|interop| {
+                let op: IAsyncOperation<UserConsentVerificationResult> = unsafe {
+                    interop.RequestVerificationForWindowAsync(HWND(hwnd as *mut core::ffi::c_void), &message)?
+                };
+                op.join()
+            })
+        } else {
+            UserConsentVerifier::RequestVerificationAsync(&message).and_then(|op| op.join())
+        };
+        result.map(|r| r == UserConsentVerificationResult::Verified).unwrap_or(false)
     }
 }
 
@@ -53,7 +68,7 @@ mod imp {
         }
     }
 
-    pub fn verify(reason: &str) -> bool {
+    pub fn verify(_hwnd: isize, reason: &str) -> bool {
         let (tx, rx) = mpsc::channel::<bool>();
         let message = NSString::from_str(reason);
         let handler = RcBlock::new(move |ok: Bool, _err: *mut NSError| {
@@ -78,18 +93,28 @@ mod imp {
     pub fn available() -> bool {
         false
     }
-    pub fn verify(_reason: &str) -> bool {
+    pub fn verify(_hwnd: isize, _reason: &str) -> bool {
         false
     }
 }
 
+/* Os dois comandos são `async` e o trabalho vai para uma thread de bloqueio.
+   Um comando síncrono do Tauri roda na thread principal: esperar o Windows
+   Hello ali congelava a janela inteira (nem repintava) até a resposta. */
+
 #[tauri::command]
-pub fn oaze_biometrics_available() -> bool {
-    imp::available()
+pub async fn oaze_biometrics_available() -> bool {
+    tauri::async_runtime::spawn_blocking(imp::available).await.unwrap_or(false)
 }
 
 #[tauri::command]
-pub fn oaze_biometrics_verify(reason: String) -> bool {
-    let text = if reason.trim().is_empty() { "Confirme que é você para abrir o OAZE." } else { reason.trim() };
-    imp::verify(text)
+pub async fn oaze_biometrics_verify(window: tauri::WebviewWindow, reason: String) -> bool {
+    let text = if reason.trim().is_empty() { "Confirme que é você para abrir o OAZE.".to_string() } else { reason.trim().to_string() };
+    let _ = window.unminimize();
+    let _ = window.set_focus();
+    #[cfg(target_os = "windows")]
+    let hwnd: isize = window.hwnd().map(|h| h.0 as isize).unwrap_or(0);
+    #[cfg(not(target_os = "windows"))]
+    let hwnd: isize = 0;
+    tauri::async_runtime::spawn_blocking(move || imp::verify(hwnd, &text)).await.unwrap_or(false)
 }
