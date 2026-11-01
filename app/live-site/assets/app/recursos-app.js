@@ -113,7 +113,8 @@
       const a = global.Limites && Limites.anuncios ? Limites.anuncios() : { hoje: 0, max_dia: 0, por_anuncio: 0, liberados_mes: 0 };
       return Object.assign({}, a, { restante: Math.max(0, (a.max_dia || 0) - (a.hoje || 0)) });
     },
-    nativo() { return !!global.OAZE_NATIVE_ADS; },
+    /* Android: AdMob. Windows, site e iOS sem SDK: vídeo do Ad Manager (anuncio-web.js). */
+    nativo() { return !!global.OAZE_NATIVE_ADS || !!global.OazeAnuncioWeb; },
     disponivel() {
       const c = contexto();
       return this.nativo() && !(c && c.demo) && plano() === 'free' && !!usuarioId() && this.estado().restante > 0 && this.estado().por_anuncio > 0;
@@ -121,7 +122,7 @@
     botao() {
       const e = this.estado();
       return '<button type="button" class="v3-primary oz-anuncio-botao" data-action="assistir-anuncio">Assistir anúncio e liberar +' + e.por_anuncio + ' lançamentos</button>'
-        + '<p class="v3-muted oz-anuncio-nota">Hoje: ' + e.hoje + ' de ' + e.max_dia + ' anúncios. A liberação vale até o fim do mês.</p>';
+        + '<p class="v3-muted oz-anuncio-nota">Sem limite de lançamentos: a cada ' + e.por_anuncio + ', um anúncio. Vale em todos os seus aparelhos até o fim do mês.</p>';
     },
     /* No Windows e no site não há anúncio: a dica aponta o celular. */
     dica() {
@@ -141,8 +142,7 @@
         : '<p class="v3-muted">No app OAZE para Android, cada anúncio assistido libera +' + (e.por_anuncio || 10) + ' lançamentos no mês, até ' + (e.max_dia || 5) + ' por dia. A liberação fica na sua conta e vale também aqui.</p>';
       return '<section class="v3-panel oz-anuncio-painel" data-oz-anuncio aria-label="Lançamentos do mês">'
         + '<h2>lançamentos de ' + esc(mes) + '</h2>'
-        + '<p><strong>' + usado + '</strong> de <strong>' + (limite == null ? 'ilimitado' : limite) + '</strong>'
-        + (e.liberados_mes ? ' · ' + e.liberados_mes + ' liberados por anúncio' : '') + '</p>'
+        + '<p><strong>' + usado + '</strong> lançamentos · <strong>' + Math.max(0, (limite || 0) - usado) + '</strong> livres antes do próximo anúncio</p>'
         + corpo + '</section>';
     },
     async assistir(botao) {
@@ -151,6 +151,18 @@
       const antes = this.estado().liberados_mes || 0;
       if (botao) { botao.disabled = true; botao.setAttribute('aria-busy', 'true'); }
       try {
+        if (!global.OAZE_NATIVE_ADS && global.OazeAnuncioWeb) {
+          const w = await global.OazeAnuncioWeb.mostrar();
+          if (!w || !w.recompensado) { avisar('O anúncio foi fechado antes do fim. Nada foi liberado.'); return; }
+          await global.OazeAnuncioWeb.creditar(w.ima);
+          await Limites.carregar();
+          avisar('+' + this.estado().por_anuncio + ' lançamentos liberados.');
+          if (typeof Limites.aoMudar === 'function') Limites.aoMudar();
+          const fecharW = document.querySelector('#v3-overlay:not([hidden]) [data-action="close"]');
+          if (fecharW) fecharW.click();
+          atualizarAnuncio();
+          return;
+        }
         const r = await global.OAZE_NATIVE_ADS.mostrar({ userId: id });
         if (!r || !r.recompensado) { avisar('O anúncio foi fechado antes do fim. Nada foi liberado.'); return; }
         avisar('Conferindo a liberação com o Google…');
@@ -384,6 +396,7 @@
       if (p.vencimentos) agendados.push(...vencimentos(c.profile, p));
       if (p.metas) agendados.push(...metas(c.profile, p));
       if (global.OazeTeste) agendados.push(...global.OazeTeste.lembretes());
+      if (global.OazeFuncoes) agendados.push(...global.OazeFuncoes.lembretes());
       const ja = enviados();
       const novos = (await insights(c.profile, p)).filter((x) => !ja[x.chave]);
       const slot = proximoHorario(p).toISOString();

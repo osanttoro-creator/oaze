@@ -18,6 +18,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Plugin próprio do widget: precisa ser registrado antes do onCreate.
         registerPlugin(OazeWidgetPlugin.class);
+        registerPlugin(OazeBancoPlugin.class);
         super.onCreate(savedInstanceState);
         criarAtalhos();
     }

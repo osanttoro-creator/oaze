@@ -350,5 +350,7 @@
   new MutationObserver(() => { const f = document.getElementById('v3-form-tx'); if (f && global.Store) campoTags(f); })
     .observe(document.body, { childList: true, subtree: true });
 
-  global.OazeMais = { abrir, projecao };
+  /* As telas de funcoes-oaze.js (caixinhas, busca, IR...) usam a mesma casca. */
+  function registrar(qual, titulo, desenhar) { TELAS[qual] = [titulo, desenhar]; }
+  global.OazeMais = { abrir, projecao, registrar, redesenhar, fecharTela, mudar, P, demo, avisar, esc, reais, num, hoje, nomeMes, somaMes, uid, ymDe, saldoHoje, aberta: () => (tela ? tela.el : null) };
 })(window);

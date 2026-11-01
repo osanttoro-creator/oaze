@@ -50,6 +50,18 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${admobAppId}" />
 
+        <!-- Avisos dos apps de banco viram sugestão de lançamento (01/11/2026).
+             Só funciona se a pessoa ativar o OAZE em "Acesso a notificações". -->
+        <service
+            android:name=".OazeBancoListener"
+            android:label="OAZE: avisos do banco"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <!-- Widget da tela inicial: mostra só o resumo que o painel enviou. -->
         <receiver
             android:name=".OazeWidgetProvider"

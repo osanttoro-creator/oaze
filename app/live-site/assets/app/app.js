@@ -2173,11 +2173,11 @@
   function moreSections(desc) {
     const nItems=items().length;
     const secoes=[
-      ['Organizar','org',[['data-go="wallet"','wallet','Contas e cartões',`${nItems} na carteira`],['data-go="categories"','categories','Categorias',desc.categories],['data-oz-mais="tags"','tag','Tags',`${(profile().tags||[]).length} criadas`]]],
-      ['Planejar','plan',[['data-go="goals"','goals','Orçamento e metas',desc.goals],['data-go="investments"','investments','Investimentos',desc.investments],['data-oz-mais="projecoes"','trending-up','Projeções','saldo dos próximos meses']]],
-      ['Acompanhar','track',[['data-go="calendar"','calendar','Agenda e recorrências','vencimentos, fixos e parcelas'],['data-oz-mais="financiamentos"','landmark','Financiamentos',`${(profile().dividas||[]).filter((d)=>d.tipo==='financiamento').length} ativos`],['data-oz-mais="emprestimos"','banknote','Empréstimos',`${(profile().dividas||[]).filter((d)=>d.tipo==='emprestimo').length} ativos`],['data-oz-mais="receber"','hand-coins','Quem me deve',`${(profile().aReceber||[]).filter((x)=>!x.quitado).length} em aberto`]]],
-      ['Analisar','analyze',[['data-oz-mais="relatorio"','chart-line','Relatório personalizado','período, conta, categoria e tag'],['data-action="estado-oaze"','receipt','Estado do OAZE','relatório em PDF'],['data-action="export-csv"','reports','Exportar lançamentos','planilha CSV']]],
-      ['Ferramentas','tools',[['data-go="coco"','coco','Coco','conversa e análises'],['data-oz-comprovante','receipt','Importar comprovante','foto, câmera ou PDF'],['data-go="settings"','settings','Configurações',desc.settings]]]
+      ['Organizar','org',[['data-go="wallet"','wallet','Contas e cartões',`${nItems} na carteira`],['data-go="categories"','categories','Categorias',desc.categories],['data-oz-mais="tags"','tag','Tags',`${(profile().tags||[]).length} criadas`],['data-oz-mais="caixinhas"','piggy-bank','Caixinhas','dinheiro separado por objetivo'],['data-oz-mais="busca"','search','Buscar lançamentos','em todos os meses']]],
+      ['Planejar','plan',[['data-go="goals"','goals','Orçamento e metas',desc.goals],['data-go="investments"','investments','Investimentos',desc.investments],['data-oz-mais="projecoes"','trending-up','Projeções','saldo dos próximos meses'],['data-oz-mais="desejos"','gift','Lista de desejos','posso comprar?'],['data-oz-mais="simulador"','calculator','Simulador de quitação','bola de neve × avalanche']]],
+      ['Acompanhar','track',[['data-go="calendar"','calendar','Agenda e recorrências','vencimentos, fixos e parcelas'],['data-oz-mais="financiamentos"','landmark','Financiamentos',`${(profile().dividas||[]).filter((d)=>d.tipo==='financiamento').length} ativos`],['data-oz-mais="emprestimos"','banknote','Empréstimos',`${(profile().dividas||[]).filter((d)=>d.tipo==='emprestimo').length} ativos`],['data-oz-mais="receber"','hand-coins','Quem me deve',`${(profile().aReceber||[]).filter((x)=>!x.quitado).length} em aberto`],['data-oz-mais="resumo"','bell','Resumo automático','semana e mês em 1 minuto']]],
+      ['Analisar','analyze',[['data-oz-mais="relatorio"','chart-line','Relatório personalizado','período, conta, categoria e tag'],['data-action="estado-oaze"','receipt','Estado do OAZE','relatório em PDF'],['data-action="export-csv"','reports','Exportar lançamentos','planilha CSV'],['data-oz-mais="ir"','receipt','Relatório para o IR','rendimentos, dedutíveis, bens']]],
+      ['Ferramentas','tools',[['data-go="coco"','coco','Coco','conversa e análises'],['data-oz-comprovante','receipt','Importar comprovante','foto, câmera ou PDF'],['data-oz-mais="nota"','scan-line','Nota fiscal (QR)','loja, total e itens da NFC-e'],['data-oz-mais="banco"','smartphone','Avisos do banco','lançar pela notificação'],['data-go="settings"','settings','Configurações',desc.settings]]]
     ];
     return `<div class="v3-more-lista">${secoes.map(([titulo,tom,linhas])=>`<section class="v3-more-secao" data-tom="${tom}"><h2>${esc(titulo)}</h2>${linhas.map(([attr,ic,t,s])=>`<button type="button" ${attr}><span class="v3-more-ic">${ic==='coco'?cocoPetIcon:uiIcons.has(ic)?icon(ic):(global.Icons?.lucide(ic,22)?.outerHTML||icon('more'))}</span><span class="v3-more-txt"><strong>${esc(t)}</strong><small>${esc(s||'')}</small></span><span class="v3-more-seta" aria-hidden="true">›</span></button>`).join('')}</section>`).join('')}</div>`;
   }
@@ -2562,6 +2562,17 @@
     form.addEventListener('change',refresh);
     form.addEventListener('click',refresh);
   }
+  /* Porta para módulos de fora (notificação do banco, nota fiscal, busca):
+     abre o formulário preenchido para revisão — nada é salvo sozinho.
+     dados = {tipo:expense|income, descricao, valor, data, origem, forma_pagamento, categoria} */
+  global.OazeCompor = (dados, tag) => {
+    const p = proposalForReview(Object.assign({ tipo: 'expense', forma_pagamento: 'account', confirmado: true }, dados || {}));
+    if (!p) { toast('Não consegui montar o lançamento. Confira valor, data e descrição.'); return false; }
+    if (tag) p.sourceTag = tag;
+    composer(p.tipo === 'income' ? 'Receita' : 'Despesa', p.data, null, p);
+    return true;
+  };
+  global.OazeEditar = (id) => composer(null, null, id);
   function composer(kind, selectedDate, editId, proposal, draftAmount, draftDescription) {
     const editing = editId ? profile().transactions.find((t) => t.id === editId) : null;
     if (editId && !editing) { toast('Lançamento não encontrado. Atualize a página.'); return; }
@@ -4657,10 +4668,22 @@
        existe mais, e a chamada quebraria no meio da ação que ia
        parar, virando silêncio. */
     if(global.Limites){
-      Limites.avisar=(aviso)=>openSheet(sheetTop(String(aviso.titulo||'').toLowerCase(),'limite do seu plano')
+      /* Semente (01/11/2026): lançamentos sem limite, liberados de 20 em 20 por anúncio. */
+      const avisoGeral=(aviso)=>openSheet(sheetTop(String(aviso.titulo||'').toLowerCase(),'limite do seu plano')
         +aviso.linhas.map((linha)=>`<p class="v3-muted" style="margin-top:10px">${esc(linha)}</p>`).join('')
         +(aviso.tipo==='transactions_per_month'&&global.OazeAnuncios?(global.OazeAnuncios.disponivel()?global.OazeAnuncios.botao():global.OazeAnuncios.dica()):'')
         +(aviso.verPlanos?'<button type="button" class="v3-primary" style="margin-top:18px" data-go="plan">Ver planos</button>':''),aviso.titulo);
+      Limites.avisar=(aviso)=>{
+        const A=global.OazeAnuncios;
+        if(aviso.tipo==='transactions_per_month'&&A&&Limites.plano()==='free'&&A.estado().por_anuncio>0){
+          openSheet(sheetTop('mais '+A.estado().por_anuncio+' lançamentos','plano grátis')
+            +`<p style="margin-top:12px">No plano grátis os lançamentos não têm limite: a cada ${A.estado().por_anuncio}, um anúncio curto libera os próximos.</p>`
+            +(A.disponivel()?A.botao():'<p class="v3-muted" style="margin-top:10px">Você chegou ao máximo de anúncios de hoje. Amanhã libera de novo.</p>')
+            +'<button type="button" class="v3-secondary" style="margin-top:12px" data-go="plan">Assinar o Pro, sem anúncios</button>','Liberar lançamentos');
+          return;
+        }
+        avisoGeral(aviso);
+      };
       Limites.aoMudar=()=>{ if(state.page==='plan'||state.page==='settings') render(); };
     }
     if(!demo && global.Limites) limitsPromise=V3Backend.withTimeout(Limites.carregar()).catch((e)=>{console.error('V3/limites:',e);return null;});

@@ -161,3 +161,39 @@
   html.oz-imprimindo .oz-tela-voltar,html.oz-imprimindo .oz-rel-acoes,html.oz-imprimindo .oz-rel-filtros{display:none}
   html.oz-imprimindo .oz-lista-txt small,html.oz-imprimindo .oz-resumo small{color:#333}
 }
+
+/* Rodada 01/11/2026: caixinhas, dividir, busca, simulador, nota, IR, resumo, desejos */
+.oz-cx-linha{display:block;margin-top:8px;color:var(--muted);font-size:12px}
+.oz-cx-linha .v3-link{font-size:12px;padding:0}
+.oz-dividir{border:0;padding:0;margin:0 0 4px;display:grid;gap:6px}
+.oz-dividir legend{color:var(--muted);font-size:12px;margin-bottom:6px}
+.oz-busca input[type=search]{font-size:16px;min-height:48px}
+.oz-pos{color:var(--teal)}.oz-neg{color:#e07a6a}
+.oz-sim{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0}
+.oz-sim-op{border:1px solid var(--line);border-radius:20px;padding:16px;display:grid;gap:4px;background:rgba(240,229,207,.04)}
+.oz-sim-op h3{margin:0;font-size:17px}.oz-sim-sub{margin:0;color:var(--muted);font-size:12px}
+.oz-sim-op>strong{font:500 26px var(--display,inherit);margin-top:8px}
+.oz-sim-op b{font-weight:600;font-size:13px}
+.oz-sim-sem{margin:4px 0 8px}
+.oz-nota-acoes{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.oz-nota-foto{position:relative;display:inline-grid;place-items:center;cursor:pointer}
+.oz-nota-video{width:100%;max-height:52vh;border-radius:20px;background:#000;object-fit:cover;margin-top:10px}
+.oz-nota-itens li{grid-template-columns:minmax(0,1fr) auto}
+.oz-ir-h{font-size:17px;margin:22px 0 8px}
+.oz-ir-tabela{width:100%;border-collapse:collapse;font-size:13px}
+.oz-ir-tabela td{padding:9px 4px;border-top:1px solid var(--line);vertical-align:top}
+.oz-ir-tabela td:last-child{text-align:right;white-space:nowrap;font-family:var(--mono)}
+.oz-ir-tabela td small{display:block;color:var(--muted);font-size:11px}
+.oz-ir-tabela tr.is-total td{font-weight:700}
+.oz-ir-grupo{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.oz-ir-grupo summary{display:flex;justify-content:space-between;gap:8px;cursor:pointer}
+.oz-ir-acoes{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 8px}
+.oz-resumo-previa{border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:14px 0;background:rgba(95,169,155,.07)}
+.oz-desejo-veredito{margin:8px 0 2px;font-size:13px;line-height:1.45}
+.oz-desejo-veredito.is-sim{color:var(--teal)}.oz-desejo-veredito.is-espera{color:#e7c36c}.oz-desejo-veredito.is-nao{color:#e07a6a}
+@media print{html.oz-imprimindo .oz-ir-acoes,html.oz-imprimindo form[data-oz-f]{display:none}}
+/* Anúncio premiado em vídeo (Windows/site) */
+.oz-anuncio-capa{position:fixed;inset:0;z-index:2147483000;background:rgba(1,8,12,.94);display:grid;place-items:center;align-content:center;gap:12px;padding:16px}
+.oz-anuncio-palco{position:relative;width:min(960px,100%);aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden}
+.oz-anuncio-palco video,.oz-anuncio-ads{position:absolute;inset:0;width:100%;height:100%}
+.oz-anuncio-legenda{color:var(--muted,#b8c8ca);font-size:13px;margin:0}

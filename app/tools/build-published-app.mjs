@@ -19,10 +19,13 @@ function replaceRequired(text, oldValue, newValue, filename) {
   return text.replace(oldValue, newValue);
 }
 
-const policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
-  "font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://*.supabase.co; " +
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'self' blob:; " +
-  "object-src 'none'; base-uri 'self'; frame-src 'none'";
+/* 01/11/2026: o vídeo premiado do Google Ad Manager (IMA) roda no Windows e
+   no site; só os domínios do SDK e do servidor de anúncios entram. */
+const ADS = "https://imasdk.googleapis.com https://*.doubleclick.net https://*.googlesyndication.com https://*.googleadservices.com https://*.google.com https://*.gstatic.com";
+const policy = "default-src 'self'; script-src 'self' https://imasdk.googleapis.com; style-src 'self' 'unsafe-inline'; " +
+  "font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://*.supabase.co " + ADS + "; " +
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co " + ADS + "; media-src 'self' blob: " + ADS + "; " +
+  "object-src 'none'; base-uri 'self'; frame-src " + ADS;
 function harden(html, name) {
   let number = 0;
   html = html.replace(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi, (_whole, content) => {

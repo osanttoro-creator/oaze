@@ -657,7 +657,21 @@
       id: idOk(x.id, 'rec'), pessoa: txt(x.pessoa, 60), descricao: txt(x.descricao, 120),
       valor: U.round2(Math.max(0, +x.valor || 0)), recebido: U.round2(Math.max(0, +x.recebido || 0)),
       data: U.isValidISO(x.data) ? x.data : U.todayISO(), vence: U.isValidISO(x.vence) ? x.vence : null,
-      quitado: !!x.quitado
+      quitado: !!x.quitado,
+      /* conta dividida: aponta para o lançamento que originou (01/11/2026) */
+      txId: typeof x.txId === 'string' && x.txId.length <= 80 ? x.txId : null
+    }));
+    /* Caixinhas: dinheiro separado dentro de uma conta (01/11/2026). */
+    prof.caixinhas = (Array.isArray(prof.caixinhas) ? prof.caixinhas : []).filter((c) => c && txt(c.nome, 40)).slice(0, 60).map((c) => ({
+      id: idOk(c.id, 'cx'), nome: txt(c.nome, 40), contaId: typeof c.contaId === 'string' ? c.contaId.slice(0, 80) : '',
+      valor: U.round2(Math.max(0, +c.valor || 0)), meta: U.round2(Math.max(0, +c.meta || 0)),
+      cor: /^#[0-9a-fA-F]{6}$/.test(c.cor || '') ? c.cor : '#5FA99B'
+    }));
+    /* Lista de desejos com "posso comprar?" (01/11/2026). */
+    prof.desejos = (Array.isArray(prof.desejos) ? prof.desejos : []).filter((d) => d && txt(d.nome, 80)).slice(0, 100).map((d) => ({
+      id: idOk(d.id, 'des'), nome: txt(d.nome, 80), valor: U.round2(Math.max(0, +d.valor || 0)),
+      prioridade: ['alta', 'media', 'baixa'].includes(d.prioridade) ? d.prioridade : 'media',
+      criadoEm: U.isValidISO(d.criadoEm) ? d.criadoEm : U.todayISO(), comprado: !!d.comprado
     }));
     return prof;
   }

@@ -36,6 +36,12 @@ type NativeWindow = Window & {
     mostrar(options: { userId: string }): Promise<{ recompensado: boolean }>;
   };
   OAZE_NATIVE_OPEN_EXTERNAL?: (url: string) => Promise<void>;
+  OAZE_NATIVE_BANK_NOTIFS?: {
+    status(): Promise<boolean>;
+    pendentes(): Promise<Array<{ id: string; app: string; pacote?: string; texto: string; quando: number }>>;
+    remover(id: string): Promise<void>;
+    abrirAjustes(): Promise<void>;
+  };
   OAZE_NATIVE_DESKTOP?: boolean;
   OAZE_NATIVE_SAVE_PDF?: (fileName: string, base64: string) => Promise<void>;
   OAZE_BILLING_READONLY?: boolean;
@@ -166,6 +172,24 @@ if (android) {
   nativeWindow.OAZE_NATIVE_WIDGET = {
     atualizar: (dados) => widget.atualizar(dados).catch(() => {}),
     limpar: () => widget.limpar().catch(() => {}),
+  };
+}
+
+/* Avisos dos apps de banco (OazeBancoListener): ficam no aparelho e viram
+   sugestão de lançamento em "Avisos do banco". Só Android. */
+interface OazeBancoPlugin {
+  status(): Promise<{ ligado: boolean }>;
+  pendentes(): Promise<{ itens: Array<{ id: string; app: string; pacote?: string; texto: string; quando: number }> }>;
+  remover(options: { id: string }): Promise<void>;
+  abrirAjustes(): Promise<void>;
+}
+if (android) {
+  const banco = registerPlugin<OazeBancoPlugin>('OazeBanco');
+  nativeWindow.OAZE_NATIVE_BANK_NOTIFS = {
+    status: async () => (await banco.status()).ligado,
+    pendentes: async () => (await banco.pendentes()).itens || [],
+    remover: (id) => banco.remover({ id }),
+    abrirAjustes: () => banco.abrirAjustes(),
   };
 }
 
