@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Atalhos rápidos (4x1): cada botão abre o OAZE direto na ação. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/oaze_atalhos_raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:padding="8dp"
+    android:background="@drawable/oaze_widget_fundo">
+    <TextView android:id="@+id/oaze_atalho_despesa" style="@style/OazeAtalho" android:text="−\nDespesa" android:contentDescription="Nova despesa" />
+    <TextView android:id="@+id/oaze_atalho_receita" style="@style/OazeAtalho" android:text="+\nReceita" android:contentDescription="Nova receita" />
+    <TextView android:id="@+id/oaze_atalho_recibo" style="@style/OazeAtalho" android:text="▣\nRecibo" android:contentDescription="Foto do recibo" />
+    <TextView android:id="@+id/oaze_atalho_coco" style="@style/OazeAtalho" android:text="●\nCoco" android:contentDescription="Falar com a Coco" />
+</LinearLayout>

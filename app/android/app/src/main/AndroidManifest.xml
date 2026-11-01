@@ -75,6 +75,16 @@
                 android:resource="@xml/oaze_widget_info" />
         </receiver>
 
+        <!-- Widgets rápidos (01/11/2026): atalhos 4x1 e lançar 1x1. -->
+        <receiver android:name=".OazeAtalhosWidget" android:label="OAZE · atalhos" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/oaze_widget_atalhos_info" />
+        </receiver>
+        <receiver android:name=".OazeLancarWidget" android:label="OAZE · lançar" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/oaze_widget_lancar_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

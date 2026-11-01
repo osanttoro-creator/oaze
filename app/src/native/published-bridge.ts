@@ -481,7 +481,7 @@ async function handleAppUrl(url: string, fromLaunch = false): Promise<void> {
      Na abertura a frio o painel ainda está montando; o evento sai depois. */
   if (incoming.protocol === 'oaze:' && incoming.hostname === 'acao') {
     const acao = incoming.pathname.replace(/^\/+/, '');
-    if (['novo', 'recibo', 'coco'].includes(acao)) {
+    if (['novo', 'receita', 'recibo', 'coco'].includes(acao)) {
       const emitir = () => dispatchEvent(new CustomEvent('oaze:acao', { detail: acao }));
       if (document.readyState === 'complete' && document.querySelector('#v3-view .v3-home-identity, #v3-view [data-oz-inicio]')) emitir();
       else setTimeout(emitir, 2500);

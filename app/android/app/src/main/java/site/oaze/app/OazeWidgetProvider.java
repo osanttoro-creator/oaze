@@ -32,6 +32,11 @@ public class OazeWidgetProvider extends AppWidgetProvider {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
+    /* Usado pelos widgets de atalho: abre o app direto numa ação. */
+    static PendingIntent acao(Context contexto, String acao, int codigo) {
+        return abrir(contexto, acao, codigo);
+    }
+
     private static void texto(RemoteViews vista, int id, String valor) {
         vista.setTextViewText(id, valor);
         vista.setViewVisibility(id, valor == null || valor.isEmpty() ? View.GONE : View.VISIBLE);

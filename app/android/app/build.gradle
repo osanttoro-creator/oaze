@@ -9,7 +9,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         // O CI passa um número crescente: a Play Store recusa códigos repetidos.
         versionCode = (project.findProperty('oazeVersionCode') ?: '1').toString().toInteger()
-        versionName "2.2.0"
+        versionName "2.2.1"
         // ID do app OAZE na AdMob (conta de Jonatham, 31/10/2026). A propriedade
         // oazeAdmobAppId troca o ID sem editar este arquivo.
         manifestPlaceholders = [admobAppId: (project.findProperty('oazeAdmobAppId') ?: 'ca-app-pub-3943764788328980~3295029475').toString()]
