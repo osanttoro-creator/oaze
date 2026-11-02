@@ -54,7 +54,7 @@
 .v3-form select:not([multiple]):focus-visible,.oz-pref-hora select:not([multiple]):focus-visible{outline:3px solid var(--swatch,var(--teal,#5fa99b));outline-offset:2px;}
 
 .v3-check[hidden],.v3-repeat-mode[hidden],.v3-installment-options[hidden]{display:none!important}
-.v3-repeat-mode{display:grid;gap:10px;margin:12px 0}
+.v3-repeat-mode{display:grid;gap:14px;margin:12px 0;padding:16px;border:1px solid rgba(95,169,155,.28);border-radius:20px;background:rgba(7,17,24,.68)}
 .v3-repeat-mode .v3-segment{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:14px;background:#1d2b34}
 .v3-repeat-mode .v3-segment button{flex:1 1 100px;min-height:44px;border:0;border-radius:10px;background:transparent;color:#c7d3d4;cursor:pointer}
 .v3-repeat-mode .v3-segment button.is-active{background:#0d1821;color:#f0e5cf;box-shadow:inset 0 0 0 1px #5fa99b}
