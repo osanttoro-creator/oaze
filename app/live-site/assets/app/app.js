@@ -2721,7 +2721,40 @@
     const destination=txForm.elements.destination;
     if(destination) destination.innerHTML='<option value="">Selecione</option>'+profile().accounts.filter((a)=>!a.archived).map((a)=>`<option value="${esc(a.id)}" ${editing?.toAccountId===a.id?'selected':''}>${esc(a.name||a.bank)} •• ${esc(a.last4||'')} · ${esc(a.moeda||'BRL')}</option>`).join('');
     const installmentsField=txForm.elements.installments?.closest('label');
-    if(installmentsField){installmentsField.hidden=!(current==='Despesa' && paymentKind==='credit' && !txForm.elements.recurring.checked);installmentsField.firstChild.textContent='PARCELAS (SOMENTE CRÉDITO NÃO RECORRENTE)';}
+    if(installmentsField){installmentsField.hidden=true;installmentsField.firstChild.textContent='QUANTAS PARCELAS';}
+    if (!editing && current==='Despesa' && installmentsField) {
+      const repeatMode=document.createElement('div');
+      repeatMode.className='v3-repeat-mode';
+      repeatMode.innerHTML='<span class="v3-label">REPETIÇÃO</span><div class="v3-segment" role="group" aria-label="Tipo de repetição"><button type="button" data-repeat-mode="once" aria-pressed="true">Única</button><button type="button" data-repeat-mode="installments" aria-pressed="false">Parcelar</button><button type="button" data-repeat-mode="recurring" aria-pressed="false">Recorrente</button></div>';
+      recurringLabel.before(repeatMode);
+      recurringLabel.hidden=true;
+      const options=document.createElement('div');
+      options.className='v3-installment-options';
+      options.hidden=true;
+      options.innerHTML='<label>PARCELA ATUAL<input type="number" name="installmentCurrent" min="1" max="72" value="1"></label><label>VALOR INFORMADO<select name="installmentAmountMode"><option value="total">Total da compra</option><option value="each">Valor de cada parcela</option></select></label><small>Débito: próximas parcelas ficam previstas na conta. Crédito: entram nas próximas faturas. Parcelas anteriores à atual não são recriadas.</small>';
+      installmentsField.after(options);
+      const chooseMode=(mode)=>{
+        txForm.elements.recurring.checked=mode==='recurring';
+        if(mode==='installments' && Number(txForm.elements.installments.value)<2)txForm.elements.installments.value='2';
+        if(mode!=='installments')txForm.elements.installments.value='1';
+        repeatMode.querySelectorAll('[data-repeat-mode]').forEach((button)=>{
+          const active=button.dataset.repeatMode===mode;
+          button.classList.toggle('is-active',active);
+          button.setAttribute('aria-pressed',String(active));
+        });
+        options.hidden=mode!=='installments';
+        installmentsField.hidden=mode!=='installments';
+        updateRepeatFields(txForm);
+      };
+      repeatMode.addEventListener('click',(event)=>{
+        const button=event.target.closest('[data-repeat-mode]');
+        if(button)chooseMode(button.dataset.repeatMode);
+      });
+      txForm.elements.installments.addEventListener('input',()=>{
+        options.querySelector('[name="installmentCurrent"]').max=txForm.elements.installments.value;
+      });
+      chooseMode(txForm.elements.recurring.checked?'recurring':'once');
+    }
     updateComposerCurrency(txForm, meioInicial);
     installComposerPickers(txForm);
     syncComposerStatus(txForm);
@@ -2741,7 +2774,7 @@
     form.dataset.paymentKind = kind;
     syncComposerStatus(form);
     const installmentsField=form.elements.installments?.closest('label');
-    if(installmentsField){installmentsField.hidden=kind!=='credit'||form.elements.recurring.checked;form.elements.installments.value='1';}
+    if(installmentsField && !form.querySelector('.v3-repeat-mode')){installmentsField.hidden=form.elements.recurring.checked;form.elements.installments.value='1';}
     const label = form.querySelector('#v3-tx-source-label');
     if (label?.firstChild) label.firstChild.textContent = kind === 'credit' ? 'CARTÃO DE CRÉDITO' : 'CONTA DE DÉBITO';
     form.querySelectorAll('[data-payment-kind]').forEach((button) => {
@@ -2804,7 +2837,7 @@
     if (!fields) return;
     fields.hidden = !recurring;
     const installmentsField=form.elements.installments?.closest('label');
-    if(installmentsField){installmentsField.hidden=recurring||form.dataset.paymentKind!=='credit';if(recurring)form.elements.installments.value='1';}
+    if(installmentsField && !form.querySelector('.v3-repeat-mode')){installmentsField.hidden=recurring;if(recurring)form.elements.installments.value='1';}
     form.elements.repeatDate.required = !!recurring;
     if (!recurring) return;
     const [kind, id] = String(form.elements.source.value || '').split(':');
@@ -3595,14 +3628,19 @@
       date=repeatDate;
     }
     const installments=editing ? 1 : Number(fd.get('installments')||1);
+    const installmentCurrent=installments>1 ? Number(fd.get('installmentCurrent')||1) : 1;
+    const amountMode=installments>1 ? String(fd.get('installmentAmountMode')||'total') : 'total';
     if ((recurring && recurEnd && (!/^\d{4}-\d{2}$/.test(recurEnd) || recurEnd<ymOf(date)))
-      || !Number.isInteger(installments) || installments<1 || installments>72 || (recurring && installments>1) || (sourceType!=='card' && installments>1)) {
+      || !Number.isInteger(installments) || installments<1 || installments>72 || (recurring && installments>1)
+      || (installments>1 && (kind!=='Despesa' || !['card','account'].includes(sourceType)
+        || !Number.isInteger(installmentCurrent) || installmentCurrent<1 || installmentCurrent>installments
+        || !['total','each'].includes(amountMode)))) {
       toast('Confira a recorrência e as parcelas.'); return;
     }
     if (!editing && recurring && !canAdd('recurring_items',ymOf(date))) { toast('Esta recorrência ultrapassa o limite do seu plano.'); return; }
     if (editing && recurring && !editing.recurring && !canAdd('recurring_items',ymOf(date))) { toast('Esta recorrência ultrapassa o limite do seu plano.'); return; }
     if (!editing) {
-      const months=Array.from({length:installments},(_,i)=>U.addMonths(ymOf(date),i));
+      const months=Array.from({length:installments-installmentCurrent+1},(_,i)=>U.addMonths(ymOf(date),i));
       if (months.some((month)=>!canAdd('transactions_per_month',month))) { toast('Uma das parcelas ultrapassa o limite mensal do seu plano.'); return; }
     }
     const categoryId=transfer?null:String(fd.get('category')||'');
@@ -3615,18 +3653,19 @@
     if(fd.has('tags')) tags=String(fd.get('tags')||'').split(',').map((x)=>x.trim()).filter(Boolean);
     const base={local,tags,kind:transfer?'transfer':kind==='Receita'?'income':'expense',faturaRef:faturaManual,description,amount:U.round2(amount*rate),moeda:currency,valorMoeda:currency?amount:null,date,categoryId,accountId:sourceType==='account'?sourceId:null,cardId:sourceType==='card'?sourceId:null,toAccountId:transfer?destination:null,confirmed:status==='pago',cancelado:status==='cancelado',ignored:kind==='Despesa'&&fd.get('ignored')==='on',remindDaysBefore:reminder===''?null:Number(reminder),meio:sourceType==='account'?(String(fd.get('meio')||'')||null):null,recurring,recurEnd:recurring?(recurEnd||null):null,notes:String(fd.get('notes')||'').trim().slice(0,500),source:editing?(editing.source||'manual'):['uglez','import'].includes(sourceTag)?sourceTag:'manual'};
     if(editing&&fd.get('removeReceipt')==='on'&&!receipt)base.receiptPath=null;
-    if (installments>1 && amount/installments<0.01) { toast('Cada parcela precisa ter pelo menos um centavo.'); return; }
+    if (installments>1 && amountMode==='total' && amount/installments<0.01) { toast('Cada parcela precisa ter pelo menos um centavo.'); return; }
     try {
       let savedTxId=id;
       let cleanupPending=0;
       const firstSave=await V3Backend.mutate(() => {
         if (editing) { Store.transactions.update(id,base); return; }
         if (installments===1) { savedTxId=Store.transactions.add(base).id; return; }
-        const cents=Math.round(amount*100), each=Math.floor(cents/installments), groupId=U.uid('grp'), day=Number(date.slice(8));
-        const list=Array.from({length:installments},(_,index)=>{
-          const installmentAmount=(index===installments-1?cents-each*(installments-1):each)/100;
-          const partYM=U.addMonths(ymOf(date),index), parts=U.ymParts(partYM);
-          return {...base,description:`${description} (${index+1}/${installments})`,amount:U.round2(installmentAmount*rate),valorMoeda:currency?installmentAmount:null,date:U.isoOf(parts.y,parts.m,U.clampDay(parts.y,parts.m,day)),installment:{total:installments,index:index+1,groupId},confirmed:index===0?base.confirmed:false};
+        const cents=Math.round(amount*100), each=amountMode==='each'?cents:Math.floor(cents/installments), groupId=U.uid('grp'), day=Number(date.slice(8));
+        const list=Array.from({length:installments-installmentCurrent+1},(_,offset)=>{
+          const index=installmentCurrent+offset-1;
+          const installmentAmount=(amountMode==='total' && index===installments-1?cents-each*(installments-1):each)/100;
+          const partYM=U.addMonths(ymOf(date),offset), parts=U.ymParts(partYM);
+          return {...base,description:`${description} (${index+1}/${installments})`,amount:U.round2(installmentAmount*rate),valorMoeda:currency?installmentAmount:null,date:U.isoOf(parts.y,parts.m,U.clampDay(parts.y,parts.m,day)),installment:{total:installments,index:index+1,groupId},confirmed:offset===0?base.confirmed:false};
         });
         savedTxId=Store.transactions.addMany(list)[0]?.id;
       });
