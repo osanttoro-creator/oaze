@@ -182,13 +182,17 @@
     const PDF = await library();
     const doc = new PDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
     const dark = [13, 24, 33], milk = [240, 229, 207], teal = [95, 169, 155];
+    const logo = await png('/assets/brand/oaze-logo-mono-milk.svg').catch(() => null);
+    const coco = await png('/assets/coco/corpo-neutra_acolhedora.webp').catch(() => null);
     let page = 0, y = 36;
     const newPage = () => {
       if (page) doc.addPage();
       page++;
       doc.setFillColor(...dark); doc.rect(0, 0, 210, 297, 'F');
       doc.setTextColor(...teal); doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
-      doc.text('OAZE', 18, 20);
+      try { if(logo) doc.addImage(logo, 'PNG', 18, 10, 34, 13); else doc.text('OAZE', 18, 20); }
+      catch { doc.text('OAZE', 18, 20); }
+      if(page===1 && coco) { try { doc.addImage(coco, 'PNG', 151, 9, 40, 24); } catch { /* a imagem não bloqueia o PDF */ } }
       doc.setTextColor(...milk); doc.setFontSize(8);
       doc.text(String(page).padStart(2, '0'), 192, 281, { align: 'right' });
       doc.setDrawColor(53, 85, 101); doc.line(18, 272, 192, 272);
