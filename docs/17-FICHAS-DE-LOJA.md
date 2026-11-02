@@ -55,10 +55,9 @@ O que você encontra
 • Lembretes locais de fatura e de lançamento fixo.
 • Relatórios e o OAZE Score.
 
-Funciona sem conta
-Você pode organizar seus dados neste aparelho sem criar uma conta.
-O login com sua conta OAZE está disponível, mas a sincronização dos dados
-financeiros entre aparelhos ainda não está ativa nesta versão de teste.
+Uma conta, todos os aparelhos
+Com sua conta OAZE, o que você lança no celular aparece no navegador e no
+computador, e o plano vale em todos eles.
 
 Onde seus dados ficam
 No Android, o conteúdo fica cifrado com chave guardada no Keystore do aparelho.
@@ -148,6 +147,83 @@ WebView2 Evergreen, que já vem no Windows 11 e chega ao Windows 10 pelo Edge.
 Num Windows 10 sem ele, o app abre e fecha sem mensagem. Se isso aparecer em
 teste, a saída é embutir o WebView2 de versão fixa no pacote — é troca de
 configuração, não reescrita.
+
+### 5.1 Textos da ficha (versão de 01/11/2026 — Windows exclusivo do Oásis)
+
+O app para Windows é benefício de quem assina o Oásis, com 30 dias grátis.
+A Microsoft Store permite que apps que não são jogos cobrem pelo próprio meio
+de pagamento (política 10.8): a assinatura é feita na página segura da
+Stripe, e a Microsoft não cobra nada. Por isso a ficha **precisa** dizer que o
+app exige assinatura — esconder isso é motivo de reprovação.
+
+**Descrição curta (até 100 caracteres)**
+
+```
+Contas, cartões, faturas, metas e a Coco no seu computador. 30 dias grátis do Oásis.
+```
+
+**Descrição (até 10.000 caracteres)**
+
+```
+O OAZE reúne num só lugar o que normalmente fica espalhado: saldo das contas,
+faturas dos cartões, lançamentos fixos, metas, caixinhas e investimentos — e a
+Coco, a assistente que responde sobre o seu dinheiro.
+
+O app para Windows faz parte do plano Oásis
+O OAZE para computador é um benefício de quem assina o Oásis. Experimente 30
+dias grátis: avisamos três dias antes do fim e, se cancelar antes, você não paga
+nada. Depois, R$ 35,90 por mês ou R$ 279,90 por ano. O pagamento é feito na
+página segura da Stripe; o OAZE nunca vê o número do cartão.
+
+Sem assinar, seus dados continuam na sua conta e abrem de graça no navegador
+(oaze.site) e no celular, no plano Semente.
+
+Uma conta, todos os aparelhos
+Assinou no site, no celular ou no computador? O plano vale em todos, com a
+mesma conta. O que você lança num aparelho aparece nos outros.
+
+O que você encontra
+• Carteira com contas e cartões nas cores do seu banco, fatura por fatura.
+• Agenda financeira em ano, mês e semana, com vencimentos e recorrências.
+• Caixinhas, metas, lista de desejos e simulador para quitar dívidas.
+• Relatórios em PDF, relatório para o Imposto de Renda e o OAZE Score.
+• A Coco, com mais consultas por dia no Oásis.
+• Início do seu jeito: escolha e arraste os widgets.
+• Lançamentos sem limite e sem anúncios.
+
+Privacidade
+Seus dados financeiros são seus. Você pode apagar a conta e tudo o que há nela
+de dentro do app, em Configurações → Conta → Excluir conta.
+Política de privacidade: https://oaze.site/privacidade
+```
+
+**Novidades desta versão**
+
+```
+App para Windows agora é exclusivo do Oásis, com 30 dias grátis. Gerenciar
+widgets refeito: arraste para reordenar. Cores dos bancos nos cartões.
+```
+
+**Recursos do produto (até 20, curtos)**
+
+```
+Contas e cartões numa visão só
+Faturas sem somar duas vezes
+Agenda financeira
+Caixinhas e metas
+Relatórios em PDF e para o IR
+Assistente Coco
+Sincroniza com o celular e o navegador
+30 dias grátis do Oásis
+```
+
+| Campo da ficha | Valor |
+| --- | --- |
+| Preço na loja | **Grátis** (download gratuito; a assinatura é feita dentro do app) |
+| Compras no aplicativo | marcar **sim** — assinatura Oásis por meio de pagamento próprio |
+| URL de privacidade | https://oaze.site/privacidade |
+| Site | https://oaze.site |
+| Suporte | https://oaze.site/suporte |
 
 Os três valores de identidade do pacote (`MSSTORE_IDENTITY_NAME`,
 `MSSTORE_IDENTITY_PUBLISHER`, `MSSTORE_PUBLISHER_DISPLAY_NAME`) saem do próprio
