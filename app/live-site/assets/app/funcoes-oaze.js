@@ -231,6 +231,9 @@
     if (!nota) return '<p class="oz-tela-intro">Aponte a câmera para o QR Code do cupom fiscal (NFC-e). O OAZE busca loja, data, total e os itens na Sefaz.</p>'
       + '<div class="oz-nota-acoes"><button type="button" class="v3-primary" data-oz-nota-camera>Abrir câmera</button><label class="v3-secondary oz-nota-foto">Escolher foto do QR<input type="file" accept="image/*" class="oz-arquivo-oculto" data-oz-nota-foto></label></div>'
       + '<video class="oz-nota-video" playsinline muted hidden></video><p class="v3-muted" data-oz-nota-status role="status"></p>';
+    if (nota.manual) return '<p class="oz-tela-intro">QR lido. A consulta automática à Sefaz não terminou; confira os dados do cupom e conclua o lançamento.</p>'
+      + '<p class="v3-muted">' + esc(nota.motivo || '') + '</p><div class="v3-form oz-nota-manual"><label>LOJA<input data-oz-nota-loja maxlength="90" placeholder="Nome da loja" value="' + esc(nota.loja || '') + '"></label><label>VALOR TOTAL<input data-oz-nota-valor inputmode="decimal" placeholder="0,00"></label><label>DATA<input data-oz-nota-data type="date" value="' + esc(nota.data || hoje()) + '"></label></div>'
+      + '<button type="button" class="v3-primary" data-oz-nota-lancar>Revisar lançamento</button> <button type="button" class="v3-link" data-oz-nota-nova>Ler outro</button>';
     if (nota.erro) return '<p class="oz-tela-intro">' + esc(nota.erro) + '</p><button type="button" class="v3-secondary" data-oz-nota-nova>Tentar outro QR</button>';
     return '<div class="oz-resumo"><div><small>' + esc(nota.loja || 'Loja') + '</small><strong>' + reais(nota.total) + '</strong></div><div><small>Data</small><strong>' + dataBR(nota.data) + '</strong></div></div>'
       + (nota.itens && nota.itens.length ? '<ul class="oz-lista oz-nota-itens">' + nota.itens.slice(0, 80).map((i) => '<li><span class="oz-lista-txt"><strong>' + esc(i.nome) + '</strong><small>' + esc(String(i.qtd).replace('.', ',')) + ' ' + esc(i.un || '') + '</small></span><strong class="oz-valor">' + reais(i.valor) + '</strong></li>').join('') + '</ul>' : '<p class="v3-muted">A Sefaz deste estado não mostrou os itens; o total foi lido.</p>')
@@ -257,7 +260,7 @@
       ]);
       if (error || !data || !(data.total > 0)) throw new Error((data && data.mensagem) || 'A Sefaz não respondeu agora.');
       nota = data;
-    } catch (e) { nota = { erro: (e && e.message) || 'Não consegui ler a nota.' }; }
+    } catch (e) { nota = { manual: true, url, data: hoje(), motivo: (e && e.message) || 'Consulta indisponível.' }; }
     redesenhar();
   }
 
@@ -435,9 +438,15 @@
     else if (b.hasAttribute('data-oz-nota-nova')) { nota = null; redesenhar(); }
     else if (b.hasAttribute('data-oz-nota-lancar') && nota) {
       const n = nota;
+      if (n.manual) {
+        n.loja = String(tela.querySelector('[data-oz-nota-loja]')?.value || '').trim().slice(0,90);
+        n.total = num(tela.querySelector('[data-oz-nota-valor]')?.value);
+        n.data = tela.querySelector('[data-oz-nota-data]')?.value || '';
+        if (!n.loja || !(n.total>0) || !/^\d{4}-\d{2}-\d{2}$/.test(n.data)) { avisar('Confira loja, valor e data antes de continuar.'); return; }
+      }
       if (!global.OazeCompor) { avisar('O formulário de lançamento ainda não está pronto. Tente novamente.'); return; }
       M().fecharTela();
-      const abriu = global.OazeCompor({ tipo: 'expense', forma_pagamento: 'account', descricao: (n.loja || 'Compra').slice(0, 90), valor: n.total, data: n.data || hoje(), categoria: /mercad|atacad|super|hortifruti|padaria|açougue/i.test(n.loja || '') ? 'Alimentação' : '' });
+      const abriu = global.OazeCompor({ tipo: 'expense', forma_pagamento: 'account', descricao: (n.loja || 'Compra').slice(0, 90), valor: n.total, data: n.data || hoje(), categoria: /mercad|atacad|super|hortifruti|padaria|açougue/i.test(n.loja || '') ? 'Alimentação' : '', observacoes: n.url ? 'NFC-e: ' + n.url : '' });
       if (abriu) nota = null; else M().abrir('nota');
     }
     else if (b.hasAttribute('data-oz-ir-csv')) csvIR();
