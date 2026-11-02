@@ -4083,7 +4083,7 @@
       voiceSession=session;
       session.setReplyMuted(state.voiceReplyMuted);
       await session.start({
-        connect:(sdp,history)=>V3Backend.cocoLiveSession(sdp,history),
+        connect:(sdp,history,options)=>V3Backend.cocoLiveSession(sdp,history,options),
         mode:state.voiceMode,deviceId:state.voiceDevice,history:state.chat
       });
       if(version!==voiceStartVersion){session.stop();return;}
