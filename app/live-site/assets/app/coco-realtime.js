@@ -8,7 +8,7 @@
       this.cb = callbacks || {};
       this.state = 'IDLE';
       this.pc = null; this.dc = null; this.stream = null; this.audio = null;
-      this.timer = null; this.muted = false; this.replyMuted = false;
+      this.timer = null; this.disconnectTimer = null; this.muted = false; this.replyMuted = false;
       this.meterTimer = null; this.audioContext = null; this.inputMeter = null; this.outputMeter = null;
       this.mode = 'continuous'; this.inputText = ''; this.outputText = '';
       this.inputFlushTimer = null; this.outputFlushTimer = null;
@@ -87,8 +87,19 @@
           audio.play().catch(() => this.cb.onPlaybackBlocked?.());
         };
         this.pc.onconnectionstatechange = () => {
-          if (current() && ['failed','disconnected','closed'].includes(pc.connectionState)) {
-            this.setState('OFFLINE'); this.cb.onDisconnect?.(); this.stop('OFFLINE');
+          if (!current()) return;
+          if (pc.connectionState === 'connected') { clearTimeout(this.disconnectTimer); this.disconnectTimer = null; return; }
+          if (pc.connectionState === 'disconnected') {
+            clearTimeout(this.disconnectTimer);
+            this.disconnectTimer = setTimeout(() => {
+              if (current() && pc.connectionState === 'disconnected') {
+                this.cb.onDisconnect?.(); this.stop('OFFLINE');
+              }
+            }, 5000);
+            return;
+          }
+          if (['failed','closed'].includes(pc.connectionState)) {
+            this.cb.onDisconnect?.(); this.stop('OFFLINE');
           }
         };
         this.stream.getTracks().forEach((track) => this.pc.addTrack(track, this.stream));
@@ -335,6 +346,7 @@
       this.active = false; this.generation++;
       this.handshakeController?.abort(); this.handshakeController = null;
       clearTimeout(this.timer); this.timer = null;
+      clearTimeout(this.disconnectTimer); this.disconnectTimer = null;
       clearInterval(this.meterTimer); this.meterTimer = null;
       this.audioContext?.close().catch(() => {}); this.audioContext = null;
       this.inputMeter = null; this.outputMeter = null;
