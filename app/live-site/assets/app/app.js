@@ -627,7 +627,7 @@
     { id: 'investimentos', nome: 'Investimentos', padrao: true },
     { id: 'faturas', nome: 'Faturas a pagar', padrao: false },
     { id: 'fluxo', nome: 'Fluxo de caixa', padrao: false },
-    { id: 'metas', nome: 'Metas em andamento', padrao: false },
+    { id: 'metas', nome: 'Porquinhos', padrao: false },
     { id: 'score', nome: 'OAZE Score', padrao: false },
     { id: 'contas', nome: 'Saldo por conta', padrao: false },
     { id: 'cartoes', nome: 'Fatura × limite por cartão', padrao: false },
@@ -743,7 +743,7 @@
   }
   function painelMetasInicio() {
     const goals = (profile().goals || []).filter((goal) => Number(goal.target) > Number(goal.saved || 0));
-    return `<section class="v3-panel"><div class="v3-row"><h2>metas em andamento</h2><button type="button" class="v3-link" data-go="goals">ver metas</button></div>`
+    return `<section class="v3-panel"><div class="v3-row"><h2>porquinhos</h2><button type="button" class="v3-link" data-go="goals">ver todos</button></div>`
       + (goals.length ? goals.slice(0,3).map((goal) => `<div class="v3-home-bill"><span><strong>${esc(goal.name)}</strong><small>${pct(100*Number(goal.saved||0)/Number(goal.target))}% concluído</small></span><strong class="v3-sensitive">${money(goal.saved || 0)} / ${money(goal.target)}</strong></div>`).join('') : '<p class="v3-muted">Nenhuma meta em andamento.</p>') + '</section>';
   }
   function widgetPanel(title, body, page, label) {
@@ -1000,7 +1000,20 @@
     }
     return `<span class="v3-mini-card v3-tx-selo" style="--swatch:${cor};--swatch-ink:${U.inkFor(cor)}">${miolo}${banco}</span>`;
   }
+  /* BUSCA EM TODOS OS MESES, DENTRO DE LANÇAMENTOS (01/11/2026).
+     O filtro "busca" do painel de filtros olha só o mês aberto; esta
+     barra procura no histórico inteiro e troca a lista pelos achados. */
+  function resultadosBuscaTudo(q) {
+    const F = global.OazeFuncoes;
+    const r = F && F.buscarTudo ? F.buscarTudo(q) : [];
+    const linhas = r.map((x) => `<button type="button" class="v3-busca-item" data-editar-tx="${esc(x.id)}"><span><strong>${esc(x.description)}</strong><small>${esc(shortDate(x.date))}${x.recurring ? ' · mensal' : ''} · ${esc(F.nomeCategoria(x.categoryId))}${F.nomeConta(x.accountId || x.cardId) ? ' · ' + esc(F.nomeConta(x.accountId || x.cardId)) : ''}</small></span><strong class="v3-sensitive ${x.kind === 'income' ? 'v3-positive' : x.kind === 'expense' ? 'v3-negative' : ''}">${x.kind === 'income' ? '+ ' : x.kind === 'expense' ? '− ' : ''}${money(x.amount)}</strong></button>`).join('');
+    return `<section class="v3-panel v3-table v3-trans-feed v3-busca-resultados" aria-label="Resultados da busca"><div class="v3-row"><h2>resultados</h2><small role="status">${r.length}${r.length === 200 ? '+' : ''} em todos os meses</small></div>${r.length ? linhas : '<p class="v3-muted">Nada encontrado. Tente outra palavra ou um valor, como 45,90.</p>'}</section>`;
+  }
   function renderTransactions() {
+    const qTudo = String(state.buscaTudo || '');
+    const lupa = global.Icons?.lucide?.('search', 18)?.outerHTML || '';
+    const buscaHtml = `<form class="v3-trans-busca" role="search" data-trans-busca><label class="v3-trans-busca-rotulo" for="v3-trans-busca-q">Buscar lançamentos em todos os meses</label><span class="v3-trans-busca-ic" aria-hidden="true">${lupa}</span><input id="v3-trans-busca-q" name="q" type="search" value="${esc(qTudo)}" placeholder="Buscar em todos os meses: texto, valor ou categoria" autocomplete="off">${qTudo ? '<button type="button" class="v3-link" data-action="limpar-busca-tudo">limpar</button>' : ''}</form>`;
+    if (qTudo.trim()) return `<div class="v3-transactions">${buscaHtml}${resultadosBuscaTudo(qTudo.trim())}</div>`;
     const rows = currentTransactions({ comCancelados: true }).filter(passaNoFiltro).sort((a, b) => b.date.localeCompare(a.date));
     const t = totals();
     const linha = (x) => {
@@ -1037,7 +1050,7 @@
       + `<button type="button" class="v3-pill v3-pill-filtros${ativos ? ' is-active' : ''}" data-action="filtros" aria-label="Abrir filtros">Filtros${ativos ? ' · ' + ativos : ''}</button>`
       + chips.map((c) => `<button type="button" class="v3-pill v3-chip" data-action="${c.acao}" aria-label="Tirar o filtro ${esc(c.rotulo)}">${esc(c.rotulo)}<span aria-hidden="true">✕</span></button>`).join('')
       + (ativos > 1 ? '<button type="button" class="v3-link v3-limpar-tudo" data-action="limpar-filtros">limpar tudo</button>' : '');
-    return `<div class="v3-transactions"><div class="v3-trans-head"><div class="v3-filter">${chipsHtml}</div><div class="v3-totals"><div><span class="v3-label">ENTROU</span><strong class="v3-positive v3-sensitive">▲ ${money(t.income)}</strong></div><div><span class="v3-label">GASTOS FEITOS</span><strong class="v3-negative v3-sensitive">▼ ${money(t.expense)}</strong></div></div></div>${state.filter==='Cartões'?renderDueInvoices():''}<section class="v3-panel v3-table v3-trans-feed" aria-label="Lançamentos por data"><div class="v3-row"><h2>movimentações</h2><small>${rows.length} registro${rows.length===1?'':'s'}</small></div>${rows.length?rows.map(linha).join(''):'<p class="v3-muted">Nenhum lançamento neste filtro.</p>'}</section></div>`;
+    return `<div class="v3-transactions">${buscaHtml}<div class="v3-trans-head"><div class="v3-filter">${chipsHtml}</div><div class="v3-totals"><div><span class="v3-label">ENTROU</span><strong class="v3-positive v3-sensitive">▲ ${money(t.income)}</strong></div><div><span class="v3-label">GASTOS FEITOS</span><strong class="v3-negative v3-sensitive">▼ ${money(t.expense)}</strong></div></div></div>${state.filter==='Cartões'?renderDueInvoices():''}<section class="v3-panel v3-table v3-trans-feed" aria-label="Lançamentos por data"><div class="v3-row"><h2>movimentações</h2><small>${rows.length} registro${rows.length===1?'':'s'}</small></div>${rows.length?rows.map(linha).join(''):'<p class="v3-muted">Nenhum lançamento neste filtro.</p>'}</section></div>`;
   }
   function renderWallet() {
     const chosen = state.walletOpen ? selectedItem() : null;
@@ -1427,10 +1440,16 @@
 
   function renderGoals() {
     const gs = profile().goals || [];
-    const goalsHtml = gs.length ? gs.map((g) => `<section class="v3-panel v3-goal"><div class="v3-row"><h2>${esc(g.name)}</h2><button type="button" class="v3-link" data-goal="${esc(g.id)}">Editar</button></div><small class="v3-mono">${g.deadline ? 'até '+esc(shortDate(g.deadline)) : 'sem prazo'}</small><p class="v3-money v3-sensitive">${money(g.saved)} <span class="v3-muted" style="font:400 12px var(--mono)">de ${money(g.target)}</span></p><div class="v3-bar"><span style="width:${pct(100*g.saved/(g.target||1))}%"></span></div><p style="margin-top:12px">● &nbsp; Faltam ${money(Math.max(0,g.target-g.saved))}.</p>${ritmoDaMeta(g)}</section>`).join('') : '<section class="v3-panel"><p class="v3-muted">Você ainda não definiu metas.</p></section>';
-    return `<div class="v3-grid v3-goals"><div class="v3-goal-column" data-column="goals"><div class="v3-row"><span class="v3-label v3-section-title">METAS</span><button type="button" class="v3-link" data-action="add-goal">Nova meta</button></div>${goalsHtml}</div></div>`; }
+    /* PORQUINHOS (01/11/2026): meta e caixinha viraram uma coisa só —
+       dinheiro separado para um objetivo, com ou sem valor-alvo, com
+       ou sem conta. Guardar e tirar ficam no próprio cartão. */
+    const porco = global.Icons?.lucide?.('piggy-bank', 18)?.outerHTML || '';
+    const contaDe = (id) => { const c = profile().accounts.find((x) => x.id === id); return c ? (c.name || c.bank) : ''; };
+    const goalsHtml = gs.length ? gs.map((g) => { const temMeta = Number(g.target) > 0; const onde = [g.accountId && contaDe(g.accountId) ? 'em ' + contaDe(g.accountId) : '', g.deadline ? 'até ' + shortDate(g.deadline) : ''].filter(Boolean).join(' · ');
+      return `<section class="v3-panel v3-goal v3-porquinho"><div class="v3-row"><h2><span class="v3-porquinho-ic" aria-hidden="true">${porco}</span>${esc(g.name)}</h2><button type="button" class="v3-link" data-goal="${esc(g.id)}">Editar</button></div><small class="v3-mono">${esc(onde || 'sem conta e sem prazo')}</small><p class="v3-money v3-sensitive">${money(g.saved)}${temMeta ? ` <span class="v3-muted" style="font:400 12px var(--mono)">de ${money(g.target)}</span>` : ''}</p>${temMeta ? `<div class="v3-bar"><span style="width:${pct(100*g.saved/g.target)}%"></span></div><p style="margin-top:12px">● &nbsp; Faltam ${money(Math.max(0,g.target-g.saved))}.</p>${ritmoDaMeta(g)}` : '<p class="v3-muted" style="margin-top:8px">Sem meta: guarde quanto quiser.</p>'}<div class="v3-porquinho-acoes"><button type="button" class="v3-secondary" data-action="deposit-goal" data-goal="${esc(g.id)}">Guardar</button>${g.saved > 0 ? `<button type="button" class="v3-link" data-action="withdraw-goal" data-goal="${esc(g.id)}">Tirar</button>` : ''}</div></section>`; }).join('') : '<section class="v3-panel"><p class="v3-muted">Nenhum porquinho ainda. Crie um para separar dinheiro para um objetivo — com ou sem meta.</p></section>';
+    return `<div class="v3-grid v3-goals"><div class="v3-goal-column" data-column="goals"><div class="v3-row"><span class="v3-label v3-section-title">PORQUINHOS</span><button type="button" class="v3-link" data-action="add-goal">Novo porquinho</button></div>${goalsHtml}</div></div>`; }
   function investmentTabs() {
-    return `<nav class="v3-invest-tabs v3-segment" aria-label="Áreas de investimentos">${[['overview','Investimentos'],['planning','Planejamento'],['goals','Metas']].map(([tab,label])=>`<button type="button" data-invest-tab="${tab}" class="${state.investTab===tab?'is-active':''}" aria-current="${state.investTab===tab?'page':'false'}">${label}</button>`).join('')}</nav>`;
+    return `<nav class="v3-invest-tabs v3-segment" aria-label="Áreas de investimentos">${[['overview','Investimentos'],['planning','Planejamento'],['goals','Porquinhos']].map(([tab,label])=>`<button type="button" data-invest-tab="${tab}" class="${state.investTab===tab?'is-active':''}" aria-current="${state.investTab===tab?'page':'false'}">${label}</button>`).join('')}</nav>`;
   }
   function renderPlanning() {
     const salary = Number(profile().planningSalary || 0);
@@ -2181,7 +2200,7 @@
     }).join('')}</div>${!playReadonly && !demo && paid && !sub.cancel_at_period_end && linkedSubscription ? '<button type="button" class="v3-secondary v3-plan-cancel" data-action="cancel-subscription">Cancelar renovação da assinatura</button>' : ''}`;
   }
   function renderMore() {
-    const desc = { investments: `${money(invested())} investidos`, categories: `${profile().categories.length} em uso`, goals: `${profile().goals.length} metas ativas`, calendar: 'calendário e recorrências', coco: 'conversa e análises', settings: 'privacidade, ajuda e contato', plan: demo ? 'OAZE mensal' : 'planos vigentes' };
+    const desc = { investments: `${money(invested())} investidos`, categories: `${profile().categories.length} em uso`, goals: 'metas e dinheiro guardado', calendar: 'calendário e recorrências', coco: 'conversa e análises', settings: 'privacidade, ajuda e contato', plan: demo ? 'OAZE mensal' : 'planos vigentes' };
     return `<div class="v3-row" style="margin-bottom:22px"><span class="v3-avatar" style="width:55px;height:55px;font-size:23px">${avatarMarkup(demo?sample.owner:Store.ownerName())}</span><span style="flex:1"><h2>${esc(demo?sample.owner:Store.ownerName()||'Seu OAZE')}</h2><small>Perfil ${esc(profile().name||'Pessoal')}</small></span></div>${moreSections(desc)}`;
   }
   /* "Mais" em seções, como lista (31/10/2026, inspiração Kontto):
@@ -2189,9 +2208,9 @@
   function moreSections(desc) {
     const nItems=items().length;
     const secoes=[
-      ['Organizar','org',[['data-go="wallet"','wallet','Contas e cartões',`${nItems} na carteira`],['data-go="categories"','categories','Categorias',desc.categories],['data-oz-mais="caixinhas"','piggy-bank','Caixinhas','dinheiro separado por objetivo'],['data-oz-mais="busca"','search','Buscar lançamentos','em todos os meses']]],
-      ['Planejar','plan',[['data-go="goals"','goals','Orçamento e metas',desc.goals],['data-go="investments"','investments','Investimentos',desc.investments],['data-oz-mais="projecoes"','trending-up','Projeções','saldo dos próximos meses'],['data-oz-mais="desejos"','gift','Lista de desejos','posso comprar?'],['data-oz-mais="simulador"','calculator','Simulador de quitação','bola de neve × avalanche']]],
-      ['Acompanhar','track',[['data-go="calendar"','calendar','Agenda e recorrências','vencimentos, fixos e parcelas'],['data-oz-mais="financiamentos"','landmark','Financiamentos',`${(profile().dividas||[]).filter((d)=>d.tipo==='financiamento').length} ativos`],['data-oz-mais="emprestimos"','banknote','Empréstimos',`${(profile().dividas||[]).filter((d)=>d.tipo==='emprestimo').length} ativos`],['data-oz-mais="receber"','hand-coins','Quem me deve',`${(profile().aReceber||[]).filter((x)=>!x.quitado).length} em aberto`],['data-oz-mais="resumo"','bell','Resumo automático','semana e mês em 1 minuto']]],
+      ['Organizar','org',[['data-go="wallet"','wallet','Contas e cartões',`${nItems} na carteira`],['data-go="categories"','categories','Categorias',desc.categories],['data-oz-mais="busca"','search','Buscar lançamentos','em todos os meses']]],
+      ['Planejar','plan',[['data-go="goals"','piggy-bank','Porquinhos',desc.goals],['data-go="investments"','investments','Investimentos',desc.investments],['data-oz-mais="projecoes"','trending-up','Projeções','saldo dos próximos meses'],['data-oz-mais="desejos"','gift','Lista de desejos','posso comprar?']]],
+      ['Acompanhar','track',[['data-go="calendar"','calendar','Agenda e recorrências','vencimentos, fixos e parcelas'],['data-oz-mais="financiamentos"','landmark','Financiamentos',`${(profile().dividas||[]).filter((d)=>d.tipo==='financiamento').length} ativos`],['data-oz-mais="emprestimos"','banknote','Empréstimos e quitação',`${(profile().dividas||[]).filter((d)=>d.tipo==='emprestimo').length} ativos`],['data-oz-mais="receber"','hand-coins','Quem me deve',`${(profile().aReceber||[]).filter((x)=>!x.quitado).length} em aberto`],['data-oz-mais="resumo"','bell','Resumo automático','semana e mês em 1 minuto']]],
       ['Analisar','analyze',[['data-oz-mais="relatorio"','chart-line','Relatório personalizado','período, conta, categoria e tag'],['data-action="estado-oaze"','receipt','Estado do OAZE','relatório em PDF'],['data-action="export-csv"','reports','Exportar lançamentos','planilha CSV'],['data-oz-mais="ir"','receipt','Relatório para o IR','rendimentos, dedutíveis, bens']]],
       ['Ferramentas','tools',[['data-go="coco"','coco','Coco','conversa e análises'],['data-oz-comprovante','receipt','Importar comprovante','foto, câmera ou PDF'],['data-oz-mais="nota"','scan-line','Nota fiscal (QR)','loja, total e itens da NFC-e'],['data-oz-mais="banco"','smartphone','Avisos do banco','lançar pela notificação'],['data-go="settings"','settings','Configurações',desc.settings]]]
     ];
@@ -3333,7 +3352,9 @@
   function goalForm(id, draft) {
     const goal = id ? profile().goals.find((g) => g.id === id) : null;
     const fmt = (n) => n == null ? '' : Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    openSheet(`${sheetTop(goal ? 'editar meta' : 'nova meta', 'planejamento financeiro')}<form class="v3-form" id="v3-form-goal"><input type="hidden" name="id" value="${esc(goal?.id || '')}"><label>NOME DA META<input name="name" maxlength="80" value="${esc(goal?.name || '')}" required></label><div class="v3-form-row"><label>VALOR ALVO (R$)<input name="target" data-money="true" inputmode="decimal" value="${esc(fmt(goal?.target))}" required></label><label>VALOR JÁ GUARDADO (R$)<input name="saved" data-money="true" inputmode="decimal" value="${esc(fmt(goal?.saved || 0))}" required></label></div><label>PRAZO (OPCIONAL)<input name="deadline" type="date" value="${esc(goal?.deadline || '')}"></label><p class="v3-muted">O valor guardado aqui acompanha sua meta. Não movimenta uma conta automaticamente.</p><button type="submit" class="v3-primary">${demo ? 'Ver na demonstração' : 'Salvar meta'}</button>${goal ? `<button type="button" class="v3-secondary" data-action="delete-goal" data-goal="${esc(goal.id)}">Excluir meta</button>` : ''}</form>`, 'Meta financeira');
+    const contasPq = profile().accounts.filter((a) => !a.archived).map((a) => `<option value="${esc(a.id)}" ${goal?.accountId === a.id ? 'selected' : ''}>${esc(a.name || a.bank)}</option>`).join('');
+    const porcoGrande = global.Icons?.lucide?.('piggy-bank', 40)?.outerHTML || '';
+    openSheet(`${sheetTop(goal ? 'editar porquinho' : 'novo porquinho', 'dinheiro separado para um objetivo')}<form class="v3-form v3-porquinho-form" id="v3-form-goal"><div class="v3-porquinho-hero" aria-hidden="true">${porcoGrande}</div><input type="hidden" name="id" value="${esc(goal?.id || '')}"><label>NOME<input name="name" maxlength="80" value="${esc(goal?.name || '')}" placeholder="Ex.: Viagem, IPVA, Reserva" required></label><label>EM QUAL CONTA (OPCIONAL)<select name="accountId"><option value="">Nenhuma — só acompanhar</option>${contasPq}</select></label><div class="v3-form-row"><label>GUARDAR AGORA (R$)<input name="saved" data-money="true" inputmode="decimal" value="${esc(fmt(goal?.saved || 0))}" placeholder="0,00"></label><label>META (OPCIONAL)<input name="target" data-money="true" inputmode="decimal" value="${esc(goal && goal.target ? fmt(goal.target) : '')}" placeholder="0,00"></label></div><label>PRAZO (OPCIONAL)<input name="deadline" type="date" value="${esc(goal?.deadline || '')}"></label><p class="v3-muted">O porquinho mostra quanto já foi separado. Depois, use “Guardar” e “Tirar” no cartão dele.</p><button type="submit" class="v3-primary">${demo ? 'Ver na demonstração' : 'Salvar porquinho'}</button>${goal ? `<button type="button" class="v3-secondary" data-action="delete-goal" data-goal="${esc(goal.id)}">Excluir porquinho</button>` : ''}</form>`, 'Porquinho');
     const yieldMode=goal?.yieldIndexer || (goal?.annualRate!=null?'fixed':'none');
     document.querySelector('#v3-form-goal [name="deadline"]')?.closest('label')?.insertAdjacentHTML('afterend',`<div class="v3-goal-yield-fields"><label>COMO RENDE?<select name="yieldIndexer"><option value="none" ${yieldMode==='none'?'selected':''}>Sem rendimento</option><option value="cdi" ${yieldMode==='cdi'?'selected':''}>Percentual do CDI</option><option value="fixed" ${yieldMode==='fixed'?'selected':''}>Taxa anual fixa</option></select></label><label data-goal-yield="cdi" ${yieldMode==='cdi'?'':'hidden'}>PERCENTUAL DO CDI<input name="cdiPercent" type="number" inputmode="decimal" min="1" max="300" step="0.01" value="${esc(goal?.cdiPercent??100)}"><small>Ex.: 100% acompanha o CDI de referência.</small></label><label data-goal-yield="fixed" ${yieldMode==='fixed'?'':'hidden'}>TAXA ESTIMADA (% AO ANO)<input name="annualRate" inputmode="decimal" value="${esc(goal?.annualRate==null?'':String(goal.annualRate).replace('.',','))}" placeholder="Ex.: 10"></label><small class="v3-muted">O rendimento é uma projeção. O saldo da meta muda apenas quando você registra um aporte.</small></div>`);
     document.querySelector('#v3-form-goal [name="yieldIndexer"]')?.addEventListener('change',(event)=>{
@@ -3355,11 +3376,12 @@
       form.querySelector('button[type="submit"]')?.insertAdjacentHTML('beforebegin', '<p class="v3-muted">Proposta da Coco: confira nome, valor e prazo antes de salvar.</p>');
     }
   }
-  function goalDepositForm(id) {
+  function goalDepositForm(id, tirar) {
     const goal = profile().goals.find((g) => g.id === id);
     if (!goal) { toast('Esta meta não existe mais.'); return; }
     const options = profile().accounts.filter((a) => !a.archived).map((a) => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
-    openSheet(`${sheetTop('guardar na meta', goal.name)}<form class="v3-form" id="v3-form-goal-deposit"><input type="hidden" name="id" value="${esc(id)}"><label>VALOR (R$)<input name="amount" data-money="true" inputmode="decimal" placeholder="0,00" required></label><label>SAIR DE UMA CONTA<select name="accountId"><option value="">Não descontar de conta</option>${options}</select></label><p class="v3-muted">Se escolher uma conta, o valor sai do saldo dela e entra na meta. Esta ação não gera uma despesa.</p><button type="submit" class="v3-primary">${demo ? 'Ver na demonstração' : 'Guardar valor'}</button></form>`, 'Guardar valor');
+    const opcoes = options.replace(`value="${esc(goal.accountId || '')}"`, `value="${esc(goal.accountId || '')}" selected`);
+    openSheet(`${sheetTop(tirar ? 'tirar do porquinho' : 'guardar no porquinho', goal.name)}<form class="v3-form" id="v3-form-goal-deposit"><input type="hidden" name="id" value="${esc(id)}"><input type="hidden" name="sinal" value="${tirar ? '-1' : '1'}"><label>VALOR (R$)<input name="amount" data-money="true" inputmode="decimal" placeholder="0,00" required></label>${tirar ? `<p class="v3-muted">No porquinho: ${money(goal.saved)}.</p>` : ''}<label>${tirar ? 'VOLTAR PARA UMA CONTA' : 'SAIR DE UMA CONTA'}<select name="accountId"><option value="">${tirar ? 'Não devolver a uma conta' : 'Não descontar de conta'}</option>${goal.accountId ? opcoes : options}</select></label><p class="v3-muted">${tirar ? 'Se escolher uma conta, o valor volta para o saldo dela.' : 'Se escolher uma conta, o valor sai do saldo dela e entra no porquinho. Não gera despesa.'}</p><button type="submit" class="v3-primary">${demo ? 'Ver na demonstração' : (tirar ? 'Tirar valor' : 'Guardar valor')}</button></form>`, tirar ? 'Tirar do porquinho' : 'Guardar no porquinho');
   }
   /* =============================================================
      ESCOLHER ÍCONE E COR
@@ -3740,28 +3762,32 @@
     if (demo) { toast('Demonstração: nenhum dado foi salvo.'); return; }
     if (!await limitsReady()) { toast('Não consegui confirmar os limites da conta. Tente novamente.'); return; }
     const fd = new FormData(form), id = String(fd.get('id') || '');
-    const name = String(fd.get('name') || '').trim(), target = parseMoney(fd.get('target'));
+    const alvoTxt = String(fd.get('target') || '').trim(), guardadoTxt = String(fd.get('saved') || '').trim();
+    const name = String(fd.get('name') || '').trim(), target = alvoTxt ? parseMoney(alvoTxt) : 0;
     const existing = id ? Store.goals.get(id) : null;
-    const saved = existing ? Number(existing.saved || 0) : parseMoney(fd.get('saved'));
+    const saved = existing ? Number(existing.saved || 0) : (guardadoTxt ? parseMoney(guardadoTxt) : 0);
+    const accountId = String(fd.get('accountId') || '') || null;
+    if (accountId && !profile().accounts.some((x) => x.id === accountId)) { toast('Escolha uma conta válida.'); return; }
     const deadline = String(fd.get('deadline') || '');
     const yieldIndexer=String(fd.get('yieldIndexer')||'none');
     const rawRate=String(fd.get('annualRate')||'').trim(), annualRate=yieldIndexer==='fixed'?Number(rawRate.replace(',','.')):null;
     const cdiPercent=yieldIndexer==='cdi'?Number(String(fd.get('cdiPercent')||'').replace(',','.')):100;
-    if (!name || !(target > 0) || !Number.isFinite(saved) || saved < 0 || (deadline && !U.isValidISO(deadline)) || !['none','fixed','cdi'].includes(yieldIndexer) || (yieldIndexer==='fixed'&&(!rawRate||!Number.isFinite(annualRate)||annualRate<0||annualRate>100)) || (yieldIndexer==='cdi'&&(!Number.isFinite(cdiPercent)||cdiPercent<1||cdiPercent>300)) || (id && !Store.goals.get(id))) { toast('Confira nome, valores, rendimento e prazo.'); return; }
+    if (!name || !Number.isFinite(target) || target < 0 || !Number.isFinite(saved) || saved < 0 || (deadline && !U.isValidISO(deadline)) || !['none','fixed','cdi'].includes(yieldIndexer) || (yieldIndexer==='fixed'&&(!rawRate||!Number.isFinite(annualRate)||annualRate<0||annualRate>100)) || (yieldIndexer==='cdi'&&(!Number.isFinite(cdiPercent)||cdiPercent<1||cdiPercent>300)) || (id && !Store.goals.get(id))) { toast('Confira nome, valores, rendimento e prazo.'); return; }
     if (!id && !canAdd('goals', state.ym)) { toast('Esta meta ultrapassa o limite do seu plano.'); return; }
     try {
-      await V3Backend.mutate(() => id ? Store.goals.update(id, { name, target, saved, yieldIndexer, annualRate, cdiPercent, deadline: deadline || null }) : Store.goals.add({ name, target, saved, yieldIndexer, annualRate, cdiPercent, deadline: deadline || null }));
-      closeSheet(); render(); toast('Meta salva na sua conta.');
+      await V3Backend.mutate(() => id ? Store.goals.update(id, { name, target, saved, accountId, yieldIndexer, annualRate, cdiPercent, deadline: deadline || null }) : Store.goals.add({ name, target, saved, accountId, yieldIndexer, annualRate, cdiPercent, deadline: deadline || null }));
+      closeSheet(); render(); toast('Porquinho salvo.');
     } catch (error) { toast(error.message || 'Não foi possível salvar a meta.'); }
   }
   async function saveGoalDeposit(form) {
     if (demo) { toast('Demonstração: nenhum dado foi salvo.'); return; }
     const fd = new FormData(form), id = String(fd.get('id') || ''), amount = parseMoney(fd.get('amount'));
-    const accountId = String(fd.get('accountId') || '');
+    const accountId = String(fd.get('accountId') || ''), sinal = fd.get('sinal') === '-1' ? -1 : 1;
+    if (sinal < 0 && amount > Number(Store.goals.get(id)?.saved || 0) + 0.001) { toast('O porquinho não tem esse valor.'); return; }
     if (!Store.goals.get(id) || !(amount > 0) || (accountId && !profile().accounts.some((a) => a.id === accountId && !a.archived))) { toast('Confira a meta, o valor e a conta.'); return; }
     try {
-      await V3Backend.mutate(() => Store.goals.deposit(id, amount, { accountId: accountId || null, at: U.todayISO() }));
-      closeSheet(); render(); toast('Valor guardado na meta.');
+      await V3Backend.mutate(() => Store.goals.deposit(id, sinal * amount, { accountId: accountId || null, at: U.todayISO() }));
+      closeSheet(); render(); toast(sinal < 0 ? 'Valor retirado do porquinho.' : 'Valor guardado no porquinho.');
     } catch (error) { toast(error.message || 'Não foi possível guardar o valor.'); }
   }
   async function saveBudget(form) {
@@ -4565,6 +4591,7 @@
     }
     if (action==='add-goal'){goalForm();return;}
     if (action==='deposit-goal'){goalDepositForm(target.dataset.goal);return;}
+    if (action==='withdraw-goal'){goalDepositForm(target.dataset.goal,true);return;}
     if (action==='add-budget'){budgetForm();return;}
     if (action==='delete-goal' || action==='delete-budget') {
       const isGoal = action === 'delete-goal', id = target.dataset[isGoal ? 'goal' : 'budget'];
@@ -4635,6 +4662,7 @@
     if (action==='tirar-fonte'){state.filtros.fonte='todas';render();return;}
     if (action==='tirar-categoria'){state.filtros.categoria='todas';render();return;}
     if (action==='tirar-busca'){state.filtros.busca='';render();return;}
+    if (action==='limpar-busca-tudo'){state.buscaTudo='';render();$('#v3-trans-busca-q')?.focus();return;}
     if (action==='plan-info'){go('plan');return;}
     if (action==='demo-only'){toast('Esta é uma proposta visual; não houve nenhuma ação na sua conta.');return;}
   }
@@ -4769,6 +4797,17 @@
     document.addEventListener('input',(event)=>{
       if(event.target.matches?.('[data-voice-volume]'))voiceSession?.setVolume(Number(event.target.value)/100);
     });
+    /* Busca em todos os meses (tela de lançamentos): redesenha com
+       uma pausa curta e devolve o cursor para onde estava. */
+    let buscaTudoT=0;
+    document.addEventListener('input',(event)=>{
+      const campo=event.target.closest?.('[data-trans-busca] input');
+      if(!campo)return;
+      clearTimeout(buscaTudoT);
+      buscaTudoT=setTimeout(()=>{const pos=campo.selectionStart;state.buscaTudo=campo.value;render();const novo=$('#v3-trans-busca-q');if(novo){novo.focus();try{novo.setSelectionRange(pos,pos);}catch(e){}}},220);
+    });
+    document.addEventListener('submit',(event)=>{if(event.target.matches?.('[data-trans-busca]')){event.preventDefault();event.stopImmediatePropagation();}},true);
+    document.addEventListener('click',(event)=>{const item=event.target.closest?.('[data-editar-tx]');if(item&&global.OazeEditar)global.OazeEditar(item.dataset.editarTx);});
     /* Ordem dos widgets: setas (teclado e leitor de tela) e arrasto pela
        alça (mouse e dedo). A lista da gaveta é refeita no lugar, sem
        fechar a gaveta, e a Início por baixo acompanha. */

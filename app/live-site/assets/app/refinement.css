@@ -218,3 +218,25 @@ body.v3-arrastando,body.v3-arrastando *{cursor:grabbing!important;user-select:no
 .v3-chat-form .v3-coco-uso-mini svg{width:16px;height:16px;color:var(--teal);stroke:currentColor}
 .v3-chat-form .v3-coco-uso-mini.is-alto svg{color:#e7c36c}
 .v3-chat-form .v3-coco-uso-mini.is-cheio svg{color:#e07a6a}
+
+/* 01/11/2026 — busca em todos os meses dentro de lançamentos */
+.v3-trans-busca{position:relative;display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:0 12px;min-height:48px;border-radius:16px;border:1px solid var(--line);background:rgba(240,229,207,.04)}
+.v3-trans-busca:focus-within{border-color:var(--teal);box-shadow:0 0 0 2px rgba(95,169,155,.25)}
+.v3-trans-busca-rotulo{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.v3-trans-busca-ic{display:grid;place-items:center;color:var(--muted)}
+.v3-trans-busca input{flex:1;min-width:0;min-height:46px;border:0;background:transparent;color:var(--milk);font:inherit;font-size:15px;outline:none}
+.v3-trans-busca input::-webkit-search-cancel-button{display:none}
+.v3-busca-item{display:flex;width:100%;justify-content:space-between;align-items:center;gap:12px;padding:12px 4px;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.v3-busca-item:hover{background:rgba(240,229,207,.04)}
+.v3-busca-item span{display:grid;gap:3px;min-width:0}
+.v3-busca-item small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* porquinhos */
+.v3-porquinho h2{display:flex;align-items:center;gap:8px}
+.v3-porquinho-ic{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;background:rgba(244,167,122,.16);color:#f4a77a;flex:none}
+.v3-porquinho-acoes{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.v3-porquinho-hero{display:grid;place-items:center;width:72px;height:72px;margin:4px auto 6px;border-radius:24px;background:rgba(244,167,122,.14);color:#f4a77a}
+/* empréstimos e quitação */
+.oz-sim-bloco{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.oz-sec-titulo{font-size:18px;margin:0 0 8px}
+.oz-check{display:flex!important;align-items:center;gap:10px;font-size:14px!important}
+.oz-check input{width:20px;height:20px;accent-color:var(--teal)}

@@ -225,6 +225,17 @@ Sincroniza com o celular e o navegador
 | Site | https://oaze.site |
 | Suporte | https://oaze.site/suporte |
 
+**Identidade do produto no Partner Center (lida em 01/11/2026 — produto "oaze", ainda não enviado):**
+
+| Variável do repositório | Valor |
+| --- | --- |
+| `MSSTORE_IDENTITY_NAME` | `oazecompany.oaze` |
+| `MSSTORE_IDENTITY_PUBLISHER` | `CN=27047D41-680A-411D-BA2B-C0DA61C0BDDE` |
+| `MSSTORE_PUBLISHER_DISPLAY_NAME` | `oaze company` |
+
+Store ID `9PG02W7M9J53` · link da loja https://apps.microsoft.com/detail/9PG02W7M9J53
+· Package Family Name `oazecompany.oaze_z5pgmhzszpesr`.
+
 Os três valores de identidade do pacote (`MSSTORE_IDENTITY_NAME`,
 `MSSTORE_IDENTITY_PUBLISHER`, `MSSTORE_PUBLISHER_DISPLAY_NAME`) saem do próprio
 Partner Center, em **o produto → Product management → Product identity**, e vão

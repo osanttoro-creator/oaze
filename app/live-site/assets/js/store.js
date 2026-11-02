@@ -694,6 +694,8 @@
         parcelas, pagas: Math.min(parcelas, Math.max(0, parseInt(d.pagas, 10) || 0)),
         dia: Math.min(31, Math.max(1, parseInt(d.dia, 10) || 10)),
         juros: Number.isFinite(+d.juros) && +d.juros >= 0 && +d.juros < 100 ? Math.round(+d.juros * 100) / 100 : null,
+        /* conta de onde saem as parcelas lançadas (01/11/2026) */
+        contaId: typeof d.contaId === 'string' ? d.contaId.slice(0, 80) : null,
         criadoEm: U.isValidISO(d.criadoEm) ? d.criadoEm : U.todayISO()
       };
     });
@@ -724,6 +726,20 @@
       valor: U.round2(Math.max(0, +c.valor || 0)), meta: U.round2(Math.max(0, +c.meta || 0)),
       cor: /^#[0-9a-fA-F]{6}$/.test(c.cor || '') ? c.cor : '#5FA99B'
     }));
+    /* PORQUINHOS (01/11/2026): caixinha e meta eram a mesma coisa —
+       dinheiro separado para um objetivo. As caixinhas viram metas
+       com conta (o modelo de meta já tinha accountId, aportes e
+       rendimento). Mesmo id, então rodar de novo não duplica. */
+    if (prof.caixinhas.length) {
+      const jaTem = new Set(prof.goals.map((g) => g.id));
+      prof.caixinhas.forEach((c) => {
+        if (jaTem.has(c.id)) return;
+        prof.goals.push({ id: c.id, name: c.nome, target: c.meta, saved: c.valor, annualRate: null, yieldIndexer: 'none', cdiPercent: 100,
+          deadline: null, color: c.cor, icon: 'piggy-bank', accountId: c.contaId || null, categoryId: null, contribution: null,
+          automation: null, proposals: [], deposits: [] });
+      });
+      prof.caixinhas = [];
+    }
     /* Lista de desejos com "posso comprar?" (01/11/2026). */
     prof.desejos = (Array.isArray(prof.desejos) ? prof.desejos : []).filter((d) => d && txt(d.nome, 80)).slice(0, 100).map((d) => ({
       id: idOk(d.id, 'des'), nome: txt(d.nome, 80), valor: U.round2(Math.max(0, +d.valor || 0)),

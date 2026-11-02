@@ -170,12 +170,51 @@
       + (pior ? '<p class="oz-alerta">Pelo ritmo atual, o saldo fica negativo em <strong>' + nomeMes(pior.ym) + '</strong>. Veja o que dá para cortar ou adiar.</p>' : '<p class="oz-ok">No ritmo atual, o saldo segue positivo nos próximos ' + mesesProj + ' meses.</p>')
       + '<ol class="oz-proj">' + p.linhas.map((l) => '<li><span class="oz-proj-mes">' + esc(nomeMes(l.ym)) + '</span><span class="oz-proj-barra"><i class="' + (l.saldo < 0 ? 'neg' : '') + '" style="width:' + Math.max(2, Math.round(Math.abs(l.saldo) / max * 100)) + '%"></i></span><strong class="' + (l.saldo < 0 ? 'oz-neg' : '') + '">' + reais(l.saldo) + '</strong>'
         + '<small>entra ' + reais(l.entra) + ' · sai ' + reais(l.fixo + l.variavel) + '</small></li>').join('') + '</ol>'
+      + '<div class="oz-rel-acoes"><button type="button" class="v3-primary" data-oz-proj-pdf>Baixar PDF</button></div>'
       + '<p class="oz-nota">É estimativa, não promessa: compras novas no cartão e receitas não lançadas mudam o resultado.</p>';
+  }
+  async function pdfProjecao(botao) {
+    if (global.Limites && Limites.exigirRecurso && !Limites.exigirRecurso('pdfExport', 'A exportação em PDF')) return;
+    const p = projecao(mesesProj);
+    if (!p || !global.OazeEstadoPDF || !OazeEstadoPDF.projecao) { avisar('PDF indisponível agora.'); return; }
+    const rotulo = botao.textContent; botao.disabled = true; botao.textContent = 'Gerando PDF…';
+    try {
+      const pior = p.linhas.find((l) => l.saldo < 0);
+      await OazeEstadoPDF.projecao({ meses: mesesProj, inicial: p.inicial, variavel: p.variavel, rendaVar: p.rendaVar,
+        perfil: (P().name || 'Meu espaço'), pior: pior ? nomeMes(pior.ym) : '',
+        linhas: p.linhas.map((l) => ({ mes: nomeMes(l.ym), entra: l.entra, sai: l.fixo + l.variavel, saldo: l.saldo })) });
+      avisar('PDF das projeções pronto.');
+    } catch (e) { avisar((e && e.message) || 'Não consegui gerar o PDF.'); }
+    finally { botao.disabled = false; botao.textContent = rotulo; }
   }
 
   /* =============================================================
      3 e 4. FINANCIAMENTOS E EMPRÉSTIMOS
      ============================================================= */
+  /* PARCELAS NOS LANÇAMENTOS (01/11/2026)
+     Salvar um empréstimo ou financiamento lança as parcelas que faltam
+     como despesas previstas, uma por mês no dia do vencimento, ligadas
+     à dívida por dividaId. "Paguei uma parcela" confirma a próxima.
+     Editar refaz só as previstas; as já confirmadas ficam como estão. */
+  function ultimoDia(ym) { return new Date(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)), 0).getDate(); }
+  function lancarParcelas(p, d) {
+    p.transactions = (p.transactions || []).filter((t) => !(t.dividaId === d.id && !t.confirmed));
+    const contas = (p.accounts || []).filter((a) => !a.archived);
+    const conta = contas.find((a) => a.id === d.contaId) || contas[0];
+    const cat = (p.categories || []).find((c) => c.kind === 'expense' && /empr[eé]st|financ|d[ií]vida/i.test(c.name));
+    const h = hoje();
+    let ym = Number(h.slice(8, 10)) <= d.dia ? h.slice(0, 7) : somaMes(h.slice(0, 7), 1);
+    const grupo = 'div-' + d.id;
+    for (let i = d.pagas + 1; i <= d.parcelas; i++) {
+      const data = ym + '-' + String(Math.min(d.dia, ultimoDia(ym))).padStart(2, '0');
+      const tx = { kind: 'expense', description: d.nome + (d.parcelas > 1 ? ' (' + i + '/' + d.parcelas + ')' : ''), amount: d.parcela, date: data,
+        accountId: conta ? conta.id : null, categoryId: cat ? cat.id : null, confirmed: false, dividaId: d.id,
+        installment: d.parcelas > 1 ? { total: d.parcelas, index: i, groupId: grupo } : null,
+        notes: (d.tipo === 'financiamento' ? 'Financiamento' : 'Empréstimo') + (d.instituicao ? ' · ' + d.instituicao : '') };
+      p.transactions.push(global.Store && Store.normalizeTx ? Store.normalizeTx(tx) : Object.assign({ id: uid('tx') }, tx));
+      ym = somaMes(ym, 1);
+    }
+  }
   function telaDividas(tipo) {
     const lista = (P().dividas || []).filter((d) => d.tipo === tipo);
     const nome = tipo === 'financiamento' ? 'financiamento' : 'empréstimo';
@@ -191,7 +230,8 @@
           + '<small class="oz-card-sub">' + d.pagas + ' de ' + d.parcelas + ' parcelas pagas · ' + (falta ? 'falta ' + reais(d.parcela * falta) + ' · termina em ' + nomeMes(fim) : 'quitado') + ' · vence dia ' + d.dia + '</small>'
           + '<div class="oz-card-acoes">' + (falta ? '<button type="button" class="v3-secondary" data-oz-div-paga="' + esc(d.id) + '">Paguei uma parcela</button>' : '') + '<button type="button" class="v3-link" data-oz-div-editar="' + esc(d.id) + '">Editar</button><button type="button" class="v3-link oz-perigo" data-oz-div-excluir="' + esc(d.id) + '">Excluir</button></div></li>';
       }).join('') + '</ul>' : '<p class="oz-vazio">Nenhum ' + nome + ' cadastrado.</p>')
-      + formDivida(tipo, null);
+      + formDivida(tipo, null)
+      + (tipo === 'emprestimo' && global.OazeFuncoes && OazeFuncoes.simuladorHtml ? OazeFuncoes.simuladorHtml() : '');
   }
   function formDivida(tipo, d) {
     const v = (x) => (x == null ? '' : esc(String(x).replace('.', ',')));
@@ -199,9 +239,12 @@
       + '<form class="v3-form" data-oz-form="divida"><input type="hidden" name="tipo" value="' + tipo + '"><input type="hidden" name="id" value="' + (d ? esc(d.id) : '') + '">'
       + '<label>NOME<input name="nome" maxlength="60" required placeholder="' + (tipo === 'financiamento' ? 'Ex.: Carro' : 'Ex.: Empréstimo pessoal') + '" value="' + (d ? esc(d.nome) : '') + '"></label>'
       + '<label>INSTITUIÇÃO (OPCIONAL)<input name="instituicao" maxlength="60" value="' + (d ? esc(d.instituicao) : '') + '"></label>'
+      + '<label>PAGO PELA CONTA<select name="contaId">' + (P().accounts || []).filter((a) => !a.archived).map((a) => '<option value="' + esc(a.id) + '"' + (d && d.contaId === a.id ? ' selected' : '') + '>' + esc(a.name || a.bank) + '</option>').join('') + '</select></label>'
       + '<div class="v3-form-row"><label>VALOR DA PARCELA<input name="parcela" inputmode="decimal" required placeholder="0,00" value="' + (d ? v(d.parcela.toFixed(2)) : '') + '"></label><label>DIA DO VENCIMENTO<input name="dia" type="number" min="1" max="31" value="' + (d ? d.dia : 10) + '"></label></div>'
       + '<div class="v3-form-row"><label>TOTAL DE PARCELAS<input name="parcelas" type="number" min="1" max="600" required value="' + (d ? d.parcelas : '') + '"></label><label>JÁ PAGAS<input name="pagas" type="number" min="0" max="600" value="' + (d ? d.pagas : 0) + '"></label></div>'
       + '<div class="v3-form-row"><label>VALOR CONTRATADO (OPCIONAL)<input name="valorTotal" inputmode="decimal" placeholder="0,00" value="' + (d && d.valorTotal ? v(d.valorTotal.toFixed(2)) : '') + '"></label><label>JUROS % AO MÊS (OPCIONAL)<input name="juros" inputmode="decimal" value="' + (d && d.juros != null ? v(d.juros) : '') + '"></label></div>'
+      + (!d && tipo === 'emprestimo' ? '<label class="oz-check"><input type="checkbox" name="lancarEntrada"> Lançar o valor contratado como entrada hoje</label>' : '')
+      + '<p class="v3-muted">As parcelas que faltam entram nos lançamentos como despesas previstas, uma por mês.</p>'
       + '<button class="v3-primary" type="submit">' + (d ? 'Salvar' : 'Adicionar') + '</button></form></details>';
   }
 
@@ -279,10 +322,15 @@
      ============================================================= */
   const TELAS = {
     projecoes: ['Projeções', telaProjecoes],
-    financiamentos: ['Financiamentos', () => telaDividas('financiamento')], emprestimos: ['Empréstimos', () => telaDividas('emprestimo')],
+    financiamentos: ['Financiamentos', () => telaDividas('financiamento')], emprestimos: ['Empréstimos e quitação', () => telaDividas('emprestimo')],
+    simulador: ['Empréstimos e quitação', () => telaDividas('emprestimo')],
     receber: ['Quem me deve', telaReceber], relatorio: ['Relatório personalizado', telaRelatorio]
   };
-  function abrir(qual) { const t = TELAS[qual]; if (t) abrirTela(t[0], t[1]); }
+  function abrir(qual) {
+    /* caixinhas viraram porquinhos, que moram na tela de metas */
+    if (qual === 'caixinhas') { fecharTela(); const b = document.createElement('button'); b.type = 'button'; b.dataset.go = 'goals'; b.hidden = true; document.body.appendChild(b); b.click(); b.remove(); return; }
+    const t = TELAS[qual]; if (t) abrirTela(t[0], t[1]);
+  }
 
   document.addEventListener('click', async (ev) => {
     const alvo = ev.target.closest('[data-oz-mais]');
@@ -307,8 +355,18 @@
     if (d.ozMeses) { mesesProj = Number(d.ozMeses); redesenhar(); }
     else if (d.ozTagRenomear) { const t = P().tags.find((x) => x.id === d.ozTagRenomear); const nome = t && global.prompt('Novo nome da tag', t.nome); if (nome && nome.trim()) { await mudar(() => { const x = P().tags.find((y) => y.id === t.id); if (x) x.nome = nome.trim().replace(/^#/, '').slice(0, 30); }); redesenhar(); } }
     else if (d.ozTagExcluir) { if (global.confirm('Excluir esta tag? Os lançamentos continuam, só perdem a marcação.')) { await mudar(() => { const p = P(); p.tags = p.tags.filter((x) => x.id !== d.ozTagExcluir); p.transactions.forEach((t) => { if (t.tags && t.tags.includes(d.ozTagExcluir)) t.tags = t.tags.filter((x) => x !== d.ozTagExcluir); }); }, 'Tag excluída.'); redesenhar(); } }
-    else if (d.ozDivPaga) { await mudar(() => { const x = P().dividas.find((y) => y.id === d.ozDivPaga); if (x && x.pagas < x.parcelas) x.pagas++; }, 'Parcela marcada como paga.'); redesenhar(); }
-    else if (d.ozDivExcluir) { if (global.confirm('Excluir este registro?')) { await mudar(() => { const p = P(); p.dividas = p.dividas.filter((y) => y.id !== d.ozDivExcluir); }); redesenhar(); } }
+    else if (d.ozDivPaga) {
+      await mudar(() => {
+        const p = P(), x = p.dividas.find((y) => y.id === d.ozDivPaga);
+        if (!x || x.pagas >= x.parcelas) return;
+        x.pagas++;
+        const proxima = (p.transactions || []).filter((t) => t.dividaId === x.id && !t.confirmed).sort((a, b) => (a.date < b.date ? -1 : 1))[0];
+        if (proxima) proxima.confirmed = true;
+      }, 'Parcela paga e confirmada nos lançamentos.');
+      redesenhar();
+    }
+    else if (b.hasAttribute('data-oz-proj-pdf')) await pdfProjecao(b);
+    else if (d.ozDivExcluir) { if (global.confirm('Excluir este registro? As parcelas ainda previstas saem dos lançamentos; as já pagas ficam.')) { await mudar(() => { const p = P(); p.dividas = p.dividas.filter((y) => y.id !== d.ozDivExcluir); p.transactions = (p.transactions || []).filter((t) => !(t.dividaId === d.ozDivExcluir && !t.confirmed)); }, 'Excluído.'); redesenhar(); } }
     else if (d.ozDivEditar) { const x = P().dividas.find((y) => y.id === d.ozDivEditar); if (x) { const c = tela.el.querySelector('.oz-tela-corpo'); c.querySelector('.oz-form-box:last-of-type')?.remove(); c.insertAdjacentHTML('beforeend', formDivida(x.tipo, x)); c.querySelector('.oz-form-box:last-of-type input[name="nome"]').focus(); } }
     else if (d.ozRecTudo) { await mudar(() => { const x = P().aReceber.find((y) => y.id === d.ozRecTudo); if (x) { x.recebido = x.valor; x.quitado = true; } }, 'Marcado como recebido.'); redesenhar(); }
     else if (d.ozRecParcial) { const x = P().aReceber.find((y) => y.id === d.ozRecParcial); const v = x && num(global.prompt('Quanto você recebeu agora?', '')); if (v > 0) { await mudar(() => { const y = P().aReceber.find((z) => z.id === x.id); y.recebido = Math.min(y.valor, Math.round((y.recebido + v) * 100) / 100); y.quitado = y.recebido >= y.valor; }); redesenhar(); } }
@@ -325,11 +383,23 @@
     else if (qual === 'divida') {
       const dados = { tipo: fd.get('tipo'), nome: String(fd.get('nome') || '').trim(), instituicao: String(fd.get('instituicao') || '').trim(),
         parcela: num(fd.get('parcela')), parcelas: parseInt(fd.get('parcelas'), 10) || 1, pagas: parseInt(fd.get('pagas'), 10) || 0,
-        dia: parseInt(fd.get('dia'), 10) || 10, valorTotal: num(fd.get('valorTotal')), juros: String(fd.get('juros') || '').trim() ? num(fd.get('juros')) : null };
+        dia: parseInt(fd.get('dia'), 10) || 10, valorTotal: num(fd.get('valorTotal')), juros: String(fd.get('juros') || '').trim() ? num(fd.get('juros')) : null,
+        contaId: String(fd.get('contaId') || '') || null };
+      const entrada = !!fd.get('lancarEntrada') && dados.valorTotal > 0;
       if (!dados.nome || !(dados.parcela > 0)) { avisar('Preencha o nome e o valor da parcela.'); return; }
       dados.pagas = Math.min(dados.pagas, dados.parcelas);
       const id = fd.get('id');
-      await mudar(() => { const p = P(); p.dividas = p.dividas || []; const x = id && p.dividas.find((y) => y.id === id); if (x) Object.assign(x, dados); else p.dividas.push(Object.assign({ id: uid('div'), criadoEm: hoje() }, dados)); }, id ? 'Salvo.' : 'Adicionado.');
+      await mudar(() => {
+        const p = P(); p.dividas = p.dividas || [];
+        let x = id && p.dividas.find((y) => y.id === id);
+        if (x) Object.assign(x, dados); else { x = Object.assign({ id: uid('div'), criadoEm: hoje() }, dados); p.dividas.push(x); }
+        lancarParcelas(p, x);
+        if (entrada && !id) {
+          const conta = (p.accounts || []).find((a) => a.id === x.contaId) || (p.accounts || []).find((a) => !a.archived);
+          const tx = { kind: 'income', description: 'Empréstimo recebido: ' + x.nome, amount: x.valorTotal, date: hoje(), accountId: conta ? conta.id : null, confirmed: true, dividaId: x.id };
+          p.transactions.push(global.Store && Store.normalizeTx ? Store.normalizeTx(tx) : Object.assign({ id: uid('tx') }, tx));
+        }
+      }, id ? 'Salvo. As parcelas previstas foram atualizadas.' : 'Adicionado. As parcelas já estão nos lançamentos.');
       redesenhar();
     } else if (qual === 'receber') {
       const item = { id: uid('rec'), pessoa: String(fd.get('pessoa') || '').trim(), descricao: String(fd.get('descricao') || '').trim(), valor: num(fd.get('valor')), recebido: 0, data: hoje(), vence: fd.get('vence') || null, quitado: false };

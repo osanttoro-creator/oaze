@@ -70,11 +70,12 @@
   /* Na carteira: "R$ X em caixinhas · livre R$ Y" embaixo do saldo da conta aberta. */
   function linhaCarteira() {
     const bolso = document.querySelector('.v3-wallet-pocket');
-    if (!bolso || !(P().caixinhas || []).length) return;
-    const total = (P().caixinhas || []).reduce((s, c) => s + c.valor, 0);
+    const porquinhos = (P().goals || []).filter((g) => g.accountId && g.saved > 0);
+    if (!bolso || !porquinhos.length) return;
+    const total = porquinhos.reduce((s, g) => s + g.saved, 0);
     let linha = bolso.querySelector('[data-oz-cx-linha]');
-    const html = '<small class="oz-cx-linha" data-oz-cx-linha>' + reais(total) + ' guardado em caixinhas · <button type="button" class="v3-link" data-oz-mais="caixinhas">ver</button></small>';
-    const texto = reais(total) + ' guardado em caixinhas';
+    const html = '<small class="oz-cx-linha" data-oz-cx-linha>' + reais(total) + ' guardado em porquinhos · <button type="button" class="v3-link" data-go="goals">ver</button></small>';
+    const texto = reais(total) + ' guardado em porquinhos';
     if (linha) { if (linha.dataset.ozTexto !== texto) { linha.dataset.ozTexto = texto; linha.firstChild.textContent = texto + ' · '; } return; }
     bolso.insertAdjacentHTML('beforeend', html.replace('data-oz-cx-linha>', 'data-oz-cx-linha data-oz-texto="' + esc(texto) + '">'));
   }
@@ -165,6 +166,11 @@
       sobra = 0;
     }
     return { meses: mes, juros: Math.round(juros * 100) / 100, fim: somaMes(hoje().slice(0, 7), mes - 1) };
+  }
+  /* O simulador mora dentro de "Empréstimos e quitação" (01/11/2026). */
+  function simuladorHtml() {
+    if (!(P().dividas || []).some((d) => d.pagas < d.parcelas)) return '';
+    return '<section class="oz-sim-bloco" aria-labelledby="oz-sim-titulo"><h2 id="oz-sim-titulo" class="oz-sec-titulo">Simular a quitação</h2>' + telaSimulador() + '</section>';
   }
   function telaSimulador() {
     const ativas = (P().dividas || []).filter((d) => d.pagas < d.parcelas);
@@ -376,9 +382,7 @@
      ============================================================= */
   function registrarTudo() {
     if (!global.OazeMais || !OazeMais.registrar) return false;
-    OazeMais.registrar('caixinhas', 'Caixinhas', telaCaixinhas);
     OazeMais.registrar('busca', 'Buscar lançamentos', telaBusca);
-    OazeMais.registrar('simulador', 'Simulador de quitação', telaSimulador);
     OazeMais.registrar('banco', 'Avisos do banco', telaBanco);
     OazeMais.registrar('nota', 'Nota fiscal (NFC-e)', telaNota);
     OazeMais.registrar('ir', 'Relatório para o IR', telaIR);
@@ -487,7 +491,13 @@
   }).observe(document.body, { childList: true, subtree: true });
   document.addEventListener('oaze:render', () => { try { linhaCarteira(); } catch { /* sem perfil */ } });
 
-  global.OazeFuncoes = { lembretes: lembretesResumo, lerAviso, saldoDevedor, simular, abrirBanco };
+  /* Busca em todos os meses, usada também na tela de lançamentos. */
+  function buscarTudo(q) {
+    const salvo = Object.assign({}, busca);
+    Object.assign(busca, { q: String(q || ''), conta: '', tag: '', min: '', max: '' });
+    try { return resultados(); } finally { Object.assign(busca, salvo); }
+  }
+  global.OazeFuncoes = { lembretes: lembretesResumo, lerAviso, saldoDevedor, simular, abrirBanco, simuladorHtml, buscarTudo, nomeCategoria, nomeConta };
 })(window);
 /* Volta da tela "Acesso a notificações" do Android: atualiza a lista. */
 document.addEventListener('visibilitychange', () => {
