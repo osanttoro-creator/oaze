@@ -721,22 +721,32 @@
     if (ancora) ancora.insertAdjacentHTML('afterend', blocoInicio());
     else view.insertAdjacentHTML('afterbegin', blocoInicio());
   }
+  let pendingCoco = null;
   function perguntarCoco(texto) {
     const pergunta = String(texto || '').trim().slice(0, 500);
     if (!pergunta) return;
     const ir = document.querySelector('[data-go="coco"]');
-    if (!ir) return;
+    if (!ir) { avisar('A Coco ainda não está disponível. Tente novamente.'); return; }
+    if (pendingCoco) { pendingCoco.observer.disconnect(); clearTimeout(pendingCoco.timer); pendingCoco = null; }
     ir.click();
-    let tentativas = 0;
-    (function enviar() {
+    const enviar = () => {
       const form = document.getElementById('v3-chat-form');
-      if (form && form.elements.question) {
-        form.elements.question.value = pergunta;
-        if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        return;
-      }
-      if (++tentativas < 20) setTimeout(enviar, 50);
-    })();
+      if (!form?.elements.question) return false;
+      form.elements.question.value = pergunta;
+      pendingCoco?.observer.disconnect(); clearTimeout(pendingCoco?.timer); pendingCoco = null;
+      if (form.requestSubmit) form.requestSubmit();
+      else form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      return true;
+    };
+    if (enviar()) return;
+    const observer = new MutationObserver(() => { enviar(); });
+    observer.observe(document.body, { childList: true, subtree: true });
+    const timer = setTimeout(() => {
+      observer.disconnect(); pendingCoco = null;
+      avisar('A conversa da Coco não abriu. Entre na área Coco e tente novamente.');
+    }, 15000);
+    pendingCoco = { observer, timer };
+    enviar();
   }
   document.addEventListener('submit', (ev) => {
     const form = ev.target.closest && ev.target.closest('[data-oz-pergunta]');
