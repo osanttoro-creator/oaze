@@ -441,6 +441,26 @@
       if (abriu) nota = null; else M().abrir('nota');
     }
     else if (b.hasAttribute('data-oz-ir-csv')) csvIR();
+    else if (b.hasAttribute('data-oz-rel-imprimir') && b.closest('[data-oz-f="ir"]') == null) {
+      if (!global.OazeEstadoPDF?.tabular) { avisar('Gerador de PDF indisponível.'); return; }
+      b.disabled = true; b.textContent = 'Preparando PDF…';
+      try {
+        const r = dadosIR(anoIR);
+        const sec = (title, entries) => ({ title, rows: entries });
+        await global.OazeEstadoPDF.tabular({
+          title: 'Resumo para declaração',
+          period: 'Ano-calendário ' + anoIR,
+          fileName: 'oaze-ir-' + anoIR + '.pdf',
+          sections: [
+            sec('Rendimentos', Object.entries(r.rend).map(([label, value]) => ({ label, value: reais(value) }))),
+            sec('Pagamentos possivelmente dedutíveis', Object.entries(r.ded).flatMap(([group, list]) => list.map((e) => ({ label: group + ' · ' + e.date + ' · ' + e.description, value: reais(e.amount) })))),
+            sec('Bens e direitos', r.bens.map((e) => ({ label: e.nome, value: reais(e.valor) }))),
+            sec('Dívidas', r.dividas.map((e) => ({ label: e.nome, value: reais(e.valor) })))
+          ]
+        });
+      } catch (error) { avisar(error?.message || 'Não foi possível criar o PDF.'); }
+      finally { b.disabled = false; b.textContent = 'Imprimir ou salvar PDF'; }
+    }
     else if (d.ozDesComprei) { await mudar(() => { const x = P().desejos.find((y) => y.id === d.ozDesComprei); if (x) x.comprado = true; }, 'Marcado como comprado.'); redesenhar(); }
     else if (d.ozDesExcluir) { await mudar(() => { const p = P(); p.desejos = p.desejos.filter((y) => y.id !== d.ozDesExcluir); }); redesenhar(); }
     else if (d.ozDesCoco) {
