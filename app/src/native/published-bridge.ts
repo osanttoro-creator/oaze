@@ -70,7 +70,7 @@ if (android || desktop) {
     isEnabled: () => localStorage.getItem(biometricKey) === '1',
     async available() {
       try {
-        if (android) return (await BiometricAuth.checkBiometry()).isAvailable;
+        if (android) { const info = await BiometricAuth.checkBiometry(); return info.isAvailable || info.deviceIsSecure; }
         return await nativeWindow.__TAURI_INTERNALS__!.invoke<boolean>('oaze_biometrics_available');
       } catch { return false; }
     },
