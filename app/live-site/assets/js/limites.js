@@ -96,7 +96,13 @@
           cancelaNoFim: !!data.cancela_no_fim,
           limites: data.limites || PADRAO.limites,
           recursos: data.recursos || PADRAO.recursos,
-          anuncios: data.anuncios || ANUNCIOS_VAZIO
+          anuncios: data.anuncios || ANUNCIOS_VAZIO,
+          /* onde foi pago (stripe, google_play...) e se está no teste grátis;
+             o plano vale em todos os aparelhos da conta do mesmo jeito */
+          origem: data.origem || 'nenhuma',
+          emTeste: !!data.em_teste,
+          testeAte: data.teste_ate || null,
+          carregado: true
         };
       }
       await Limites.carregarConsumo();
@@ -324,6 +330,7 @@
        antes era este módulo que mandava três telas do painel
        anterior se repintarem, uma a uma e por nome. */
     if (typeof Limites.aoMudar === 'function') Limites.aoMudar();
+    try { global.dispatchEvent(new CustomEvent('oaze:direitos', { detail: direitos })); } catch (e) { /* sem eventos */ }
   };
 
   Limites.aoSair = function () {
@@ -331,6 +338,7 @@
     consumoIA = { usado: 0, limite: PADRAO.limites.ai_queries_per_month };
     consumoCoco = COCO_VAZIO;
     if (typeof Limites.aoMudar === 'function') Limites.aoMudar();
+    try { global.dispatchEvent(new CustomEvent('oaze:direitos', { detail: direitos })); } catch (e) { /* sem eventos */ }
   };
 
   global.Limites = Limites;
