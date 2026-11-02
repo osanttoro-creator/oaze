@@ -22,25 +22,29 @@
   border-left:6px solid var(--card-plastic,#5fa99b);
 }
 .v3-wallet-item:after{background:linear-gradient(90deg,var(--card-plastic,#5fa99b),color-mix(in srgb,var(--card-plastic,#5fa99b) 70%,#f0e5cf)) 0 0 / 13px 100% no-repeat;}
-/* Um controle grande e legível para decisões independentes. Os chips de escolha múltipla mantêm seu formato. */
-.v3-check>input[type="checkbox"],.oz-pref>input[type="checkbox"]{
-  appearance:none;-webkit-appearance:none;flex:none;width:76px;height:40px;min-width:76px;
-  border:1px solid rgba(240,229,207,.36);border-radius:999px;background:#22323b;
-  position:relative;cursor:pointer;vertical-align:middle;transition:background .18s ease,border-color .18s ease;
+/* Liga/desliga do aplicativo: controle único com texto visível e toque confortável. */
+.v3 input[type="checkbox"]:not([hidden]),.oz-pref>input[type="checkbox"]{
+  appearance:none;-webkit-appearance:none;display:inline-block;position:relative;flex:none;
+  width:76px!important;min-width:76px;height:40px!important;margin:0;
+  border:1px solid rgba(240,229,207,.42);border-radius:999px;background:#22323b;
+  box-sizing:border-box;cursor:pointer;vertical-align:middle;
+  transition:background .18s ease,border-color .18s ease;
 }
-.v3-check>input[type="checkbox"]::before,.oz-pref>input[type="checkbox"]::before{
+.v3 input[type="checkbox"]:not([hidden])::before,.oz-pref>input[type="checkbox"]::before{
   content:"OFF";position:absolute;right:9px;top:50%;transform:translateY(-50%);
-  color:#f0e5cf;font:700 11px/1 Arial,sans-serif;letter-spacing:.06em;
+  color:#f0e5cf;font:700 11px/1 Instrument,Arial,sans-serif;letter-spacing:.06em;
 }
-.v3-check>input[type="checkbox"]::after,.oz-pref>input[type="checkbox"]::after{
+.v3 input[type="checkbox"]:not([hidden])::after,.oz-pref>input[type="checkbox"]::after{
   content:"";position:absolute;left:5px;top:5px;width:28px;height:28px;border-radius:50%;
   background:#f0e5cf;box-shadow:0 1px 5px rgba(0,0,0,.35);transition:left .18s ease;
 }
-.v3-check>input[type="checkbox"]:checked,.oz-pref>input[type="checkbox"]:checked{background:var(--swatch,var(--teal,#5fa99b));border-color:var(--swatch,var(--teal,#5fa99b));}
-.v3-check>input[type="checkbox"]:checked::before,.oz-pref>input[type="checkbox"]:checked::before{content:"ON";left:11px;right:auto;color:#07141c;}
-.v3-check>input[type="checkbox"]:checked::after,.oz-pref>input[type="checkbox"]:checked::after{left:41px;background:#07141c;}
-.v3-check>input[type="checkbox"]:focus-visible,.oz-pref>input[type="checkbox"]:focus-visible{outline:3px solid #f0e5cf;outline-offset:3px;}
-@media(prefers-reduced-motion:reduce){.v3-check>input[type="checkbox"],.oz-pref>input[type="checkbox"],.v3-check>input[type="checkbox"]::after,.oz-pref>input[type="checkbox"]::after{transition:none;}}
+.v3 input[type="checkbox"]:not([hidden]):checked,.oz-pref>input[type="checkbox"]:checked{
+  background:var(--swatch,var(--teal,#5fa99b));border-color:var(--swatch,var(--teal,#5fa99b));
+}
+.v3 input[type="checkbox"]:not([hidden]):checked::before,.oz-pref>input[type="checkbox"]:checked::before{content:"ON";left:11px;right:auto;color:#07141c;}
+.v3 input[type="checkbox"]:not([hidden]):checked::after,.oz-pref>input[type="checkbox"]:checked::after{left:41px;background:#07141c;}
+.v3 input[type="checkbox"]:not([hidden]):focus-visible,.oz-pref>input[type="checkbox"]:focus-visible{outline:3px solid #f0e5cf;outline-offset:3px;}
+@media(prefers-reduced-motion:reduce){.v3 input[type="checkbox"],.v3 input[type="checkbox"]::after,.oz-pref>input[type="checkbox"],.oz-pref>input[type="checkbox"]::after{transition:none;}}
 /* Seletores nativos com mesmo material, seta e foco em todas as telas. */
 .v3-form select:not([multiple]),.oz-pref-hora select:not([multiple]){
   min-height:44px;accent-color:var(--swatch,var(--teal,#5fa99b));
@@ -84,3 +88,7 @@
 .v3-agenda-check[role="checkbox"].is-paid::before{content:"ON";left:11px;right:auto;color:#07141c}
 .v3-agenda-check[role="checkbox"].is-paid::after{left:41px;background:#07141c}
 .v3-agenda-check[role="checkbox"]:focus-visible{outline:3px solid #f0e5cf;outline-offset:3px}
+
+/* Seletores nativos seguem a mesma escala de texto e a cor de contexto. */
+.v3 select:not([multiple]):not([hidden]){min-height:52px;font-size:15px;font-weight:600;color:var(--swatch,#f0e5cf);padding-inline:14px 38px;}
+.v3 select:not([multiple]):not([hidden]) option{color:#f0e5cf;background:#14242d;}
