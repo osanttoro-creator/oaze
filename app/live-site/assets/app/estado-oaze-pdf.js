@@ -178,5 +178,45 @@
     if (global.OAZE_NATIVE_SAVE_PDF) await global.OAZE_NATIVE_SAVE_PDF(nome, base64(new Uint8Array(doc.output('arraybuffer'))));
     else doc.save(nome);
   }
-  global.OazeEstadoPDF = { generate, projecao };
+  async function tabular(report) {
+    const PDF = await library();
+    const doc = new PDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const dark = [13, 24, 33], milk = [240, 229, 207], teal = [95, 169, 155];
+    let page = 0, y = 36;
+    const newPage = () => {
+      if (page) doc.addPage();
+      page++;
+      doc.setFillColor(...dark); doc.rect(0, 0, 210, 297, 'F');
+      doc.setTextColor(...teal); doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
+      doc.text('OAZE', 18, 20);
+      doc.setTextColor(...milk); doc.setFontSize(8);
+      doc.text(String(page).padStart(2, '0'), 192, 281, { align: 'right' });
+      doc.setDrawColor(53, 85, 101); doc.line(18, 272, 192, 272);
+      y = 36;
+    };
+    const space = (height) => { if (y + height > 261) newPage(); };
+    newPage();
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...milk);
+    doc.text(doc.splitTextToSize(String(report.title || 'Relatório OAZE'), 170), 18, y); y += 17;
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...teal);
+    doc.text(String(report.period || ''), 18, y); y += 12;
+    for (const section of report.sections || []) {
+      space(25); doc.setTextColor(...teal); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+      doc.text(String(section.title || ''), 18, y); y += 9;
+      for (const row of section.rows || []) {
+        space(15); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...milk);
+        const label = doc.splitTextToSize(String(row.label || ''), 120).slice(0, 2);
+        doc.text(label, 18, y);
+        doc.text(String(row.value || ''), 192, y, { align: 'right' });
+        y += Math.max(12, label.length * 5 + 3);
+      }
+      if (!(section.rows || []).length) { space(12); doc.setFontSize(9); doc.setTextColor(...milk); doc.text('Sem dados neste período.', 18, y); y += 12; }
+      y += 5;
+    }
+    doc.setProperties({ title: String(report.title || 'Relatório OAZE'), author: 'OAZE' });
+    const fileName = String(report.fileName || 'relatorio-oaze.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
+    if (global.OAZE_NATIVE_SAVE_PDF) await global.OAZE_NATIVE_SAVE_PDF(fileName, base64(new Uint8Array(doc.output('arraybuffer'))));
+    else doc.save(fileName);
+  }
+  global.OazeEstadoPDF = { generate, projecao, tabular };
 })(window);
