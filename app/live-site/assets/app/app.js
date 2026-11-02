@@ -2567,12 +2567,17 @@
         const chosen=choices.find((option)=>option.value===select.value)||choices[0];
         const title=chosen?.textContent?.trim()||'Selecione';
         const display=shortStatus(chosen?.value,title)(name);
-        details.querySelector('summary').innerHTML=`${optionArtwork(name,chosen?.value||'')}<span>${esc(display)}</span><span class="v3-picker-caret" aria-hidden="true">⌄</span>`;
+        const selectedArtwork=optionArtwork(name,chosen?.value||'');
+        const selectedAccent=selectedArtwork.match(/--(?:picker-accent|bank-bg):([^;\"]+)/)?.[1]||'#5FA99B';
+        details.style.setProperty('--picker-current-accent',selectedAccent);
+        details.querySelector('summary').innerHTML=`${selectedArtwork}<span>${esc(display)}</span><span class="v3-picker-caret" aria-hidden="true">⌄</span>`;
         details.querySelector('summary').setAttribute('aria-label',`${labelNames[name]}: ${display}. Abrir opções`);
         details.querySelector('.v3-picker-options').innerHTML=choices.map((option)=>{
           const value=option.value, active=value===select.value;
           const labelText=option.textContent.trim();
-          return `<button type="button" role="option" aria-selected="${active}" class="${active?'is-selected':''}" data-picker-value="${esc(value)}">${optionArtwork(name,value)}<span>${esc(shortStatus(value,labelText)(name))}${name==='situacao'?`<small>${esc(labelText.replace(/^[^\s]+\s*/,''))}</small>`:''}</span>${active?'<b aria-hidden="true">✓</b>':''}</button>`;
+          const artwork=optionArtwork(name,value);
+          const accent=artwork.match(/--(?:picker-accent|bank-bg):([^;\"]+)/)?.[1]||'#5FA99B';
+          return `<button type="button" role="option" aria-selected="${active}" class="${active?'is-selected':''}" data-picker-value="${esc(value)}" style="--picker-option-accent:${esc(accent)}">${artwork}<span>${esc(shortStatus(value,labelText)(name))}${name==='situacao'?`<small>${esc(labelText.replace(/^[^\s]+\s*/,''))}</small>`:''}</span>${active?'<b aria-hidden="true">✓</b>':''}</button>`;
         }).join('');
       };
       details.addEventListener('click',(event)=>{
@@ -2732,7 +2737,7 @@
       options.className='v3-installment-options';
       options.hidden=true;
       options.innerHTML='<label>PARCELA ATUAL<input type="number" name="installmentCurrent" min="1" max="72" value="1"></label><label>VALOR INFORMADO<select name="installmentAmountMode"><option value="total">Total da compra</option><option value="each">Valor de cada parcela</option></select></label><small>Débito: próximas parcelas ficam previstas na conta. Crédito: entram nas próximas faturas. Parcelas anteriores à atual não são recriadas.</small>';
-      installmentsField.after(options);
+      repeatMode.append(installmentsField, options, txForm.querySelector('#v3-repeat-fields'));
       const chooseMode=(mode)=>{
         txForm.elements.recurring.checked=mode==='recurring';
         if(mode==='installments' && Number(txForm.elements.installments.value)<2)txForm.elements.installments.value='2';
