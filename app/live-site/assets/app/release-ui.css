@@ -58,3 +58,13 @@
 .v3-installment-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:12px 0}
 .v3-installment-options label{display:grid;gap:8px}
 .v3-installment-options small{grid-column:1/-1;color:#b5c4c7;line-height:1.5}
+
+/* Seletores do aplicativo usam a mesma seta, faixa da cor de contexto e área de toque. */
+.v3 select:not([multiple]){
+  appearance:none;-webkit-appearance:none;min-height:44px;padding-right:38px;
+  color:#f0e5cf;background-color:#14242d;
+  background-image:linear-gradient(var(--swatch,var(--teal,#5fa99b)),var(--swatch,var(--teal,#5fa99b))),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3 6 5 5 5-5' fill='none' stroke='%235fa99b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:left center,right 12px center;background-size:3px 100%,14px 14px;
+  border:1px solid color-mix(in srgb,var(--swatch,var(--teal,#5fa99b)) 45%,#f0e5cf 20%);border-radius:12px;
+}
+.v3 select:not([multiple]):focus-visible{outline:3px solid var(--swatch,var(--teal,#5fa99b));outline-offset:2px}
