@@ -4552,7 +4552,7 @@
     if (action==='close'){closeSheet();return;}
     if (action==='back'){go('more');return;}
     if (action==='new'){const k={despesa:'Despesa',receita:'Receita',transferir:'Transferir',aporte:'Aporte'}[target.dataset.kind]||'Despesa';composer(k,target.dataset.date);return;}
-    if (action==='new-recurring') { composer('Despesa'); const recurring=$('#v3-form-tx [name="recurring"]'); if (recurring) { recurring.checked=true; updateRepeatFields(recurring.form); } return; }
+    if (action==='new-recurring') { composer('Despesa'); const button=$('#v3-form-tx [data-repeat-mode="recurring"]'); if(button)button.click(); else { const recurring=$('#v3-form-tx [name="recurring"]'); if(recurring){recurring.checked=true;updateRepeatFields(recurring.form);} } return; }
     if (['pause-recurring','resume-recurring','end-recurring'].includes(action)) { changeRecurring(target.dataset.recurringId,action); return; }
     if (action==='add-account'){accountForm();return;}
     if (action==='add-category'){categoryForm();return;}
