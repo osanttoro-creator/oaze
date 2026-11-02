@@ -372,7 +372,23 @@
     else if (d.ozRecParcial) { const x = P().aReceber.find((y) => y.id === d.ozRecParcial); const v = x && num(global.prompt('Quanto você recebeu agora?', '')); if (v > 0) { await mudar(() => { const y = P().aReceber.find((z) => z.id === x.id); y.recebido = Math.min(y.valor, Math.round((y.recebido + v) * 100) / 100); y.quitado = y.recebido >= y.valor; }); redesenhar(); } }
     else if (d.ozRecExcluir) { await mudar(() => { const p = P(); p.aReceber = p.aReceber.filter((y) => y.id !== d.ozRecExcluir); }); redesenhar(); }
     else if (b.hasAttribute('data-oz-rel-csv')) csvRelatorio();
-    else if (b.hasAttribute('data-oz-rel-imprimir')) { document.documentElement.classList.add('oz-imprimindo'); global.print(); setTimeout(() => document.documentElement.classList.remove('oz-imprimindo'), 500); }
+    else if (b.hasAttribute('data-oz-rel-imprimir')) {
+      if (!global.OazeEstadoPDF?.tabular) { avisar('Gerador de PDF indisponível. Tente novamente.'); return; }
+      b.disabled = true; b.textContent = 'Preparando PDF…';
+      try {
+        const r = relatorio();
+        await global.OazeEstadoPDF.tabular({
+          title: 'Relatório personalizado',
+          period: filtro.de + ' a ' + filtro.ate,
+          fileName: 'oaze-relatorio-' + filtro.de + '-a-' + filtro.ate + '.pdf',
+          sections: [{ title: 'Resumo por ' + filtro.agrupar, rows: r.linhas.map((l) => ({
+            label: l.nome + ' · ' + l.qtd + ' lançamento' + (l.qtd === 1 ? '' : 's'),
+            value: filtro.tipo === 'ambos' ? '+' + reais(l.entra) + ' / -' + reais(l.sai) : reais(l.entra + l.sai)
+          })) }]
+        });
+      } catch (error) { avisar(error?.message || 'Não foi possível criar o PDF.'); }
+      finally { b.disabled = false; b.textContent = 'Imprimir ou salvar PDF'; }
+    }
   });
 
   document.addEventListener('submit', async (ev) => {
