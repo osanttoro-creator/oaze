@@ -150,7 +150,18 @@ body.v3{background:#0d1821}
 .v3-bloco-setas{display:flex;gap:4px}
 .v3-bloco-setas button{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:transparent;color:var(--milk);font-size:15px}
 .v3-bloco-setas button:disabled{opacity:.28}
-.v3-bloco-item.is-arrastando{background:rgba(95,169,155,.16);box-shadow:0 8px 24px rgba(0,0,0,.35);position:relative;z-index:2}
+.v3-bloco-item.is-arrastando{background:#1d3a40;box-shadow:0 14px 34px rgba(0,0,0,.5);z-index:80;border-top-color:transparent;cursor:grabbing;pointer-events:none}
+/* gerenciador de widgets: gaveta larga, uma coluna, arraste com vaga */
+.v3-sheet.is-largo{width:min(640px,100%)}
+@media (min-width:901px){#v3-sheet.v3-sheet.is-largo{width:min(640px,100%)!important}}
+.v3-sheet.is-largo .v3-bloco-lista{margin-top:14px;padding:6px 12px}
+.v3-bloco-item{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+@media (pointer:fine){.v3-bloco-item{cursor:grab}.v3-bloco-item label,.v3-bloco-item button{cursor:pointer}}
+.v3-bloco-alca{width:44px!important;height:48px!important}
+.v3-bloco-alca:hover{color:var(--milk)}
+.v3-bloco-vaga{list-style:none;border:1.5px dashed rgba(95,169,155,.55);border-radius:12px;background:rgba(95,169,155,.07);margin:2px 0}
+body.v3-arrastando,body.v3-arrastando *{cursor:grabbing!important;user-select:none!important}
+@media (prefers-reduced-motion:reduce){.v3-bloco-item{transition:none!important}}
 /* Widget da Coco: título e "editar" */
 .oz-coco-topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .oz-coco-editar{border:1px solid var(--line);border-radius:24px;background:#10222d;color:var(--milk);padding:22px;width:min(420px,calc(100vw - 32px))}

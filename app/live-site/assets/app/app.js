@@ -685,7 +685,7 @@
   function painelBlocosInicioHtml(alvo) {
     const nomes = Object.fromEntries(BLOCOS_INICIO.map((b) => [b.id, b.nome]));
     const ordem = ordemBlocos();
-    alvo.innerHTML = `<ol class="v3-panel v3-widget-picker v3-bloco-lista" id="v3-bloco-lista" style="margin-top:16px">${linhasBlocos(ordem, nomes)}</ol>`;
+    alvo.innerHTML = `<ol class="v3-panel v3-bloco-lista" id="v3-bloco-lista">${linhasBlocos(ordem, nomes)}</ol>`;
   }
   function linhasBlocos(ordem, nomes) {
     return ordem.map((id, i) => `<li class="v3-bloco-item${blocoLigado(id) ? '' : ' is-off'}" data-bloco-item="${esc(id)}"><button type="button" class="v3-bloco-alca" data-bloco-alca aria-label="Arrastar ${esc(nomes[id])}">${alcaIcone()}</button><label class="v3-bloco-nome"><input type="checkbox" data-bloco="${esc(id)}" ${blocoLigado(id) ? 'checked' : ''}><span>${esc(nomes[id])}</span></label><span class="v3-bloco-setas"><button type="button" data-bloco-mover="-1" aria-label="Subir ${esc(nomes[id])}" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" data-bloco-mover="1" aria-label="Descer ${esc(nomes[id])}" ${i === ordem.length - 1 ? 'disabled' : ''}>↓</button></span></li>`).join('');
@@ -695,7 +695,8 @@
     const nomes = Object.fromEntries(BLOCOS_INICIO.map((b) => [b.id, b.nome]));
     const ordem = ordemBlocos();
     const linhas = linhasBlocos(ordem, nomes);
-    openSheet(`${sheetTop('gerenciar widgets', 'o que aparece na Início')}<p class="v3-muted">A carteira e a saudação ficam sempre. Marque o que aparece e arraste (ou use ↑ ↓) para mudar a ordem. Vale neste aparelho.</p><ol class="v3-panel v3-widget-picker v3-bloco-lista" id="v3-bloco-lista" style="margin-top:16px">${linhas}</ol>`, 'Gerenciar widgets');
+    openSheet(`${sheetTop('gerenciar widgets')}<ol class="v3-panel v3-bloco-lista" id="v3-bloco-lista">${linhas}</ol>`, 'Gerenciar widgets');
+    $('#v3-sheet').classList.add('is-largo');
   }
   /* O bloco de investimentos na Início usa a mesma conta da tela de
      investimentos: valor hoje, quanto foi aportado e a diferença. */
@@ -2366,9 +2367,9 @@
   }
   function closeSheet() {
     if (recorder?.state==='recording') { recorder.onstop=null;recorder.stop();microphone?.getTracks().forEach((track)=>track.stop());recorder=null;microphone=null; }
-    $('#v3-overlay').hidden=true; $('#v3-sheet').innerHTML=''; document.body.style.overflow='';
+    $('#v3-overlay').hidden=true; $('#v3-sheet').innerHTML=''; $('#v3-sheet').classList.remove('is-largo'); document.body.style.overflow='';
   }
-  function openSheet(html,label) { $('#v3-sheet').setAttribute('aria-label',label||'Painel'); $('#v3-sheet').innerHTML=html; $('#v3-overlay').hidden=false; document.body.style.overflow='hidden'; $('#v3-sheet').querySelector('button')?.focus(); }
+  function openSheet(html,label) { $('#v3-sheet').classList.remove('is-largo'); $('#v3-sheet').setAttribute('aria-label',label||'Painel'); $('#v3-sheet').innerHTML=html; $('#v3-overlay').hidden=false; document.body.style.overflow='hidden'; $('#v3-sheet').querySelector('button')?.focus(); }
   function sheetTop(title,sub,img) { return `<div class="v3-sheet-top">${img?`<img src="${img}" alt="">`:''}<span><h2>${esc(title)}</h2>${sub?`<small>${esc(sub)}</small>`:''}</span><button type="button" data-action="close" class="v3-sheet-close" aria-label="Fechar">×</button></div>`; }
   function cocoAllowed() { return demo || !!(state.cocoSettings?.consented_at && !state.cocoSettings?.revoked_at); }
   function analysisSummary(ym) {
@@ -4784,26 +4785,78 @@
       const ordem=ordemBlocos();moverBloco(id,ordem.indexOf(id)+dir);
       redesenharBlocos({id,dir});
     });
+    /* ARRASTE DOS WIDGETS (01/11/2026)
+       Pega pela alça (dedo, caneta ou mouse) ou pela linha inteira com
+       o mouse. O item sai da lista e flutua sob o ponteiro; no lugar
+       dele fica uma vaga do mesmo tamanho, que anda entre os vizinhos
+       — e os vizinhos deslizam em vez de pular. Perto da borda da
+       gaveta, ela rola sozinha. Ao soltar, o item pousa na vaga. */
     document.addEventListener('pointerdown',(event)=>{
       const alca=event.target.closest?.('[data-bloco-alca]');
-      if(!alca)return;
-      const item=alca.closest('[data-bloco-item]'), lista=item.parentElement;
+      const linha=event.target.closest?.('[data-bloco-item]');
+      if(!linha||event.button>0)return;
+      if(!alca&&(event.pointerType!=='mouse'||event.target.closest('input,label,button')))return;
+      const item=linha, lista=item.parentElement, rolagem=item.closest('.v3-sheet')||document.scrollingElement;
       event.preventDefault();
-      alca.setPointerCapture?.(event.pointerId);
-      item.classList.add('is-arrastando');
+      const r0=item.getBoundingClientRect(), y0=event.clientY, rolagem0=rolagem.scrollTop;
+      let comecou=false, ultimoY=y0, quadro=0;
+      const vaga=document.createElement('li');
+      vaga.className='v3-bloco-vaga';vaga.setAttribute('aria-hidden','true');
+      const iniciar=()=>{
+        comecou=true;
+        vaga.style.height=r0.height+'px';
+        lista.insertBefore(vaga,item);
+        Object.assign(item.style,{position:'fixed',left:r0.left+'px',top:r0.top+'px',width:r0.width+'px',margin:'0'});
+        item.classList.add('is-arrastando');
+        document.body.classList.add('v3-arrastando');
+        navigator.vibrate?.(8);
+      };
+      const deslizar=(mudar)=>{
+        const vizinhos=[...lista.children].filter((n)=>n!==item&&n!==vaga);
+        const antes=new Map(vizinhos.map((n)=>[n,n.getBoundingClientRect().top]));
+        mudar();
+        vizinhos.forEach((n)=>{const d=antes.get(n)-n.getBoundingClientRect().top;if(!d)return;
+          n.style.transition='none';n.style.transform='translateY('+d+'px)';
+          requestAnimationFrame(()=>{n.style.transition='transform .16s ease';n.style.transform='';});});
+      };
+      const posicionar=()=>{
+        item.style.transform='translateY('+(ultimoY-y0)+'px)';
+        const vizinhos=[...lista.children].filter((n)=>n!==item&&n!==vaga);
+        const proximo=vizinhos.find((n)=>{const r=n.getBoundingClientRect();return ultimoY<r.top+r.height/2;})||null;
+        let atual=vaga.nextElementSibling;if(atual===item)atual=item.nextElementSibling;
+        if(proximo!==atual)deslizar(()=>lista.insertBefore(vaga,proximo));
+      };
+      const rolarBorda=()=>{
+        if(!comecou)return;
+        const caixa=rolagem.getBoundingClientRect?rolagem.getBoundingClientRect():{top:0,bottom:innerHeight};
+        const topo=Math.max(caixa.top,0)+60, base=Math.min(caixa.bottom,innerHeight)-60;
+        const passo=ultimoY<topo?-Math.ceil((topo-ultimoY)/6):ultimoY>base?Math.ceil((ultimoY-base)/6):0;
+        if(passo){rolagem.scrollTop+=passo;posicionar();}
+        quadro=requestAnimationFrame(rolarBorda);
+      };
       const mover=(ev)=>{
-        const irmaos=[...lista.children].filter((n)=>n!==item);
-        const alvo=irmaos.find((n)=>{const r=n.getBoundingClientRect();return ev.clientY<r.top+r.height/2;});
-        if(alvo)lista.insertBefore(item,alvo);else lista.appendChild(item);
+        ultimoY=ev.clientY;
+        if(!comecou){if(Math.abs(ultimoY-y0)<4)return;iniciar();quadro=requestAnimationFrame(rolarBorda);}
+        ev.preventDefault();
+        posicionar();
       };
       const soltar=()=>{
-        alca.removeEventListener('pointermove',mover);alca.removeEventListener('pointerup',soltar);alca.removeEventListener('pointercancel',soltar);
-        item.classList.remove('is-arrastando');
-        const ordem=[...lista.querySelectorAll('[data-bloco-item]')].map((n)=>n.dataset.blocoItem);
-        try{localStorage.setItem('oaze.v3.inicio.ordem',JSON.stringify(ordem));}catch(e){}
-        redesenharBlocos(null);
+        window.removeEventListener('pointermove',mover);window.removeEventListener('pointerup',soltar);window.removeEventListener('pointercancel',soltar);
+        cancelAnimationFrame(quadro);
+        if(!comecou)return;
+        const destino=vaga.getBoundingClientRect();
+        item.style.transition='transform .14s ease';
+        item.style.transform='translateY('+(destino.top-r0.top)+'px)';
+        setTimeout(()=>{
+          lista.insertBefore(item,vaga);vaga.remove();
+          item.removeAttribute('style');item.classList.remove('is-arrastando');
+          document.body.classList.remove('v3-arrastando');
+          const ordem=[...lista.querySelectorAll('[data-bloco-item]')].map((n)=>n.dataset.blocoItem);
+          try{localStorage.setItem('oaze.v3.inicio.ordem',JSON.stringify(ordem));}catch(e){}
+          redesenharBlocos(null);
+        },150);
       };
-      alca.addEventListener('pointermove',mover);alca.addEventListener('pointerup',soltar);alca.addEventListener('pointercancel',soltar);
+      window.addEventListener('pointermove',mover,{passive:false});window.addEventListener('pointerup',soltar);window.addEventListener('pointercancel',soltar);
     });
     document.addEventListener('change',(event)=>{
       /* A escolha dos blocos muda a Início por baixo da gaveta aberta:
