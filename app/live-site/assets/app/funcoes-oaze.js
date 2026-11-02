@@ -499,6 +499,19 @@
   }
   global.OazeFuncoes = { lembretes: lembretesResumo, lerAviso, saldoDevedor, simular, abrirBanco, simuladorHtml, buscarTudo, nomeCategoria, nomeConta };
 })(window);
+/* TRAVAS DO OÁSIS (02/11/2026): o leitor de QR da nota fiscal e a
+   importação de extrato, comprovante e PDF (inclusive o anexo da
+   Coco) são do Oásis. A trava roda antes de qualquer tela abrir; na
+   demonstração tudo continua aberto para mostrar o produto. */
+document.addEventListener('click', (ev) => {
+  const alvo = ev.target.closest && ev.target.closest('[data-oz-mais="nota"], [data-oz-comprovante], [data-action="choose-coco-file"], [data-coco-tab="Extratos"]');
+  if (!alvo || !window.Limites || !Limites.exigirRecurso) return;
+  try { if (window.OAZE_REPORT_CONTEXT && OAZE_REPORT_CONTEXT().demo) return; } catch { return; }
+  const qr = alvo.matches('[data-oz-mais="nota"]');
+  const ok = qr ? Limites.exigirRecurso('leitor_qr_nfce', 'O leitor de QR da nota fiscal')
+    : Limites.exigirRecurso('importar_extrato', 'Importar extrato, comprovante ou PDF');
+  if (!ok) { ev.preventDefault(); ev.stopImmediatePropagation(); }
+}, true);
 /* Volta da tela "Acesso a notificações" do Android: atualiza a lista. */
 document.addEventListener('visibilitychange', () => {
   if (document.hidden || !window.OazeMais || !window.OazeMais.aberta()) return;
