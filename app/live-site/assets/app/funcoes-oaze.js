@@ -250,7 +250,11 @@
     if (M().demo()) { nota = { loja: 'Supermercado Exemplo', data: hoje(), total: 87.45, itens: [{ nome: 'Arroz 5kg', qtd: 1, un: 'UN', valor: 27.9 }, { nome: 'Café 500g', qtd: 2, un: 'UN', valor: 39.8 }, { nome: 'Banana', qtd: 1.2, un: 'KG', valor: 19.75 }] }; redesenhar(); return; }
     try {
       const c = global.V3Backend && V3Backend.client && V3Backend.client();
-      const { data, error } = await c.functions.invoke('oaze-nfce', { body: { url } });
+      if (!c?.functions) throw new Error('Entre na sua conta para registrar a nota.');
+      const { data, error } = await Promise.race([
+        c.functions.invoke('oaze-nfce', { body: { url } }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('A consulta da Sefaz demorou demais. Tente novamente.')), 20000))
+      ]);
       if (error || !data || !(data.total > 0)) throw new Error((data && data.mensagem) || 'A Sefaz não respondeu agora.');
       nota = data;
     } catch (e) { nota = { erro: (e && e.message) || 'Não consegui ler a nota.' }; }
@@ -430,9 +434,11 @@
     }
     else if (b.hasAttribute('data-oz-nota-nova')) { nota = null; redesenhar(); }
     else if (b.hasAttribute('data-oz-nota-lancar') && nota) {
-      const n = nota; M().fecharTela();
-      if (global.OazeCompor) global.OazeCompor({ tipo: 'expense', forma_pagamento: 'account', descricao: (n.loja || 'Compra').slice(0, 90), valor: n.total, data: n.data || hoje(), categoria: /mercad|atacad|super|hortifruti|padaria|açougue/i.test(n.loja || '') ? 'Alimentação' : '' });
-      nota = null;
+      const n = nota;
+      if (!global.OazeCompor) { avisar('O formulário de lançamento ainda não está pronto. Tente novamente.'); return; }
+      M().fecharTela();
+      const abriu = global.OazeCompor({ tipo: 'expense', forma_pagamento: 'account', descricao: (n.loja || 'Compra').slice(0, 90), valor: n.total, data: n.data || hoje(), categoria: /mercad|atacad|super|hortifruti|padaria|açougue/i.test(n.loja || '') ? 'Alimentação' : '' });
+      if (abriu) nota = null; else M().abrir('nota');
     }
     else if (b.hasAttribute('data-oz-ir-csv')) csvIR();
     else if (d.ozDesComprei) { await mudar(() => { const x = P().desejos.find((y) => y.id === d.ozDesComprei); if (x) x.comprado = true; }, 'Marcado como comprado.'); redesenhar(); }
@@ -449,14 +455,20 @@
     const foto = ev.target.closest && ev.target.closest('[data-oz-nota-foto]');
     if (foto && foto.files && foto.files[0]) {
       const status = document.querySelector('[data-oz-nota-status]');
-      try { const img = await createImageBitmap(foto.files[0]); const url = await lerQR(img); if (!url) throw new Error('Não encontrei um QR nessa foto.'); await consultarNota(url); }
+      try {
+        const img = await createImageBitmap(foto.files[0]);
+        let url;
+        try { url = await lerQR(img); } finally { img.close?.(); }
+        if (!url) throw new Error('Não encontrei um QR nessa foto.');
+        await consultarNota(url);
+      }
       catch (e) { if (status) status.textContent = (e && e.message) || 'Não consegui ler a foto.'; }
       return;
     }
     const f = ev.target.closest && ev.target.closest('[data-oz-f]'); if (!f) return;
     if (f.dataset.ozF === 'ir') { anoIR = Number(f.elements.ano.value) || anoIR; redesenhar(); }
     else if (f.dataset.ozF === 'resumo') { try { localStorage.setItem(CHAVE_RESUMO, JSON.stringify({ semana: f.elements.semana.checked, mes: f.elements.mes.checked })); } catch { /* segue */ } avisar('Resumo atualizado.'); document.dispatchEvent(new CustomEvent('oaze:avisos-mudaram')); }
-    else if (f.dataset.ozF === 'busca' && ev.target.tagName === 'SELECT') { busca.conta = f.elements.conta.value; busca.tag = f.elements.tag.value; redesenhar(); }
+    else if (f.dataset.ozF === 'busca' && ev.target.tagName === 'SELECT') { busca.conta = f.elements.conta.value; busca.tag = f.elements.tag?.value || ''; redesenhar(); }
   });
   let buscaT = 0;
   document.addEventListener('input', (ev) => {
