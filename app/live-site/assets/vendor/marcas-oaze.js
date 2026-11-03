@@ -10,12 +10,12 @@
     return '<svg aria-hidden="true" focusable="false" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><text x="50" y="52" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="' + size + '" font-weight="800" fill="currentColor">' + name + '</text></svg>';
   }
   const brands = [
-    { key: 'shopee', re: /\\bshopee\\b/i, svg: shopee, bg: '#EE4D2D', fg: '#FFFFFF', kind: 'store' },
-    { key: 'shein', re: /\\bshein\\b/i, svg: wordmark('SHEIN', 23), bg: '#111111', fg: '#FFFFFF', kind: 'store' },
-    { key: 'netflix', re: /\\bnetflix\\b/i, svg: netflix, bg: '#E50914', fg: '#FFFFFF', kind: 'subscription' },
-    { key: 'vivo', re: /\\bvivo\\b/i, svg: vivo, bg: '#660099', fg: '#FFFFFF', kind: 'subscription' },
-    { key: 'claro', re: /\\bclaro\\b/i, svg: wordmark('claro', 26), bg: '#E32620', fg: '#FFFFFF', kind: 'subscription' },
-    { key: 'disneyplus', re: /\\bdisney\\s*(?:plus|\\+)\\b|\\bdisneyplus\\b/i, svg: wordmark('Disney+', 18), bg: '#16294C', fg: '#FFFFFF', kind: 'subscription' }
+    { key: 'shopee', re: /\bshopee\b/i, svg: shopee, bg: '#EE4D2D', fg: '#FFFFFF', kind: 'store' },
+    { key: 'shein', re: /\bshein\b/i, svg: wordmark('SHEIN', 23), bg: '#111111', fg: '#FFFFFF', kind: 'store' },
+    { key: 'netflix', re: /\bnetflix\b/i, svg: netflix, bg: '#E50914', fg: '#FFFFFF', kind: 'subscription' },
+    { key: 'vivo', re: /\bvivo\b/i, svg: vivo, bg: '#660099', fg: '#FFFFFF', kind: 'subscription' },
+    { key: 'claro', re: /\bclaro\b/i, svg: wordmark('claro', 26), bg: '#E32620', fg: '#FFFFFF', kind: 'subscription' },
+    { key: 'disneyplus', re: /\bdisney\s*(?:plus|\+)\b|\bdisneyplus\b/i, svg: wordmark('Disney+', 18), bg: '#16294C', fg: '#FFFFFF', kind: 'subscription' }
   ];
   const banks = global.BancosBR;
   if (banks) for (const item of brands.filter((entry) => entry.kind === 'store')) {
