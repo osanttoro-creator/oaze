@@ -28,6 +28,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: node tools/test-coco-import.mjs
+      - run: node tools/test-invest-market.mjs
       - run: npm run build
       - run: npm run build:published
       # Varre segredo no código e no pacote, e confere que a CSP cobre o que o
