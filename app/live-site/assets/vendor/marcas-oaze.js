@@ -15,7 +15,7 @@
     { key: 'netflix', re: /\bnetflix\b/i, svg: netflix, bg: '#E50914', fg: '#FFFFFF', kind: 'subscription' },
     { key: 'vivo', re: /\bvivo\b/i, svg: vivo, bg: '#660099', fg: '#FFFFFF', kind: 'subscription' },
     { key: 'claro', re: /\bclaro\b/i, svg: wordmark('claro', 26), bg: '#E32620', fg: '#FFFFFF', kind: 'subscription' },
-    { key: 'disneyplus', re: /\bdisney\s*(?:plus|\+)\b|\bdisneyplus\b/i, svg: wordmark('Disney+', 18), bg: '#16294C', fg: '#FFFFFF', kind: 'subscription' }
+    { key: 'disneyplus', re: /\bdisney(?:\s*plus|\s*\+)?/i, svg: wordmark('Disney+', 18), bg: '#16294C', fg: '#FFFFFF', kind: 'subscription' }
   ];
   const banks = global.BancosBR;
   if (banks) for (const item of brands.filter((entry) => entry.kind === 'store')) {
