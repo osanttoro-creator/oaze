@@ -114,6 +114,7 @@ body.v3{background:#0d1821}
 .v3-mini-card.v3-tx-selo{width:40px;height:40px;border-radius:13px;background:var(--swatch);color:var(--swatch-ink,#fff);display:grid;place-items:center;position:relative;overflow:visible}
 .v3-mini-card.v3-tx-selo:after{content:none}
 .v3-tx-selo>svg{width:20px;height:20px;stroke:currentColor;fill:none}
+.v3-tx-selo>svg.v3-merchant-logo{width:22px;height:22px;stroke:none;fill:currentColor}
 .v3-tx-banco{position:absolute;right:-5px;bottom:-5px;width:20px;height:20px;border-radius:7px;display:grid;place-items:center;background:var(--bank-bg);color:var(--bank-ink);box-shadow:0 0 0 2px var(--panel,#132733)}
 .v3-tx-banco svg{width:13px;height:13px}
 .v3-tx-banco .v3-fi{width:12px;height:12px}
