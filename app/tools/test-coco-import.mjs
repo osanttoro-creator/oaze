@@ -32,4 +32,11 @@ assert.throws(() => parsePdfItems(page([
   'Relatório de contas e relacionamentos'
 ])), /Registrato/);
 
+const transfer = parsePdfItems(page([
+  '01/10/2026 SALDO DO DIA 100,00',
+  '02/10/2026 APLICACAO COFRINHOS -50,00',
+  '02/10/2026 SALDO DO DIA 50,00'
+]));
+assert.equal(transfer.rows[0].investmentTransfer, true, 'aporte interno não pode virar despesa comum');
+
 console.log('Leitura PDF: linhas coladas, saldo, datas e Registrato OK');
