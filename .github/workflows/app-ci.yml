@@ -28,6 +28,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: node tools/test-coco-import.mjs
+      - run: node tools/test-import-auto.mjs
       - run: node tools/test-invest-market.mjs
       - run: node tools/test-invest-daily.cjs
       - run: npm run build
