@@ -37,6 +37,8 @@ jobs:
 
   msix:
     needs: verifica
+    permissions:
+      contents: write
     runs-on: windows-latest
     timeout-minutes: 60
     defaults:
@@ -90,9 +92,25 @@ jobs:
           MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
         run: node tools/empacotar-msix.mjs
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: oaze-msix-${{ github.run_number }}
-          path: app/src-tauri/target/msix/*.msix
-          if-no-files-found: error
-          retention-days: 30
+      # O repositório privado esgotou a cota de artifacts; releases mantêm
+      # o pacote acessível ao proprietário sem depender desse armazenamento.
+      - name: Disponibiliza MSIX para o Partner Center
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.sha }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $tag = "app-v${version}-windows-store-rc"
+          $assets = @(Get-ChildItem 'src-tauri/target/msix' -Filter '*.msix' -File) | ForEach-Object FullName
+          if (-not $assets -or $assets.Count -eq 0) { throw 'Pacote MSIX não encontrado.' }
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --clobber
+          } else {
+            gh release create $tag @assets --draft --prerelease --target $env:RELEASE_SHA --title "OAZE $version Windows Store - candidato" --notes "MSIX sem assinatura para envio ao Partner Center. A Microsoft assina após aceitar o pacote."
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao disponibilizar o MSIX.' }
+          gh release edit $tag --draft=false
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao publicar o MSIX.' }
