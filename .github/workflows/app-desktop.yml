@@ -87,4 +87,6 @@ jobs:
             gh release create $tag @assets --draft --prerelease --target $env:RELEASE_SHA --title "OAZE $version Windows - teste" --notes "Instaladores de teste da versão $version. Ainda não são pacotes assinados para Microsoft Store."
           }
           if ($LASTEXITCODE -ne 0) { throw 'Falha ao disponibilizar instaladores Windows.' }
-          Write-Host "Release rascunho: $tag"
+          gh release edit $tag --draft=false
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao publicar a prévia Windows.' }
+          Write-Host "Prévia publicada: $tag"
