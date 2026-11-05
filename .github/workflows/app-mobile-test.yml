@@ -27,6 +27,8 @@ jobs:
 
   android:
     needs: verifica
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -66,11 +68,30 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug -PoazeVersionCode=${{ github.run_number }}
       - uses: actions/upload-artifact@v4
+        if: github.head_ref != 'codex/oaze-multiplatform-foundation'
         with:
           name: oaze-android-teste-${{ github.run_number }}
           path: app/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+      - name: Disponibiliza APK em release de teste
+        if: github.head_ref == 'codex/oaze-multiplatform-foundation'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./package.json').version")
+          tag="app-v${version}-android-test"
+          apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$apk"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$apk" --clobber
+          else
+            gh release create "$tag" "$apk" --draft --prerelease --target "$RELEASE_SHA" --title "OAZE ${version} Android - teste" --notes "APK de teste da versão ${version}. Ainda não é pacote assinado para Google Play."
+          fi
+          echo "Release rascunho: $tag"
       - name: Verifica AAB sem assinatura de loja
         working-directory: app/android
         run: ./gradlew --no-daemon bundleRelease -PoazeVersionCode=${{ github.run_number }}
