@@ -20,6 +20,8 @@ jobs:
 
   desktop:
     needs: verifica
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -56,9 +58,33 @@ jobs:
       - run: npm ci
       - run: npx tauri build
       - uses: actions/upload-artifact@v4
+        if: github.head_ref != 'codex/oaze-multiplatform-foundation'
         with:
           name: oaze-windows-teste-${{ github.run_number }}
           path: |
             app/src-tauri/target/release/app.exe
             app/src-tauri/target/release/bundle/msi/*.msi
             app/src-tauri/target/release/bundle/nsis/*.exe
+      - name: Disponibiliza instaladores em release de teste
+        if: github.head_ref == 'codex/oaze-multiplatform-foundation'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $tag = "app-v${version}-windows-test"
+          $assets = @(
+            Get-ChildItem 'src-tauri/target/release/bundle/nsis' -Filter '*.exe' -File -ErrorAction SilentlyContinue
+            Get-ChildItem 'src-tauri/target/release/bundle/msi' -Filter '*.msi' -File -ErrorAction SilentlyContinue
+          ) | ForEach-Object FullName
+          if (-not $assets -or $assets.Count -eq 0) { throw 'Instaladores Windows não encontrados.' }
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --clobber
+          } else {
+            gh release create $tag @assets --draft --prerelease --target $env:RELEASE_SHA --title "OAZE $version Windows - teste" --notes "Instaladores de teste da versão $version. Ainda não são pacotes assinados para Microsoft Store."
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao disponibilizar instaladores Windows.' }
+          Write-Host "Release rascunho: $tag"
