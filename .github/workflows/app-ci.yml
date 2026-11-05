@@ -7,7 +7,7 @@ on:
     branches: [main]
     paths: ['app/**', '.github/workflows/app-ci.yml']
   pull_request:
-    paths: ['app/**']
+    paths: ['app/**', '.github/workflows/app-ci.yml']
   workflow_call:
 
 jobs:
@@ -53,8 +53,3 @@ jobs:
             echo "::error::o pacote principal passou do teto"
             exit 1
           fi
-      - uses: actions/upload-artifact@v4
-        with:
-          name: published-dist
-          path: app/dist-live
-          retention-days: 7
