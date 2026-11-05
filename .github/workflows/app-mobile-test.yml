@@ -91,7 +91,8 @@ jobs:
           else
             gh release create "$tag" "$apk" --draft --prerelease --target "$RELEASE_SHA" --title "OAZE ${version} Android - teste" --notes "APK de teste da versão ${version}. Ainda não é pacote assinado para Google Play."
           fi
-          echo "Release rascunho: $tag"
+          gh release edit "$tag" --draft=false
+          echo "Prévia publicada: $tag"
       - name: Verifica AAB sem assinatura de loja
         working-directory: app/android
         run: ./gradlew --no-daemon bundleRelease -PoazeVersionCode=${{ github.run_number }}
