@@ -1,4 +1,4 @@
-# Pacote de teste Windows. O projeto macOS permanece no repositório, fora desta rodada.
+# Candidato de produção Windows. O projeto macOS permanece fora desta rodada.
 #
 # Windows: gera MSI e instalador NSIS. A Store aceita MSI/EXE assinados com certificado
 # de código, ou MSIX — a escolha está em docs/02-TRD.md.
@@ -31,8 +31,8 @@ jobs:
     env:
       VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
-      VITE_OAZE_ENV: staging
-      VITE_OAZE_SYNC_ENABLED: "false"
+      VITE_OAZE_ENV: production
+      VITE_OAZE_SYNC_ENABLED: "true"
     defaults:
       run:
         working-directory: app
@@ -50,8 +50,7 @@ jobs:
       - name: Verifica configuração da conta
         shell: bash
         run: |
-          if { [ -n "$VITE_SUPABASE_URL" ] && [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; } ||
-             { [ -z "$VITE_SUPABASE_URL" ] && [ -n "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; }; then
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
             echo "::error::Configure as duas variáveis públicas OAZE_SUPABASE_URL e OAZE_SUPABASE_PUBLISHABLE_KEY."
             exit 1
           fi
@@ -74,7 +73,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          $tag = "app-v${version}-windows-test"
+          $tag = "app-v${version}-windows-rc"
           $assets = @(
             Get-ChildItem 'src-tauri/target/release/bundle/nsis' -Filter '*.exe' -File -ErrorAction SilentlyContinue
             Get-ChildItem 'src-tauri/target/release/bundle/msi' -Filter '*.msi' -File -ErrorAction SilentlyContinue
@@ -84,7 +83,7 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag @assets --clobber
           } else {
-            gh release create $tag @assets --draft --prerelease --target $env:RELEASE_SHA --title "OAZE $version Windows - teste" --notes "Instaladores de teste da versão $version. Ainda não são pacotes assinados para Microsoft Store."
+            gh release create $tag @assets --draft --prerelease --target $env:RELEASE_SHA --title "OAZE $version Windows - candidato" --notes "Build de produção do Windows. Requer teste instalado antes do lançamento; instaladores EXE/MSI não são assinados para a Microsoft Store."
           }
           if ($LASTEXITCODE -ne 0) { throw 'Falha ao disponibilizar instaladores Windows.' }
           gh release edit $tag --draft=false

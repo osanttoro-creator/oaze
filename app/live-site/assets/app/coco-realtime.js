@@ -8,13 +8,14 @@
       this.cb = callbacks || {};
       this.state = 'IDLE';
       this.pc = null; this.dc = null; this.stream = null; this.audio = null;
-      this.timer = null; this.disconnectTimer = null; this.muted = false; this.replyMuted = false;
+      this.timer = null; this.muted = false; this.replyMuted = false;
       this.meterTimer = null; this.audioContext = null; this.inputMeter = null; this.outputMeter = null;
       this.mode = 'continuous'; this.inputText = ''; this.outputText = '';
       this.inputFlushTimer = null; this.outputFlushTimer = null;
       this.active = false; this.generation = 0; this.sessionId = null;
       this.responding = false; this.handshakeController = null;
       this.readyTimer = null; this.sessionReady = false; this.eventSequence = 0; this.lastOutputAt = 0;
+      this.disconnectTimer = null;
       this.events = new Set(); this.calls = new Set(); this.batches = new Map(); this.delegations = new Map();
       this.inputSource = null; this.outputSource = null;
     }
@@ -88,25 +89,24 @@
         };
         this.pc.onconnectionstatechange = () => {
           if (!current()) return;
-          if (pc.connectionState === 'connected') { clearTimeout(this.disconnectTimer); this.disconnectTimer = null; return; }
           if (pc.connectionState === 'disconnected') {
-            clearTimeout(this.disconnectTimer);
+            if (this.disconnectTimer) return;
+            this.setState('OFFLINE');
             this.disconnectTimer = setTimeout(() => {
-              if (current() && pc.connectionState === 'disconnected') {
-                this.cb.onDisconnect?.(); this.stop('OFFLINE');
-              }
-            }, 5000);
+              this.disconnectTimer = null;
+              if (current() && pc.connectionState === 'disconnected') this.disconnect();
+            }, 6000);
             return;
           }
-          if (['failed','closed'].includes(pc.connectionState)) {
-            this.cb.onDisconnect?.(); this.stop('OFFLINE');
-          }
+          clearTimeout(this.disconnectTimer); this.disconnectTimer = null;
+          if (pc.connectionState === 'failed' || pc.connectionState === 'closed') this.disconnect();
+          else if (pc.connectionState === 'connected' && this.sessionReady) this.setState(this.idleState());
         };
         this.stream.getTracks().forEach((track) => this.pc.addTrack(track, this.stream));
         this.startMeter();
         this.dc = this.pc.createDataChannel('oai-events');
         this.dc.onmessage = (event) => { if (current()) { try { this.handle(JSON.parse(event.data)); } catch { /* evento desconhecido */ } } };
-        this.dc.onclose = () => { if (current()) { this.cb.onDisconnect?.(); this.stop('OFFLINE'); } };
+        this.dc.onclose = () => { if (current()) this.disconnect(); };
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         await this.waitForIce(pc, controller.signal);
@@ -341,12 +341,16 @@
         case 'error': this.cb.onError?.('A Coco não conseguiu continuar a conversa por voz.'); this.stop('ERROR'); break;
       }
     }
+    disconnect() {
+      if (!this.active) return;
+      this.cb.onDisconnect?.();
+      if (this.active) this.stop('OFFLINE');
+    }
     stop(finalState = 'IDLE') {
       this.send({ type: 'session.close' });
       this.active = false; this.generation++;
       this.handshakeController?.abort(); this.handshakeController = null;
       clearTimeout(this.timer); this.timer = null;
-      clearTimeout(this.disconnectTimer); this.disconnectTimer = null;
       clearInterval(this.meterTimer); this.meterTimer = null;
       this.audioContext?.close().catch(() => {}); this.audioContext = null;
       this.inputMeter = null; this.outputMeter = null;
@@ -359,6 +363,7 @@
       this.inputText = ''; this.outputText = ''; this.pushHeld = false; this.sessionId = null;
       this.responding = false;
       clearTimeout(this.readyTimer); this.readyTimer = null; this.sessionReady = false;
+      clearTimeout(this.disconnectTimer); this.disconnectTimer = null;
       this.batches.clear(); this.calls.clear(); this.events.clear(); this.delegations.clear();
       this.cb.onMic?.(false); this.cb.onDraft?.(''); this.cb.onDraftAnswer?.('');
       this.setState(finalState);
