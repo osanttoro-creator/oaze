@@ -12,6 +12,7 @@ on:
     paths:
       - 'app/**'
       - '.github/workflows/app-desktop.yml'
+      - '.github/workflows/app-ci.yml'
 
 jobs:
   verifica:
