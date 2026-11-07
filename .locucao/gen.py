@@ -2,8 +2,13 @@ import asyncio, json, os, edge_tts
 req = json.load(open(".locucao/request.json"))
 VOICES = ["pt-BR-ThalitaMultilingualNeural"]
 async def main():
-    for v in VOICES:
-        for vid, segs in req.items():
+    TEST = ["pt-BR-ThalitaMultilingualNeural", "pt-BR-ThalitaNeural", "pt-BR-FranciscaNeural", "pt-BR-BrendaNeural", "pt-BR-ElzaNeural", "pt-BR-LeticiaNeural"]
+    jobs = []
+    for vid, segs in req.items():
+        for v in (TEST if vid.startswith("amostra_voz") else VOICES):
+            jobs.append((v, vid, segs))
+    for v, vid, segs in jobs:
+        if True:
             d = f".locucao/out/{v}/{vid}"; os.makedirs(d, exist_ok=True)
             for s in segs:
                 p = f"{d}/{s['id']}.mp3"

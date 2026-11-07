@@ -638,5 +638,11 @@
    "id": "v10",
    "text": "Porque o Léo nunca esquece de pedir. Ele só esquece de pagar."
   }
+ ],
+ "amostra_voz": [
+  {
+   "id": "teste",
+   "text": "Caiu o salário e às seis da tarde já tinha sumido metade. Não foi o Pix, nem o app do banco: foram os boletos que já tinham dono. Na Ouêiz, a Coco separa primeiro o que vence. Depois, o que sobra é seu de verdade."
+  }
  ]
 }
