@@ -1,0 +1,74 @@
+# Limpeza automática: mantém só a versão mais recente de cada build de teste.
+# - Artefatos: agrupa pelo nome sem o número final (oaze-android-teste-143 → oaze-android-teste)
+#   e apaga todos menos o mais novo de cada grupo.
+# - Releases de teste (tag terminando em -test): agrupa pela plataforma
+#   (app-v2.3.8-windows-test → windows-test) e apaga release + tag antigas.
+# Releases de produção (sem -test) nunca são tocadas.
+name: Limpeza · versões antigas de teste
+
+on:
+  workflow_run:
+    workflows: ["App · teste mobile", "App · desktop (Windows e macOS)", "App · Android (Google Play)", "App · iOS (App Store)"]
+    types: [completed]
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: limpeza
+  cancel-in-progress: false
+
+jobs:
+  limpa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+
+            // Artefatos
+            const arts = await github.paginate(github.rest.actions.listArtifactsForRepo,
+              { owner, repo, per_page: 100 });
+            const grupos = {};
+            for (const a of arts) {
+              if (a.expired) continue;
+              const k = a.name.replace(/-\d+$/, '');
+              (grupos[k] ||= []).push(a);
+            }
+            let nArt = 0;
+            for (const [k, lista] of Object.entries(grupos)) {
+              lista.sort((x, y) => new Date(y.created_at) - new Date(x.created_at));
+              for (const a of lista.slice(1)) {
+                await github.rest.actions.deleteArtifact({ owner, repo, artifact_id: a.id });
+                nArt++;
+              }
+            }
+            core.info(`Artefatos apagados: ${nArt}`);
+
+            // Releases de teste
+            const rels = await github.paginate(github.rest.repos.listReleases,
+              { owner, repo, per_page: 100 });
+            const porPlat = {};
+            for (const r of rels) {
+              if (!/-test$/.test(r.tag_name)) continue;
+              const k = r.tag_name.replace(/^app-v[\d.]+-/, '');
+              (porPlat[k] ||= []).push(r);
+            }
+            let nRel = 0;
+            for (const lista of Object.values(porPlat)) {
+              lista.sort((x, y) => new Date(y.created_at) - new Date(x.created_at));
+              for (const r of lista.slice(1)) {
+                await github.rest.repos.deleteRelease({ owner, repo, release_id: r.id });
+                try {
+                  await github.rest.git.deleteRef({ owner, repo, ref: `tags/${r.tag_name}` });
+                } catch (e) { core.info(`tag ${r.tag_name}: ${e.message}`); }
+                nRel++;
+              }
+            }
+            core.info(`Releases de teste apagadas: ${nRel}`);

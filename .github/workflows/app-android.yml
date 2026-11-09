@@ -87,3 +87,4 @@ jobs:
         with:
           name: oaze-android-aab
           path: app/android/app/build/outputs/bundle/release/*.aab
+          retention-days: 14
