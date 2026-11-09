@@ -2189,7 +2189,7 @@
     const status = demo ? 'Prévia: nenhuma assinatura é criada aqui.' : state.billingError ? `Não consegui consultar sua assinatura: ${esc(state.billingError)}` : !sub ? 'Consultando sua assinatura…' : sub.status === 'past_due' && sub.stripe_subscription_id ? 'Pagamento pendente. Confira seu cartão e suas cobranças na Stripe.' : paid ? `Plano ${esc(Planos.get(current).nome)} · ${sub.cancel_at_period_end ? 'cancelamento agendado' : 'ativo'}` : 'Seu plano atual é Semente.';
     const renewDate = sub?.current_period_end && !Number.isNaN(new Date(sub.current_period_end).getTime()) ? new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(sub.current_period_end)) : '';
     const paidDetails = !demo && (paid || sub?.stripe_subscription_id) ? `<section class="v3-panel v3-billing-details" aria-label="Sua cobrança"><h2>cobrança</h2><dl><div><dt>Ciclo</dt><dd>${sub.billing_cycle === 'annual' ? 'Anual' : sub.billing_cycle === 'monthly' ? 'Mensal' : 'Não informado'}</dd></div>${renewDate ? `<div><dt>${sub.cancel_at_period_end ? 'Acesso até' : 'Fim do período atual'}</dt><dd>${esc(renewDate)}</dd></div>` : ''}<div><dt>Forma de pagamento</dt><dd>${sub.stripe_subscription_id ? 'Gerenciada com segurança pela Stripe' : 'Consulte o suporte'}</dd></div></dl>${playReadonly ? '<p class="v3-muted">Gerencie a forma de pagamento no canal em que contratou a assinatura.</p>' : sub.stripe_subscription_id ? '<button type="button" class="v3-secondary" data-action="billing-portal">Atualizar cartão e consultar cobranças</button>' : '<a class="v3-secondary" href="/suporte">Pedir ajuda sobre a cobrança</a>'}<p class="v3-muted">O OAZE não recebe nem guarda o número completo do seu cartão.</p></section>` : '';
-    return `<div class="v3-plan-head"><div class="v3-segment" role="group" aria-label="Ciclo de cobrança"><button type="button" data-billing="monthly" class="${state.billing === 'monthly' ? 'is-active' : ''}" aria-pressed="${state.billing === 'monthly'}">Mensal</button><button type="button" data-billing="annual" class="${state.billing === 'annual' ? 'is-active' : ''}" aria-pressed="${state.billing === 'annual'}">Anual</button></div></div><p class="v3-plan-status" role="status">${status}</p>${paidDetails}${!demo&&paid&&!sub.cancel_at_period_end&&!linkedSubscription?'<p class="v3-plan-alert" role="alert">Não foi possível identificar a assinatura ligada a este plano. <a href="/suporte">Peça ajuda para conferir a cobrança ou cancelar</a> antes de assinar outro.</p>':''}<div class="v3-grid v3-plan-grid">${list.map((p) => {
+    return `<div class="v3-plan-head"><div class="v3-segment" role="group" aria-label="Ciclo de cobrança"><button type="button" data-billing="monthly" class="${state.billing === 'monthly' ? 'is-active' : ''}" aria-pressed="${state.billing === 'monthly'}">Mensal</button><button type="button" data-billing="annual" class="${state.billing === 'annual' ? 'is-active' : ''}" aria-pressed="${state.billing === 'annual'}">Anual</button></div></div><p class="v3-plan-status" role="status">${status}</p>${paidDetails}${!demo&&paid&&!sub.cancel_at_period_end&&!linkedSubscription?'<p class="v3-plan-alert" role="alert">Não foi possível identificar a assinatura ligada a este plano. <a href="/suporte">Peça ajuda para conferir a cobrança ou cancelar</a> antes de assinar outro.</p>':''}${!playReadonly && !demo && !(paid && !sub?.cancel_at_period_end) ? `<form class="v3-panel v3-cupom" data-cupom-form><label for="v3-cupom-codigo">TEM UM CUPOM?</label><span class="v3-cupom-linha"><input id="v3-cupom-codigo" name="codigo" maxlength="40" autocomplete="off" autocapitalize="characters" value="${esc(state.cupom?.codigo || '')}" placeholder="CÓDIGO"><button type="submit" class="v3-secondary" ${state.paymentBusy ? 'disabled' : ''}>Aplicar</button></span>${state.cupom ? `<p class="v3-cupom-ok" role="status"><strong>${esc(state.cupom.codigo)}</strong>: ${esc(state.cupom.descricao)}. Vale no pagamento e junto com o teste de 30 dias. <button type="button" class="v3-link" data-action="remover-cupom">remover</button></p>` : ''}</form>` : ''}<div class="v3-grid v3-plan-grid">${list.map((p) => {
       const isCurrent = p.id === current && (p.id === 'free' || paid);
       const disabled = playReadonly || demo || !sub || !!state.billingError || state.paymentBusy || isCurrent || (paid && !sub.cancel_at_period_end) || (sub.status === 'past_due' && linkedSubscription) || p.id === 'free';
       const price = state.billing === 'annual' ? p.anualCentavos : p.mensalCentavos;
@@ -2197,7 +2197,7 @@
       const quantidade=(n,sing,plural)=>n==null?`${plural[0].toUpperCase()+plural.slice(1)} sem limite`:`Até ${n} ${n===1?sing:plural}`;
       const resumo=p.id==='free'?'O essencial para começar a organizar seu dinheiro.':'Mais espaço para contas, cartões e conversas com a Coco.';
       return `<section class="v3-panel v3-plan${p.destaque ? ' highlight' : ''}"><div class="v3-row"><h2>${esc(p.nome)}</h2>${p.destaque ? '<span class="v3-label">PLANO PRINCIPAL</span>' : ''}</div><p class="v3-plan-summary">${resumo}</p><p class="v3-money">${money(price / 100)} <span>por ${period}</span></p><ul><li>${quantidade(p.limites.workspaces,'espaço','espaços')}</li><li>${quantidade(p.limites.accounts,'conta','contas')}</li><li>${quantidade(p.limites.credit_cards,'cartão','cartões')}</li><li>${p.limites.ai_queries_per_month == null ? 'Conversas com a Coco sem limite mensal' : `${p.limites.ai_queries_per_month} ${p.limites.ai_queries_per_month===1?'pedido':'pedidos'} à Coco por mês`}</li></ul><button type="button" class="${p.destaque ? 'v3-secondary' : 'v3-primary'}" data-action="subscribe" data-plan="${esc(p.id)}" ${disabled ? 'disabled' : ''}>${label}</button></section>`;
-    }).join('')}</div>${!playReadonly && !demo && paid && !sub.cancel_at_period_end && linkedSubscription ? '<button type="button" class="v3-secondary v3-plan-cancel" data-action="cancel-subscription">Cancelar renovação da assinatura</button>' : ''}`;
+    }).join('')}</div>${!playReadonly && !demo && paid && !sub.cancel_at_period_end && linkedSubscription ? '<button type="button" class="v3-secondary v3-plan-cancel" data-action="cancel-subscription">Cancelar renovação da assinatura</button>' : ''}${!playReadonly && !demo && paid && sub?.stripe_subscription_id ? '<button type="button" class="v3-link v3-plan-reembolso" data-action="pedir-reembolso">Pedir reembolso (até 7 dias depois da cobrança)</button>' : ''}`;
   }
   function renderMore() {
     const desc = { investments: `${money(invested())} investidos`, categories: `${profile().categories.length} em uso`, goals: 'metas e dinheiro guardado', calendar: 'calendário e recorrências', coco: 'conversa e análises', settings: 'privacidade, ajuda e contato', plan: demo ? 'OAZE mensal' : 'planos vigentes' };
@@ -3864,7 +3864,7 @@
     if (global.OAZE_BILLING_READONLY || demo || state.paymentBusy || planId !== 'pro' || !state.subscription || state.billingError) return;
     state.paymentBusy = true; render();
     try {
-      const result = await V3Backend.payment({ acao: 'assinar', plano: planId, ciclo: state.billing, moeda: 'BRL', ...(global.OAZE_NATIVE_DESKTOP ? { canal: 'windows' } : {}) });
+      const result = await V3Backend.payment({ acao: 'assinar', plano: planId, ciclo: state.billing, moeda: 'BRL', ...(state.cupom ? { cupom: state.cupom.codigo } : {}), ...(global.OAZE_NATIVE_DESKTOP ? { canal: 'windows' } : {}) });
       if (!/^https:\/\/checkout\.stripe\.com\//.test(String(result.url || ''))) throw new Error('O servidor não retornou uma página segura de pagamento.');
       if (global.OAZE_NATIVE_OPEN_EXTERNAL) await global.OAZE_NATIVE_OPEN_EXTERNAL(result.url);
       else global.location.assign(result.url);
@@ -3887,6 +3887,28 @@
       toast(error.message || 'Não foi possível abrir suas cobranças. Tente novamente.');
       state.paymentBusy = false;
     }
+  }
+  async function aplicarCupom(form) {
+    const codigo = String(new FormData(form).get('codigo') || '').trim().toUpperCase();
+    if (!/^[A-Z0-9_-]{3,40}$/.test(codigo)) { toast('Digite o código do cupom como está escrito.'); return; }
+    if (demo || global.OAZE_BILLING_READONLY || state.paymentBusy) return;
+    state.paymentBusy = true; render();
+    try {
+      const r = await V3Backend.payment({ acao: 'cupom', plano: 'pro', ciclo: state.billing, moeda: 'BRL', codigo });
+      state.cupom = { codigo: String(r.codigo || codigo), descricao: String(r.descricao || 'desconto aplicado') };
+      toast('Cupom aplicado.');
+    } catch (error) { state.cupom = null; toast(error.message || 'Esse cupom não existe ou não vale mais.'); }
+    finally { state.paymentBusy = false; render(); }
+  }
+  async function pedirReembolso() {
+    if (global.OAZE_BILLING_READONLY || demo || state.paymentBusy) return;
+    state.paymentBusy = true; closeSheet(); render();
+    try {
+      const r = await V3Backend.payment({ acao: 'reembolsar' });
+      await refreshSubscription();
+      toast('Reembolso de ' + money(Number(r.centavos || 0) / 100) + ' pedido. O valor volta ao cartão em até 10 dias úteis.');
+    } catch (error) { toast(error.message || 'Não foi possível pedir o reembolso agora.'); }
+    finally { state.paymentBusy = false; render(); }
   }
   async function cancelSubscription() {
     if (global.OAZE_BILLING_READONLY || demo || state.paymentBusy || !state.subscription) return;
@@ -4646,6 +4668,13 @@
     }
     if (action==='subscribe'){startCheckout(target.dataset.plan);return;}
     if (action==='billing-portal'){openBillingPortal();return;}
+    /* CUPOM E REEMBOLSO (07/11/2026) */
+    if (action==='remover-cupom'){state.cupom=null;render();return;}
+    if (action==='pedir-reembolso'){
+      openSheet(`${sheetTop('pedir reembolso','direito de arrependimento')}<p>Até 7 dias depois da cobrança, devolvemos o valor inteiro no mesmo cartão. A assinatura termina agora e sua conta volta ao Semente — seus dados continuam salvos.</p><div class="v3-form-actions"><button type="button" class="v3-primary" data-action="confirm-reembolso">Pedir reembolso</button><button type="button" class="v3-secondary" data-action="close">Voltar</button></div>`,'Pedir reembolso');
+      return;
+    }
+    if (action==='confirm-reembolso'){pedirReembolso();return;}
     if (action==='cancel-subscription') {
       openSheet(`${sheetTop('cancelar renovação','o plano não termina hoje')}<p>Você mantém o plano até o fim do período já pago. Depois, sua conta volta ao Semente.</p><div class="v3-form-row" style="margin-top:24px"><button type="button" class="v3-secondary" data-action="close">Manter assinatura</button><button type="button" class="v3-primary" data-action="confirm-cancel-subscription">Cancelar renovação</button></div>`,'Confirmar cancelamento');
       return;
@@ -4838,6 +4867,7 @@
     });
     /* Busca em todos os meses (tela de lançamentos): redesenha com
        uma pausa curta e devolve o cursor para onde estava. */
+    document.addEventListener('submit',(event)=>{if(event.target.matches?.('[data-cupom-form]')){event.preventDefault();event.stopImmediatePropagation();aplicarCupom(event.target);}},true);
     let buscaTudoT=0;
     document.addEventListener('input',(event)=>{
       const campo=event.target.closest?.('[data-trans-busca] input');

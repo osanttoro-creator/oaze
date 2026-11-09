@@ -218,3 +218,6 @@ html.tg-com-muro body{overflow:hidden}
 .oz-chip-pref input:focus-visible+span{outline:2px solid var(--teal);outline-offset:2px}
 .oz-pref-contas{border:1px solid var(--line);border-radius:14px;padding:8px 12px;margin:6px 0 10px}
 .oz-pref-contas summary{cursor:pointer;font-size:13px}
+
+.tg-cupom{display:grid;gap:6px;margin:0 0 14px;font-size:14px;color:rgba(240,229,207,.75)}
+.tg-cupom input{min-height:44px;border-radius:14px;border:1px solid rgba(240,229,207,.16);background:rgba(240,229,207,.04);color:#F0E5CF;padding:0 12px;font:inherit;text-transform:uppercase}

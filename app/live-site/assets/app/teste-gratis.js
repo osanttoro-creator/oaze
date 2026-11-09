@@ -150,6 +150,7 @@
       + '<button type="button" role="radio" aria-checked="false" data-tg-ciclo="monthly">Mensal <small>' + reais(preco().mensal) + '/mês</small></button></div>'
       + '<div data-tg-tempo>' + linhaDoTempo('annual') + '</div>'
       + '<ul class="tg-chips"><li>App para Windows</li><li>Relatórios + PDF</li><li>Lançamentos sem limite</li><li>Mais Coco por dia</li><li>Sem anúncios</li></ul>'
+      + '<label class="tg-cupom">Tem um cupom? <input data-tg-cupom maxlength="40" autocomplete="off" autocapitalize="characters" placeholder="CÓDIGO (opcional)"></label>'
       + '<div class="tg-rodape"><button type="button" class="tg-principal" data-tg="comecar">Começar teste grátis</button>'
       + '<p class="tg-garantia">' + notaDoCartao() + '</p>'
       + '<p class="tg-erro" role="alert" hidden></p>'
@@ -181,6 +182,12 @@
     try {
       const pedido = { acao: 'assinar', plano: 'pro', ciclo: ciclo === 'monthly' ? 'monthly' : 'annual', moeda: 'BRL' };
       if (teste) pedido.teste = true;
+      const campoCupom = botao.closest('dialog, [data-tg-muro]')?.querySelector('[data-tg-cupom]');
+      const cupom = campoCupom ? String(campoCupom.value || '').trim().toUpperCase() : '';
+      if (cupom) {
+        if (!/^[A-Z0-9_-]{3,40}$/.test(cupom)) throw new Error('Digite o código do cupom como está escrito.');
+        pedido.cupom = cupom;
+      }
       const d = await dispositivo();
       if (d) pedido.dispositivo = d;
       if (desktop()) pedido.canal = 'windows';
