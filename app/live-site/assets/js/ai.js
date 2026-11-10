@@ -490,7 +490,7 @@
      bolhas, modal, markdown e proposta de lançamento desenhada em
      DOM.
 
-     A V3 usa a primeira metade e tem a sua própria Coco para a
+     A V3 usa a primeira metade e tem a sua própria OAZE para a
      segunda. Com o painel anterior apagado, a tela daqui ficou
      chamando UI, Forms e Store de um jeito que não existe mais:
      código morto que ainda parece vivo é o pior tipo, porque o dia
@@ -525,11 +525,11 @@
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok && !j.erro) j.erro = r.status === 401 ? 'sem_sessao' : 'indisponivel';
-      /* A barra de uso da Coco (dia/semana) acompanha cada resposta. */
+      /* A barra de uso da OAZE (dia/semana) acompanha cada resposta. */
       if (j && j.uso && global.Limites && Limites.registrarUsoCoco) Limites.registrarUsoCoco(j.uso);
       return j;
     } catch (error) {
-      if (error && error.name === 'AbortError') return { erro: 'tempo_esgotado', mensagem: 'A Coco demorou para responder. Tente novamente.' };
+      if (error && error.name === 'AbortError') return { erro: 'tempo_esgotado', mensagem: 'A OAZE demorou para responder. Tente novamente.' };
       throw error;
     } finally { global.clearTimeout(timer); }
   };

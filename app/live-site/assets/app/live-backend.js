@@ -275,14 +275,14 @@
     global.location.replace('/');
   };
   V3Backend.cocoSettings = async function () {
-    if (!client || !user) throw new Error('Entre na sua conta para usar a Coco.');
+    if (!client || !user) throw new Error('Entre na sua conta para usar a OAZE.');
     const { data, error } = await bounded(client.from('coco_settings')
       .select('consented_at,analysis_consented_at,revoked_at,learning_paused').eq('user_id', user.id).maybeSingle());
     if (error) throw error;
     return data || { consented_at: null, analysis_consented_at: null, revoked_at: null, learning_paused: false };
   };
   V3Backend.cocoConsent = async function (accepted) {
-    if (!client || !user) throw new Error('Entre na sua conta para configurar a Coco.');
+    if (!client || !user) throw new Error('Entre na sua conta para configurar a OAZE.');
     const now = new Date().toISOString();
     const current = await V3Backend.cocoSettings();
     const { error } = await bounded(client.from('coco_settings').upsert({
@@ -297,7 +297,7 @@
   };
   V3Backend.cocoPauseLearning = async function (paused) {
     const settings = await V3Backend.cocoSettings();
-    if (!settings.consented_at || settings.revoked_at) throw new Error('Autorize a Coco antes de configurar a memória.');
+    if (!settings.consented_at || settings.revoked_at) throw new Error('Autorize a OAZE antes de configurar a memória.');
     const { error } = await bounded(client.from('coco_settings')
       .update({ learning_paused: !!paused, updated_at: new Date().toISOString() }).eq('user_id', user.id));
     if (error) throw error;
@@ -313,7 +313,7 @@
   V3Backend.cocoRemember = async function (profileId, memory) {
     if (!client || !user) throw new Error('Entre na sua conta para salvar a memória.');
     const settings = await V3Backend.cocoSettings();
-    if (!settings.consented_at || settings.revoked_at || settings.learning_paused) throw new Error('O aprendizado da Coco está desligado.');
+    if (!settings.consented_at || settings.revoked_at || settings.learning_paused) throw new Error('O aprendizado da OAZE está desligado.');
     const { data, error } = await bounded(client.from('coco_memories').insert({
       user_id: user.id, profile_id: profileId,
       kind: memory.kind, label: memory.label, value: memory.value,
@@ -340,7 +340,7 @@
     if (!client || !user) throw new Error('Entre na sua conta para guardar a análise.');
     const settings = await V3Backend.cocoSettings();
     if (!settings.consented_at || !settings.analysis_consented_at || settings.revoked_at || settings.learning_paused)
-      throw new Error('A memória da Coco está desligada.');
+      throw new Error('A memória da OAZE está desligada.');
     const { error } = await bounded(client.from('coco_analyses').upsert({
       user_id: user.id, profile_id: profileId, period, summary, forgotten_hash: null,
       updated_at: new Date().toISOString()
@@ -380,7 +380,7 @@
     } finally { global.clearTimeout(timer); }
   };
   V3Backend.cocoSpeak = async function (text) {
-    if (!client || !user) throw new Error('Entre na sua conta para ouvir a Coco.');
+    if (!client || !user) throw new Error('Entre na sua conta para ouvir a OAZE.');
     const config = global.SupabaseConfig || {};
     const base = String(config.url || '').replace(/\/+$/, '');
     const publicKey = String(config.publishableKey || config.anonKey || '');
@@ -403,7 +403,7 @@
     } finally { global.clearTimeout(timer); }
   };
   V3Backend.cocoLiveSession = async function (sdp, history, options = {}) {
-    if (!client || !user) throw new Error('Entre na sua conta para falar com a Coco.');
+    if (!client || !user) throw new Error('Entre na sua conta para falar com a OAZE.');
     const config = global.SupabaseConfig || {};
     const base = String(config.url || '').replace(/\/+$/, '');
     const publicKey = String(config.publishableKey || config.anonKey || '');
@@ -440,7 +440,7 @@
      UMA AUTORIZAÇÃO SÓ, E ELA É A DA ENTRADA
      -------------------------------------------------------------
      Eram três perguntas em momentos diferentes: a privacidade logo
-     depois de entrar, a Coco na primeira conversa, e os avisos
+     depois de entrar, a OAZE na primeira conversa, e os avisos
      soltos pelo caminho. Três paredes seguidas não protegem mais
      do que uma — ensinam a clicar em "aceitar" sem ler, que é o
      contrário de consentir.
@@ -464,12 +464,12 @@
     }));
     if (result.error && result.error.code !== '23505') throw result.error;
   }
-  /* A Coco faz parte da mesma autorização, mas não pode derrubar a
+  /* A OAZE faz parte da mesma autorização, mas não pode derrubar a
      entrada: se a gravação dela falhar, o app abre mesmo assim e ela
      volta a pedir quando for usada. */
   async function gravarCoco() {
     try { await V3Backend.cocoConsent(true); return true; }
-    catch (error) { console.error('V3/consentimento Coco:', error); return false; }
+    catch (error) { console.error('V3/consentimento OAZE:', error); return false; }
   }
   async function requireConsent() {
     const [privacidade, coco] = await Promise.all([
@@ -493,15 +493,15 @@
 
     /* QUEM TRANCA O APP É A PRIVACIDADE, NÃO A COCO
        O aceite da privacidade é a condição para ler qualquer
-       documento financeiro — sem ele não há o que mostrar. A Coco é
+       documento financeiro — sem ele não há o que mostrar. A OAZE é
        autorização de uso de um recurso: faltando só ela, o app abre
        e ela mesma pede quando for aberta. Trancar a entrada por
-       causa da Coco transformaria quem já estava dentro em refém de
+       causa da OAZE transformaria quem já estava dentro em refém de
        uma pergunta que ele pode querer responder 'não'. */
     if (temPrivacidade) return;
 
     const view = document.getElementById('v3-view');
-    view.innerHTML = '<section class="v3-panel v3-consent"><span class="v3-label">ANTES DE ENTRAR</span><h2>Seus dados, suas regras.</h2><p>Esta é a única autorização que o OAZE pede. Sem ela, o aplicativo não carrega seus dados financeiros.</p><p><a href="/privacidade" target="_blank" rel="noopener noreferrer">Política de privacidade</a> · <a href="/termos" target="_blank" rel="noopener noreferrer">Termos de uso</a></p><form id="v3-privacy-form"><label><input type="checkbox" name="accept" required> Li e aceito a Política de privacidade (versão 01/10/2026) e os Termos de uso, e autorizo a Coco a usar meus dados financeiros para me responder.</label><button type="submit" class="v3-primary">Autorizar e entrar</button><button type="button" class="v3-secondary" id="v3-privacy-decline">Não aceitar</button><p class="v3-muted">A Coco pode ser revogada depois em Configurações.</p><p role="alert" id="v3-privacy-error" hidden></p></form></section>';
+    view.innerHTML = '<section class="v3-panel v3-consent"><span class="v3-label">ANTES DE ENTRAR</span><h2>Seus dados, suas regras.</h2><p>Esta é a única autorização que o OAZE pede. Sem ela, o aplicativo não carrega seus dados financeiros.</p><p><a href="/privacidade" target="_blank" rel="noopener noreferrer">Política de privacidade</a> · <a href="/termos" target="_blank" rel="noopener noreferrer">Termos de uso</a></p><form id="v3-privacy-form"><label><input type="checkbox" name="accept" required> Li e aceito a Política de privacidade (versão 01/10/2026) e os Termos de uso, e autorizo a OAZE a usar meus dados financeiros para me responder.</label><button type="submit" class="v3-primary">Autorizar e entrar</button><button type="button" class="v3-secondary" id="v3-privacy-decline">Não aceitar</button><p class="v3-muted">A OAZE pode ser revogada depois em Configurações.</p><p role="alert" id="v3-privacy-error" hidden></p></form></section>';
     await new Promise((resolve) => {
       document.getElementById('v3-privacy-decline').addEventListener('click', async () => {
         await client.auth.signOut().catch(() => {});
@@ -809,7 +809,7 @@
     if (profileError) throw profileError;
     accountProfile = profileRow || {};
     if (accountProfile.nome) user.name = accountProfile.nome;
-    /* Compatibilidade somente de leitura para Limites e Coco. A V3 não
+    /* Compatibilidade somente de leitura para Limites e OAZE. A V3 não
        inicializa o Sync antigo nem sua cópia local compartilhada. */
     global.Sync = { currentUser: () => ({ uid: user.id, email: user.email, displayName: ownerName() }) };
     global.SupabaseBackend = { cliente: () => client };

@@ -116,7 +116,7 @@
       : reais(mensal) + ' por mês.';
     return '<ol class="tg-tempo">'
       + passo('hoje', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>',
-        'Hoje: tudo liberado', 'App para Windows, mais Coco por dia, relatórios em PDF, lançamentos sem limite e sem anúncio. ' + reais(0) + '.')
+        'Hoje: tudo liberado', 'App para Windows, mais OAZE por dia, relatórios em PDF, lançamentos sem limite e sem anúncio. ' + reais(0) + '.')
       + passo('aviso', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
         'Dia ' + AVISO + ': a gente te avisa', 'Lembrete de que o teste está acabando. Sem surpresa na fatura.')
       + passo('pro', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h20l-2-11-5 4-3-6-3 6-5-4z"/></svg>',
@@ -149,7 +149,7 @@
       + '<button type="button" role="radio" aria-checked="true" data-tg-ciclo="annual">Anual <small>' + reais(preco().mesNoAnual) + '/mês</small></button>'
       + '<button type="button" role="radio" aria-checked="false" data-tg-ciclo="monthly">Mensal <small>' + reais(preco().mensal) + '/mês</small></button></div>'
       + '<div data-tg-tempo>' + linhaDoTempo('annual') + '</div>'
-      + '<ul class="tg-chips"><li>App para Windows</li><li>Relatórios + PDF</li><li>Lançamentos sem limite</li><li>Mais Coco por dia</li><li>Sem anúncios</li></ul>'
+      + '<ul class="tg-chips"><li>App para Windows</li><li>Relatórios + PDF</li><li>Lançamentos sem limite</li><li>Mais OAZE por dia</li><li>Sem anúncios</li></ul>'
       + '<label class="tg-cupom">Tem um cupom? <input data-tg-cupom maxlength="40" autocomplete="off" autocapitalize="characters" placeholder="CÓDIGO (opcional)"></label>'
       + '<div class="tg-rodape"><button type="button" class="tg-principal" data-tg="comecar">Começar teste grátis</button>'
       + '<p class="tg-garantia">' + notaDoCartao() + '</p>'
@@ -257,7 +257,7 @@
       + '<div class="tg-ciclo" role="radiogroup" aria-label="Plano">'
       + '<button type="button" role="radio" aria-checked="true" data-tg-ciclo="annual">Anual <small>' + reais(anual) + ' (' + reais(mesNoAnual) + '/mês)</small></button>'
       + '<button type="button" role="radio" aria-checked="false" data-tg-ciclo="monthly">Mensal <small>' + reais(mensal) + '/mês</small></button></div>'
-      + '<ul class="tg-chips"><li>App para Windows</li><li>Relatórios + PDF</li><li>Lançamentos sem limite</li><li>Mais Coco por dia</li><li>Sem anúncios</li></ul>'
+      + '<ul class="tg-chips"><li>App para Windows</li><li>Relatórios + PDF</li><li>Lançamentos sem limite</li><li>Mais OAZE por dia</li><li>Sem anúncios</li></ul>'
       + '<div class="tg-rodape">'
       + (cabeTeste
         ? '<button type="button" class="tg-principal" data-tg-muro-acao="teste">Começar 30 dias grátis</button><p class="tg-garantia">' + notaDoCartao() + '</p>'

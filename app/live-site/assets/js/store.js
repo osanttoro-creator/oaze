@@ -394,7 +394,7 @@
       ? t.receiptPath : null;
     /* Local da compra (31/10/2026): opcional, escolhido pela pessoa no
        formulário. Só latitude e longitude arredondadas a 3 casas
-       (~100 m) — nada de endereço, e nada é enviado à Coco. */
+       (~100 m) — nada de endereço, e nada é enviado à OAZE. */
     t.local = (t.local && typeof t.local === 'object'
       && Number.isFinite(+t.local.lat) && Number.isFinite(+t.local.lng)
       && Math.abs(+t.local.lat) <= 90 && Math.abs(+t.local.lng) <= 180)

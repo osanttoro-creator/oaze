@@ -1,4 +1,4 @@
-/* Voz Realtime da Coco. A UI e o histórico pertencem ao app.js; este módulo
+/* Voz Realtime da OAZE. A UI e o histórico pertencem ao app.js; este módulo
    controla somente WebRTC, microfone, áudio, eventos e encerramento. */
 (function (global) {
   'use strict';
@@ -338,7 +338,7 @@
             this.setState(this.mode === 'push' ? 'IDLE' : 'LISTENING');
           break;
         }
-        case 'error': this.cb.onError?.('A Coco não conseguiu continuar a conversa por voz.'); this.stop('ERROR'); break;
+        case 'error': this.cb.onError?.('A OAZE não conseguiu continuar a conversa por voz.'); this.stop('ERROR'); break;
       }
     }
     stop(finalState = 'IDLE') {

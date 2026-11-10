@@ -82,7 +82,7 @@
       + '<ul class="bv-pronto">'
       + (escolhidos.length ? '<li><strong>Início pensado para</strong><small>' + esc(escolhidos.join(' · ')) + '</small></li>' : '')
       + (banco ? '<li><strong>Primeira conta</strong><small>' + esc(banco) + ', é só confirmar o saldo</small></li>' : '')
-      + '<li><strong>Grátis para começar</strong><small>Lançamentos sem limite: a cada 20, um anúncio curto. Coco com cota diária. O Pro libera tudo, sem anúncios.</small></li>'
+      + '<li><strong>Grátis para começar</strong><small>Lançamentos sem limite: a cada 20, um anúncio curto. OAZE com cota diária. O Pro libera tudo, sem anúncios.</small></li>'
       + '</ul></div><div class="bv-rodape"><a class="bv-principal" href="/cadastro" data-bv="concluir">Criar conta grátis</a>'
       + '<button type="button" class="bv-link" data-bv="concluir-entrar">Já tenho conta · Entrar</button></div>';
   }

@@ -380,7 +380,7 @@
         const [tom, frase] = veredito(d, folga, livre);
         return '<li class="oz-card' + (d.comprado ? ' is-quitado' : '') + '"><div class="oz-card-topo"><span><strong>' + esc(d.nome) + '</strong><small>prioridade ' + esc(d.prioridade) + '</small></span><strong>' + reais(d.valor) + '</strong></div>'
           + (d.comprado ? '<small class="oz-card-sub">Comprado.</small>' : '<p class="oz-desejo-veredito is-' + tom + '">' + (tom === 'sim' ? 'Pode comprar. ' : tom === 'espera' ? 'Melhor esperar. ' : 'Agora não. ') + esc(frase) + '</p>')
-          + '<div class="oz-card-acoes">' + (d.comprado ? '' : '<button type="button" class="v3-secondary" data-oz-des-coco="' + esc(d.id) + '">Perguntar à Coco</button><button type="button" class="v3-link" data-oz-des-comprei="' + esc(d.id) + '">Comprei</button>') + '<button type="button" class="v3-link oz-perigo" data-oz-des-excluir="' + esc(d.id) + '">Excluir</button></div></li>';
+          + '<div class="oz-card-acoes">' + (d.comprado ? '' : '<button type="button" class="v3-secondary" data-oz-des-coco="' + esc(d.id) + '">Perguntar à OAZE</button><button type="button" class="v3-link" data-oz-des-comprei="' + esc(d.id) + '">Comprei</button>') + '<button type="button" class="v3-link oz-perigo" data-oz-des-excluir="' + esc(d.id) + '">Excluir</button></div></li>';
       }).join('') + '</ul>' : '');
   }
 
@@ -542,7 +542,7 @@
 })(window);
 /* TRAVAS DO OÁSIS (02/11/2026): o leitor de QR da nota fiscal e a
    importação de extrato, comprovante e PDF (inclusive o anexo da
-   Coco) são do Oásis. A trava roda antes de qualquer tela abrir; na
+   OAZE) são do Oásis. A trava roda antes de qualquer tela abrir; na
    demonstração tudo continua aberto para mostrar o produto. */
 document.addEventListener('click', (ev) => {
   const alvo = ev.target.closest && ev.target.closest('[data-oz-mais="nota"], [data-oz-comprovante], [data-action="choose-coco-file"], [data-coco-tab="Extratos"]');

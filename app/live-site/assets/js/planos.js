@@ -94,7 +94,7 @@
         history_months: 3,
         comparison_months: 1,
         collaborators: 0,
-        /* 31/10/2026: a Coco passou a ser medida por janela — dia e
+        /* 31/10/2026: a OAZE passou a ser medida por janela — dia e
            semana — e o Semente ganhou anúncio premiado no app Android:
            cada anúncio libera +10 lançamentos no mês, até 5 por dia. */
         coco_unidades_dia: 3,
@@ -359,9 +359,9 @@
     { chave: 'goals',                  rotulo: 'Metas ativas',                   tipo: 'limite' },
     { chave: 'recurring_items',        rotulo: 'Recorrências',                   tipo: 'limite' },
     { chave: 'history_months',         rotulo: 'Histórico disponível',           tipo: 'meses' },
-    { chave: 'coco_unidades_dia',      rotulo: 'Conversas com a Coco por dia',   tipo: 'limite' },
-    { chave: 'coco_unidades_semana',   rotulo: 'Conversas com a Coco por semana', tipo: 'limite' },
-    { chave: 'uglez_assistente_flutuante', rotulo: 'Coco flutuante no app',      tipo: 'recurso' },
+    { chave: 'coco_unidades_dia',      rotulo: 'Conversas com a OAZE por dia',   tipo: 'limite' },
+    { chave: 'coco_unidades_semana',   rotulo: 'Conversas com a OAZE por semana', tipo: 'limite' },
+    { chave: 'uglez_assistente_flutuante', rotulo: 'OAZE flutuante no app',      tipo: 'recurso' },
     { chave: 'comparacao_mensal',      rotulo: 'Comparação entre meses',         tipo: 'recurso' },
     { chave: 'comparacao_anual',       rotulo: 'Comparação anual',               tipo: 'recurso' },
     { chave: 'analises_avancadas',     rotulo: 'Tendências, simulações e projeções', tipo: 'recurso' },
@@ -381,7 +381,7 @@
       '1 orçamento, 1 meta e 3 recorrências',
       'Histórico dos últimos 3 meses',
       'Contas e cartões em dólar, euro e outras moedas',
-      'Coco com uso diário e semanal, mostrado em porcentagem'
+      'OAZE com uso diário e semanal, mostrado em porcentagem'
     ],
     pro: [
       'App para Windows incluso (exclusivo de quem assina)',
@@ -389,8 +389,8 @@
       'Cartões e movimentações sem limite',
       '100 orçamentos, 50 metas e 150 recorrências',
       'Histórico completo e comparação anual',
-      'Tendências, simulações e projeções da Coco',
-      'Coco com 10 vezes mais uso por dia e por semana, com assistente flutuante',
+      'Tendências, simulações e projeções da OAZE',
+      'OAZE com 10 vezes mais uso por dia e por semana, com assistente flutuante',
       'Sem anúncios',
       'Acesso antecipado e atendimento prioritário'
     ]
@@ -415,11 +415,11 @@
     },
     {
       p: 'Meus dados financeiros são enviados para a inteligência artificial?',
-      r: 'Só um resumo agregado do mês que você está olhando — totais, categorias consolidadas e metas. Nunca a lista de lançamentos, nomes de contas ou seu e-mail. A tela da Coco mostra o que segue junto antes de você enviar.'
+      r: 'Só um resumo agregado do mês que você está olhando — totais, categorias consolidadas e metas. Nunca a lista de lançamentos, nomes de contas ou seu e-mail. A tela da OAZE mostra o que segue junto antes de você enviar.'
     },
     {
       p: 'Preciso de conta para usar o OAZE?',
-      r: 'Não. O painel funciona neste aparelho sem conta nenhuma. A conta serve para ver os mesmos dados no computador e no celular, e para conversar com a Coco.'
+      r: 'Não. O painel funciona neste aparelho sem conta nenhuma. A conta serve para ver os mesmos dados no computador e no celular, e para conversar com a OAZE.'
     }
   ];
 

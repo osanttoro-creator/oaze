@@ -6,7 +6,7 @@
   // A prévia continua isolada; somente app-v3.html habilita a conta real.
   const demo = document.documentElement.dataset.oazeMode !== 'live';
   const routes = ['home', 'transactions', 'wallet', 'investments', 'categories', 'goals', 'calendar', 'coco', 'reminders', 'reports', 'settings', 'plan'];
-  const names = { home: 'início', transactions: 'lançamentos', wallet: 'carteira', investments: 'investimentos', categories: 'categorias', goals: 'planejamento', calendar: 'agenda', coco: 'coco', reminders: 'agenda', reports: 'início', settings: 'configurações', plan: 'plano', more: 'mais' };
+  const names = { home: 'início', transactions: 'lançamentos', wallet: 'carteira', investments: 'investimentos', categories: 'categorias', goals: 'planejamento', calendar: 'agenda', coco: 'oaze', reminders: 'agenda', reports: 'início', settings: 'configurações', plan: 'plano', more: 'mais' };
   const initialPaths = { '/app': 'home', '/app/financeiro': 'transactions', '/app/carteira': 'wallet', '/app/investimentos': 'investments', '/app/categorias': 'categories', '/app/metas': 'goals', '/app/orcamento': 'investments/planning', '/app/recorrencias': 'calendar', '/app/calendario': 'calendar', '/app/configuracoes': 'settings', '/app/planos': 'plan', '/app/limites': 'plan', '/app/analises': 'coco', '/app/uglez': 'coco' };
   const uiIcons = new Set(['home','transactions','wallet','investments','reports','categories','goals','calendar','reminders','settings','plan','more','plus','arrow','down','utensils','car','heart','leisure','subscription','contactless','education','shopping','receipt','work','exchange','sales']);
   const extraCategoryIcons = new Set(['baby','bus','cake','church','coffee','dog','droplet','dumbbell','film','flame','fuel','gift','glasses','hammer','key','laptop','map-pin','music','package','palmtree','percent','piggy-bank','pill','plane','scissors','shield','shirt','shopping-cart','smartphone','sofa','sparkles','star','stethoscope','ticket','truck','tv','umbrella','users','wifi','wrench','zap','credit-card','wallet','coins','hand-coins','banknote','landmark','store','pizza','beer','wine','apple','sandwich','ice-cream-cone','beef','fish','bike','train-front','car-taxi-front','ship','hotel','tent','lamp','paint-roller','bath','washing-machine','book-open','pencil','gamepad-2','headphones','camera','palette','cat','paw-print','bone','syringe','hospital','activity','brain','heart-handshake','party-popper','gem','watch','footprints','briefcase','building-2','calculator','scale','file-text','phone','mail','globe','car-front','parking-meter','construction','leaf','sun','snowflake','cigarette','dice-5','trophy','tree-pine','graduation-cap','school','receipt-text','trending-up']);
@@ -40,16 +40,21 @@
   const statusDescriptions = { pago: 'Entra nos totais', pendente: 'Fica no previsto', cancelado: 'Não entra em nenhum total' };
   const NAV_PAGES = ['home','transactions','wallet','investments','categories','calendar','coco','more','settings'];
   const NAV_KEY = 'oaze.v3.sidebar';
+  /* Lei de Hick (10/11/2026): o menu lateral abre com seis destinos.
+     Investimentos, categorias e configurações continuam em "mais" e
+     voltam à barra em "Editar menu". Quem já mexeu no menu fica como
+     estava: isto vale só para quem nunca salvou preferência. */
+  const NAV_OCULTOS_PADRAO = ['investments', 'categories', 'settings'];
   function loadNavPrefs() {
     try {
       const saved = JSON.parse(localStorage.getItem(NAV_KEY) || '{}');
       const order = Array.isArray(saved.order) ? [...new Set(saved.order.filter((page) => NAV_PAGES.includes(page)))] : [];
-      const hidden = Array.isArray(saved.hidden) ? saved.hidden.filter((page) => NAV_PAGES.includes(page) && page !== 'home') : [];
+      const hidden = Array.isArray(saved.hidden) ? saved.hidden.filter((page) => NAV_PAGES.includes(page) && page !== 'home') : [...NAV_OCULTOS_PADRAO];
       const ordem = [...order, ...NAV_PAGES.filter((page) => !order.includes(page))];
       /* "mais" entrou depois: quem já tinha a barra salva recebe ele logo acima de Configurações. */
       if (!order.includes('more') && ordem.includes('settings')) { ordem.splice(ordem.indexOf('more'), 1); ordem.splice(ordem.indexOf('settings'), 0, 'more'); }
       return { order: ordem, hidden, collapsed: !!saved.collapsed };
-    } catch { return { order: [...NAV_PAGES], hidden: [], collapsed: false }; }
+    } catch { return { order: [...NAV_PAGES], hidden: [...NAV_OCULTOS_PADRAO], collapsed: false }; }
   }
   let navPrefs = loadNavPrefs();
   let navEditorOpen = false;
@@ -252,7 +257,7 @@
   function walletItems() { return items().filter((x) => x.kind === state.walletKind && !!x.data.hidden === !!state.walletHidden); }
   function itemById(id) { return items().find((x) => x.data.id === id); }
   function selectedItem() { const saved=global.V3Carteira?.ultimo('v3-'+state.walletKind+(state.walletHidden?'-hidden':''));return walletItems().find((x) => x.data.id === state.selected) || walletItems().find((x)=>x.data.id===saved) || walletItems()[0] || null; }
-  const cocoPetIcon = '<span class="v3-coco-pet" aria-hidden="true"><img src="/assets/coco/corpo-neutra_acolhedora.webp" width="900" height="337" alt=""></span>';
+  const cocoPetIcon = '<span class="v3-coco-pet" aria-hidden="true"><img src="/assets/brand/oaze-mascote-192.png" width="192" height="192" alt=""></span>';
   function navButton(page) { return `<button class="v3-nav${state.page === page ? ' is-active' : ''}" type="button" data-go="${page}" aria-label="${esc(names[page])}" title="${esc(names[page])}" ${state.page === page ? 'aria-current="page"' : ''}>${page === 'coco' ? cocoPetIcon : icon(page)}<span>${esc(names[page])}</span></button>`; }
   function navEditorMarkup() {
     return `<div class="v3-nav-editor-head"><strong>Editar menu</strong><button type="button" data-action="sidebar-edit" aria-label="Fechar edição do menu">×</button></div><p>Escolha a ordem e o que aparece neste aparelho.</p><div class="v3-nav-editor-list">${navPrefs.order.map((page, index) => `<div class="v3-nav-editor-row"><span>${page === 'coco' ? cocoPetIcon : icon(page)}${esc(names[page])}</span><button type="button" data-nav-visibility="${page}" aria-label="${navPrefs.hidden.includes(page) ? 'Mostrar' : 'Ocultar'} ${esc(names[page])}" aria-pressed="${!navPrefs.hidden.includes(page)}" ${page === 'home' ? 'disabled title="Início sempre visível"' : ''}>${navPrefs.hidden.includes(page) ? 'Mostrar' : 'Visível'}</button><button type="button" data-nav-move="up" data-nav-page="${page}" aria-label="Mover ${esc(names[page])} para cima" ${index === 0 ? 'disabled' : ''}>↑</button><button type="button" data-nav-move="down" data-nav-page="${page}" aria-label="Mover ${esc(names[page])} para baixo" ${index === navPrefs.order.length - 1 ? 'disabled' : ''}>↓</button></div>`).join('')}</div><button class="v3-nav-reset" type="button" data-action="sidebar-reset">Restaurar menu padrão</button>`;
@@ -296,7 +301,7 @@
     $('#v3-demo-note').hidden = state.page === 'home';
     if (!demo) $('#v3-demo-note').textContent = global.V3Backend?.saving()
       ? 'Salvando no perfil…' : state.sharedId ? `Perfil compartilhado · ${sharedCanEdit()?'edição':'leitura'}` : 'Dados carregados da sua conta';
-    /* O contador saiu de cima da Coco flutuante: agora é o ícone de uso
+    /* O contador saiu de cima da OAZE flutuante: agora é o ícone de uso
        dentro da barra de mensagem dela (cocoUsoMini). */
     $('#v3-coco-count').hidden = true;
     const alerts = reminders();
@@ -619,7 +624,7 @@
   const CHAVE_INICIO = 'oaze.v3.inicio';
   let blocosSessao = null;
   const BLOCOS_INICIO = [
-    { id: 'coco', nome: 'Converse com a Coco', padrao: true, largo: true },
+    { id: 'coco', nome: 'Converse com a OAZE', padrao: true, largo: true },
     { id: 'sobra', nome: 'Sobra e curva do mês', padrao: true, largo: true },
     { id: 'categorias', nome: 'Onde foi o mês', padrao: true },
     { id: 'receitas', nome: 'De onde veio o mês', padrao: true },
@@ -680,7 +685,7 @@
     blocosSessao = atual;
     try { localStorage.setItem(CHAVE_INICIO, JSON.stringify(atual)); } catch (e) { /* sem armazenamento: vale só nesta sessão */ }
   }
-  /* Ponte para módulos de fora (o widget da Coco mora em recursos-app.js). */
+  /* Ponte para módulos de fora (o widget da OAZE mora em recursos-app.js). */
   global.OazeInicio = { ligado: (id) => blocoLigado(id), remover: (id) => { if (blocoLigado(id)) alternarBloco(id); if (state.page === 'home') render(); } };
   function painelBlocosInicioHtml(alvo) {
     const nomes = Object.fromEntries(BLOCOS_INICIO.map((b) => [b.id, b.nome]));
@@ -827,7 +832,7 @@
        montadas à mão). Agora a carteira fica sempre primeiro e os widgets
        ligados entram numa grade na ordem escolhida em "Gerenciar widgets".
        A grade é densa: um widget estreito sobe para ocupar o buraco ao lado
-       de outro, e os largos (Coco, curva, indicadores) ocupam a linha toda. */
+       de outro, e os largos (OAZE, curva, indicadores) ocupam a linha toda. */
     const ligados = ordemBlocos().filter((id) => blocoLigado(id));
     const extraContext = { p: profile(), ts: currentTransactions().filter((t)=>!t.cancelado && t.contaNosTotais !== false), t: totals() };
     const largos = new Set(BLOCOS_INICIO.filter((b) => b.largo).map((b) => b.id));
@@ -845,7 +850,7 @@
       return extraHomeWidget(id, extraContext);
     };
     const widgets = ligados.map((id) => { const html = desenhar(id); return html ? `<div class="v3-widget-slot${largos.has(id) ? ' is-largo' : ''}" data-widget="${esc(id)}">${html}</div>` : ''; }).join('');
-    return `<div class="v3-home-identity"><div class="v3-home-identity-title"><span class="v3-label">VISÃO GERAL</span><h1>início</h1></div><button type="button" class="v3-greeting" data-action="profiles" aria-label="Trocar perfil financeiro"><span class="v3-avatar">${avatarMarkup(owner)}</span><span><small>${greeting},</small><strong>${esc(owner)}</strong></span></button></div>${renderHomeMetrics()}<div class="v3-home-layout"><div class="v3-stack v3-home-carteira">${wallet('SALDO TOTAL',false)}${quickActions()}</div><div class="v3-home-widgets">${widgets}</div></div><button type="button" class="v3-gerenciar" data-action="home-blocks">Gerenciar widgets</button>`;
+    return `<div class="v3-home-identity"><div class="v3-home-identity-title"><span class="v3-label">VISÃO GERAL</span><h1>início</h1></div><button type="button" class="v3-greeting" data-action="profiles" aria-label="Trocar perfil financeiro"><span class="v3-avatar">${avatarMarkup(owner)}</span><span><small>${greeting},</small><strong>${esc(owner)}</strong></span></button></div>${renderHomeMetrics()}<div class="v3-home-layout"><div class="v3-stack v3-home-carteira">${wallet('SALDO TOTAL',false)}</div><div class="v3-home-widgets">${widgets}</div></div><button type="button" class="v3-gerenciar" data-action="home-blocks">Gerenciar widgets</button>`;
   }
   function closeStatusMenu(restoreFocus = true) {
     if (!statusMenu) return;
@@ -859,6 +864,7 @@
   }
   function openStatusMenu(trigger) {
     if (statusBusy) return;
+    if (global.OazeGestos && global.matchMedia('(max-width: 900px)').matches) { closeStatusMenu(false); situacaoNoMenu(trigger.dataset.confirm, trigger.dataset.confirmMonth); return; }
     if (statusMenu?.trigger === trigger) { closeStatusMenu(); return; }
     closeStatusMenu(false);
     const id = trigger.dataset.confirm, ym = trigger.dataset.confirmMonth;
@@ -884,13 +890,33 @@
   async function chooseTransactionStatus(value) {
     if (!statusMenu || statusBusy || !Object.hasOwn(statusLabels, value)) return;
     const { id, ym } = statusMenu;
+    closeStatusMenu(false);
+    await definirSituacao(id, ym, value);
+  }
+  function situacaoDe(id, ym) {
     const entry = currentTransactions({ comCancelados: true }).find((item) =>
       item.id === id && (item.ym || ymOf(item.date)) === ym);
-    if (!entry || (!demo && !Store.transactions.get(id))) { closeStatusMenu(); toast('Esse lançamento mudou. Atualize a página e tente novamente.'); return; }
-    if (value === (entry.cancelado ? 'cancelado' : entry.confirmed ? 'pago' : 'pendente')) { closeStatusMenu(); return; }
-    if (demo) { closeStatusMenu(); toast('Demonstração: nenhum dado foi alterado.'); return; }
+    return entry ? { entry, atual: entry.cancelado ? 'cancelado' : entry.confirmed ? 'pago' : 'pendente' } : null;
+  }
+  /* MENU DE AÇÕES PARA A SITUAÇÃO (10/11/2026)
+     No celular o balão preso ao botão ficava pequeno e longe do
+     polegar; ali a escolha sobe de baixo, três opções e "Cancelar". */
+  function situacaoNoMenu(id, ym) {
+    const achado = situacaoDe(id, ym);
+    if (!achado || (!demo && !Store.transactions.get(id))) { toast('Esse lançamento mudou. Atualize a página e tente novamente.'); return; }
+    global.OazeGestos.acoes({
+      titulo: achado.entry.description,
+      texto: 'Escolha a situação',
+      opcoes: ['pago','pendente','cancelado'].map((v) => ({ rotulo: statusLabels[v], detalhe: statusDescriptions[v], icone: statusGlyph(v), tom: achado.atual === v ? 'atual' : (v === 'cancelado' ? 'perigo' : ''), ao: () => definirSituacao(id, ym, v) }))
+    });
+  }
+  async function definirSituacao(id, ym, value) {
+    if (statusBusy || !Object.hasOwn(statusLabels, value)) return;
+    const achado = situacaoDe(id, ym);
+    if (!achado || (!demo && !Store.transactions.get(id))) { toast('Esse lançamento mudou. Atualize a página e tente novamente.'); return; }
+    if (value === achado.atual) return;
+    if (demo) { toast('Demonstração: nenhum dado foi alterado.'); return; }
     statusBusy = true;
-    closeStatusMenu(false);
     try {
       await V3Backend.mutate(() => {
         Store.transactions.setCancelado(id, ym, value === 'cancelado');
@@ -901,6 +927,47 @@
       toast(`${statusLabels[value]} — ${statusDescriptions[value].toLowerCase()}.`);
     } catch (error) { render(); toast(error.message || 'Não foi possível salvar a situação.'); }
     finally { statusBusy = false; }
+  }
+  /* BOTÃO + COM MENU DE AÇÕES (10/11/2026)
+     Antes o + abria direto um formulário com quatro abas no topo e a
+     pessoa decidia o tipo DEPOIS de abrir. Agora a única pergunta vem
+     primeiro, numa lista curta; o formulário já abre no tipo certo. */
+  function menuNovo(data) {
+    if (!global.OazeGestos) { composer('Despesa', data); return; }
+    const L = (n) => global.Icons?.lucide(n, 19)?.outerHTML || '';
+    global.OazeGestos.acoes({
+      titulo: 'O que você quer registrar?',
+      opcoes: [
+        { rotulo: 'Despesa', detalhe: 'compra, conta ou boleto', icone: L('arrow-down-right'), ao: () => composer('Despesa', data) },
+        { rotulo: 'Receita', detalhe: 'salário, venda, reembolso', icone: L('arrow-up-right'), ao: () => composer('Receita', data) },
+        { rotulo: 'Transferência', detalhe: 'entre as suas contas', icone: L('arrow-left-right'), ao: () => composer('Transferir', data) },
+        { rotulo: 'Investimento', detalhe: 'aporte ou aplicação', icone: L('trending-up'), ao: () => composer('Aporte', data) },
+        { rotulo: 'Ler comprovante', detalhe: 'foto, câmera ou PDF', icone: L('scan-line'), ao: () => { const b = document.createElement('button'); b.type = 'button'; b.hidden = true; b.setAttribute('data-oz-comprovante', ''); document.body.appendChild(b); b.click(); b.remove(); } }
+      ]
+    });
+  }
+  /* DESLIZAR NOS LANÇAMENTOS (10/11/2026), só no toque.
+     Para a direita: marca como pago (ou volta a "não pago").
+     Para a esquerda: Situação e Excluir. Tudo isso continua no botão
+     de situação e na tela de edição — o gesto só encurta o caminho. */
+  function ligarDeslizar() {
+    if (!global.OazeGestos || !global.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+    const L = (n) => global.Icons?.lucide(n, 18)?.outerHTML || '';
+    document.querySelectorAll('.v3-trans-feed .v3-tx').forEach((linha) => {
+      const botao = linha.querySelector('[data-confirm]');
+      if (!botao) return;
+      const id = botao.dataset.confirm, ym = botao.dataset.confirmMonth;
+      const achado = situacaoDe(id, ym);
+      if (!achado) return;
+      const pago = achado.atual === 'pago';
+      global.OazeGestos.deslizar(linha, {
+        direita: achado.atual === 'cancelado' ? null : { rotulo: pago ? 'Não pago' : 'Pago', tom: pago ? 'pendente' : 'ok', icone: L(pago ? 'x' : 'check'), ao: () => definirSituacao(id, ym, pago ? 'pendente' : 'pago') },
+        esquerda: [
+          { rotulo: 'Situação', icone: L('list'), ao: () => situacaoNoMenu(id, ym) },
+          { rotulo: 'Excluir', tom: 'perigo', icone: L('trash-2'), ao: () => { const b = document.createElement('button'); b.dataset.action = 'delete-transaction'; b.dataset.transaction = id; b.hidden = true; document.getElementById('v3-view').appendChild(b); b.click(); b.remove(); } }
+        ]
+      });
+    });
   }
   /* =============================================================
      OS CORTES SÃO PERGUNTAS, E PERGUNTA MORA EM FILTRO
@@ -1040,13 +1107,15 @@
     /* Cada corte ligado ganha saída própria: tirar um filtro não
        pode obrigar a abrir o painel e caçar qual era. */
     const chips = [
-      !['Todos','Entradas','Saídas','Transferências','Recorrentes','Cartões'].includes(state.filter) ? { rotulo: state.filter, acao: 'tirar-rapido' } : null,
+      /* Lei de Hick (10/11/2026): só três cortes fixos na faixa; os outros
+         moram em Filtros e, quando ligados, aparecem aqui como chip removível. */
+      !['Todos','Entradas','Saídas'].includes(state.filter) ? { rotulo: ({ Transferências: 'Entre contas', Recorrentes: 'Recorrentes', Cartões: 'Crédito', Pendentes: 'Pendentes' })[state.filter] || state.filter, acao: 'tirar-rapido' } : null,
       state.filtros.situacao !== 'todas' ? { rotulo: ({ pago: 'Pago', previsto: 'Previsto', cancelado: 'Cancelado' })[state.filtros.situacao] || state.filtros.situacao, acao: 'tirar-situacao' } : null,
       state.filtros.fonte !== 'todas' ? { rotulo: nomeFonte(state.filtros.fonte) || 'Conta', acao: 'tirar-fonte' } : null,
       state.filtros.categoria !== 'todas' ? { rotulo: categoryName(state.filtros.categoria), acao: 'tirar-categoria' } : null,
       state.filtros.busca.trim() ? { rotulo: '“' + state.filtros.busca.trim() + '”', acao: 'tirar-busca' } : null
     ].filter(Boolean);
-    const chipsHtml = [['Todos','Todos'],['Entradas','Entradas'],['Saídas','Saídas'],['Transferências','Entre contas'],['Recorrentes','Recorrentes'],['Cartões','Crédito']].map(([name,label]) => `<button type="button" class="v3-pill v3-pill-rapido${state.filter===name?' is-active':''}" data-filter="${name}" aria-pressed="${state.filter===name}">${label}</button>`).join('')
+    const chipsHtml = [['Todos','Todos'],['Entradas','Entradas'],['Saídas','Saídas']].map(([name,label]) => `<button type="button" class="v3-pill v3-pill-rapido${state.filter===name?' is-active':''}" data-filter="${name}" aria-pressed="${state.filter===name}">${label}</button>`).join('')
       + `<button type="button" class="v3-pill v3-pill-filtros${ativos ? ' is-active' : ''}" data-action="filtros" aria-label="Abrir filtros">Filtros${ativos ? ' · ' + ativos : ''}</button>`
       + chips.map((c) => `<button type="button" class="v3-pill v3-chip" data-action="${c.acao}" aria-label="Tirar o filtro ${esc(c.rotulo)}">${esc(c.rotulo)}<span aria-hidden="true">✕</span></button>`).join('')
       + (ativos > 1 ? '<button type="button" class="v3-link v3-limpar-tudo" data-action="limpar-filtros">limpar tudo</button>' : '');
@@ -2142,13 +2211,13 @@
       ['Recorrências', 'recurring_items']
     ].map(([label,key]) => `<li>${label}: ${Limites.contar(key)} / ${Limites.limite(key) ?? 'sem limite'}</li>`).join('') : '';
     const ai = signed && global.Limites && Limites.consumoIA ? Limites.consumoIA() : null;
-    return `<div class="v3-grid v3-settings"><div><span class="v3-label v3-section-title">CONTA</span><section class="v3-panel">${row('Seus dados', '', 'data-action="account-profile"')}${row('Trocar conta', '', 'data-action="switch-account"')}${row('Sair', '', 'data-action="sign-out"')}${row('Excluir conta', '', 'data-action="delete-account"')}</section><span class="v3-label v3-section-title">SEGURANÇA</span><section class="v3-panel"><div class="v3-setting-row"><span>Sessão e sincronização</span><span>${signed?'Conectada':'Sem sessão'}</span></div><div class="v3-setting-row"><span>PIN de seis dígitos</span><span>cofre e ações sensíveis</span></div>${global.OAZE_NATIVE_BIOMETRICS ? row('PIN, digital ou rosto do aparelho', '', 'data-action="biometric-toggle"', global.OAZE_NATIVE_BIOMETRICS.isEnabled()?'Ativado':'Ativar ›') : '<div class="v3-setting-row"><span>PIN, digital ou rosto do aparelho</span><span>disponível no app</span></div>'}</section></div><div><span class="v3-label v3-section-title">PLANO E AJUDA</span><section class="v3-panel">${row('Plano e assinatura', '', 'data-go="plan"')}${signed?`<details class="v3-usage"><summary>Acompanhar recursos utilizados</summary><ul>${usage}${ai&&Limites.consumoCoco?`<li>Coco: ${Limites.consumoCoco().pct_dia}% de hoje · ${Limites.consumoCoco().pct_semana}% da semana</li>`:''}</ul></details>`:''}<a class="v3-setting-row" href="/suporte"><span>Ajuda e suporte</span><span class="v3-muted">abrir ›</span></a><a class="v3-setting-row" href="mailto:info@oaze.site"><span>Fale com a gente</span><span class="v3-muted">info@oaze.site</span></a></section><span class="v3-label v3-section-title">RELATÓRIOS</span><section class="v3-panel">${row('Estado do OAZE', '', 'data-action="estado-oaze"', 'PDF ›')}${row('Exportar lançamentos', '', 'data-action="export-csv"', 'CSV ›')}</section><span class="v3-label v3-section-title">COCO E DADOS</span><section class="v3-panel">${row('Notificações', '', 'data-action="notifications"')}${row('Permissões do aparelho', '', 'data-action="device-permissions"')}</section><span class="v3-label v3-section-title">PRIVACIDADE E ACESSIBILIDADE</span><section class="v3-panel v3-legal-links" aria-label="Privacidade, LGPD e acessibilidade"><a class="v3-setting-row" href="/privacidade"><span>Política de privacidade</span><span class="v3-muted">ler ›</span></a><a class="v3-setting-row" href="/privacidade#direitos"><span>Seus direitos (LGPD)</span><span class="v3-muted">ler ›</span></a><a class="v3-setting-row" href="/privacidade#encarregado"><span>Canal de privacidade</span><span class="v3-muted">ler ›</span></a><a class="v3-setting-row" href="/termos"><span>Termos de uso</span><span class="v3-muted">ler ›</span></a><a class="v3-setting-row" href="/termos#acessibilidade"><span>Acessibilidade</span><span class="v3-muted">ler ›</span></a></section></div></div>`;
+    return `<div class="v3-grid v3-settings"><div><span class="v3-label v3-section-title">CONTA</span><section class="v3-panel">${row('Seus dados', '', 'data-action="account-profile"')}${row('Trocar conta', '', 'data-action="switch-account"')}${row('Sair', '', 'data-action="sign-out"')}${row('Excluir conta', '', 'data-action="delete-account"')}</section><span class="v3-label v3-section-title">SEGURANÇA</span><section class="v3-panel"><div class="v3-setting-row"><span>Sessão e sincronização</span><span>${signed?'Conectada':'Sem sessão'}</span></div><div class="v3-setting-row"><span>PIN de seis dígitos</span><span>cofre e ações sensíveis</span></div>${global.OAZE_NATIVE_BIOMETRICS ? row('PIN, digital ou rosto do aparelho', '', 'data-action="biometric-toggle"', global.OAZE_NATIVE_BIOMETRICS.isEnabled()?'Ativado':'Ativar ›') : '<div class="v3-setting-row"><span>PIN, digital ou rosto do aparelho</span><span>disponível no app</span></div>'}</section></div><div><span class="v3-label v3-section-title">PLANO E AJUDA</span><section class="v3-panel">${row('Plano e assinatura', '', 'data-go="plan"')}${signed?`<details class="v3-usage"><summary>Acompanhar recursos utilizados</summary><ul>${usage}${ai&&Limites.consumoCoco?`<li>OAZE: ${Limites.consumoCoco().pct_dia}% de hoje · ${Limites.consumoCoco().pct_semana}% da semana</li>`:''}</ul></details>`:''}<a class="v3-setting-row" href="/suporte"><span>Ajuda e suporte</span><span class="v3-muted">abrir ›</span></a><a class="v3-setting-row" href="mailto:info@oaze.site"><span>Fale com a gente</span><span class="v3-muted">info@oaze.site</span></a></section><span class="v3-label v3-section-title">NOTIFICAÇÕES E PERMISSÕES</span><section class="v3-panel">${row('Notificações', '', 'data-action="notifications"')}${row('Permissões do aparelho', '', 'data-action="device-permissions"')}</section><span class="v3-label v3-section-title">PRIVACIDADE E ACESSIBILIDADE</span><section class="v3-panel v3-legal-links" aria-label="Privacidade, LGPD e acessibilidade"><a class="v3-setting-row" href="/privacidade"><span>Política de privacidade</span><span class="v3-muted">ler ›</span></a><a class="v3-setting-row" href="/privacidade#direitos"><span>Seus direitos (LGPD)</span><span class="v3-muted">ler ›</span></a><a class="v3-setting-row" href="/privacidade#encarregado"><span>Canal de privacidade</span><span class="v3-muted">ler ›</span></a><a class="v3-setting-row" href="/termos"><span>Termos de uso</span><span class="v3-muted">ler ›</span></a><a class="v3-setting-row" href="/termos#acessibilidade"><span>Acessibilidade</span><span class="v3-muted">ler ›</span></a></section></div></div>`;
   }
   function openDevicePermissions() {
     const notifications = global.OAZE_NATIVE_NOTIFICATIONS
       ? `<div class="v3-notification-permission"><strong>Notificações</strong><p>${nativeNotificationsEnabled() ? 'Ativadas neste aparelho.' : 'Desativadas neste aparelho.'} Só solicitamos acesso quando você toca em ativar.</p><button type="button" class="v3-secondary" data-action="notifications">Abrir notificações</button></div>`
       : '<p>Os lembretes aparecem dentro do OAZE neste navegador.</p>';
-    openSheet(`${sheetTop('permissões do aparelho', 'controle no momento de uso')}<div class="v3-permissions-list">${notifications}<div><strong>Microfone</strong><p>A Coco pede acesso quando você inicia a conversa por voz. O microfone é encerrado ao terminar a conversa.</p></div><div><strong>Câmera e arquivos</strong><p>O seletor do sistema abre apenas quando você escolhe anexar um arquivo ou uma imagem à Coco.</p></div><div><strong>Biometria</strong><p>Não é exigida para entrar. O PIN continua protegendo os dados sensíveis.</p></div><small>Se uma permissão foi negada, altere-a nas configurações do aparelho. O OAZE não consegue mudá-la sozinho.</small></div>`, 'Permissões do aparelho');
+    openSheet(`${sheetTop('permissões do aparelho', 'controle no momento de uso')}<div class="v3-permissions-list">${notifications}<div><strong>Microfone</strong><p>A OAZE pede acesso quando você inicia a conversa por voz. O microfone é encerrado ao terminar a conversa.</p></div><div><strong>Câmera e arquivos</strong><p>O seletor do sistema abre apenas quando você escolhe anexar um arquivo ou uma imagem à OAZE.</p></div><div><strong>Biometria</strong><p>Não é exigida para entrar. O PIN continua protegendo os dados sensíveis.</p></div><small>Se uma permissão foi negada, altere-a nas configurações do aparelho. O OAZE não consegue mudá-la sozinho.</small></div>`, 'Permissões do aparelho');
   }
   function accountProfileSheet() {
     const owner = V3Backend.user(), data = V3Backend.accountProfile() || {};
@@ -2195,8 +2264,8 @@
       const price = state.billing === 'annual' ? p.anualCentavos : p.mensalCentavos;
       const label = isCurrent ? 'Plano atual' : p.id === 'free' ? 'Plano inicial' : playReadonly ? 'Assinatura indisponível neste app' : paid && !sub.cancel_at_period_end ? 'Cancele o plano atual antes' : demo ? 'Disponível no app' : 'Assinar com Stripe';
       const quantidade=(n,sing,plural)=>n==null?`${plural[0].toUpperCase()+plural.slice(1)} sem limite`:`Até ${n} ${n===1?sing:plural}`;
-      const resumo=p.id==='free'?'O essencial para começar a organizar seu dinheiro.':'Mais espaço para contas, cartões e conversas com a Coco.';
-      return `<section class="v3-panel v3-plan${p.destaque ? ' highlight' : ''}"><div class="v3-row"><h2>${esc(p.nome)}</h2>${p.destaque ? '<span class="v3-label">PLANO PRINCIPAL</span>' : ''}</div><p class="v3-plan-summary">${resumo}</p><p class="v3-money">${money(price / 100)} <span>por ${period}</span></p><ul><li>${quantidade(p.limites.workspaces,'espaço','espaços')}</li><li>${quantidade(p.limites.accounts,'conta','contas')}</li><li>${quantidade(p.limites.credit_cards,'cartão','cartões')}</li><li>${p.limites.ai_queries_per_month == null ? 'Conversas com a Coco sem limite mensal' : `${p.limites.ai_queries_per_month} ${p.limites.ai_queries_per_month===1?'pedido':'pedidos'} à Coco por mês`}</li></ul><button type="button" class="${p.destaque ? 'v3-secondary' : 'v3-primary'}" data-action="subscribe" data-plan="${esc(p.id)}" ${disabled ? 'disabled' : ''}>${label}</button></section>`;
+      const resumo=p.id==='free'?'O essencial para começar a organizar seu dinheiro.':'Mais espaço para contas, cartões e conversas com a OAZE.';
+      return `<section class="v3-panel v3-plan${p.destaque ? ' highlight' : ''}"><div class="v3-row"><h2>${esc(p.nome)}</h2>${p.destaque ? '<span class="v3-label">PLANO PRINCIPAL</span>' : ''}</div><p class="v3-plan-summary">${resumo}</p><p class="v3-money">${money(price / 100)} <span>por ${period}</span></p><ul><li>${quantidade(p.limites.workspaces,'espaço','espaços')}</li><li>${quantidade(p.limites.accounts,'conta','contas')}</li><li>${quantidade(p.limites.credit_cards,'cartão','cartões')}</li><li>${p.limites.ai_queries_per_month == null ? 'Conversas com a OAZE sem limite mensal' : `${p.limites.ai_queries_per_month} ${p.limites.ai_queries_per_month===1?'pedido':'pedidos'} à OAZE por mês`}</li></ul><button type="button" class="${p.destaque ? 'v3-secondary' : 'v3-primary'}" data-action="subscribe" data-plan="${esc(p.id)}" ${disabled ? 'disabled' : ''}>${label}</button></section>`;
     }).join('')}</div>${!playReadonly && !demo && paid && !sub.cancel_at_period_end && linkedSubscription ? '<button type="button" class="v3-secondary v3-plan-cancel" data-action="cancel-subscription">Cancelar renovação da assinatura</button>' : ''}${!playReadonly && !demo && paid && sub?.stripe_subscription_id ? '<button type="button" class="v3-link v3-plan-reembolso" data-action="pedir-reembolso">Pedir reembolso (até 7 dias depois da cobrança)</button>' : ''}`;
   }
   function renderMore() {
@@ -2212,19 +2281,19 @@
       ['Planejar','plan',[['data-go="goals"','piggy-bank','Porquinhos',desc.goals],['data-go="investments"','investments','Investimentos',desc.investments],['data-oz-mais="projecoes"','trending-up','Projeções','saldo dos próximos meses'],['data-oz-mais="desejos"','gift','Lista de desejos','posso comprar?']]],
       ['Acompanhar','track',[['data-go="calendar"','calendar','Agenda e recorrências','vencimentos, fixos e parcelas'],['data-oz-mais="financiamentos"','landmark','Financiamentos',`${(profile().dividas||[]).filter((d)=>d.tipo==='financiamento').length} ativos`],['data-oz-mais="emprestimos"','banknote','Empréstimos e quitação',`${(profile().dividas||[]).filter((d)=>d.tipo==='emprestimo').length} ativos`],['data-oz-mais="receber"','hand-coins','Quem me deve',`${(profile().aReceber||[]).filter((x)=>!x.quitado).length} em aberto`],['data-oz-mais="resumo"','bell','Resumo automático','semana e mês em 1 minuto']]],
       ['Analisar','analyze',[['data-oz-mais="relatorio"','chart-line','Relatório personalizado','período, conta, categoria e tag'],['data-action="estado-oaze"','receipt','Estado do OAZE','relatório em PDF'],['data-action="export-csv"','reports','Exportar lançamentos','planilha CSV'],['data-oz-mais="ir"','receipt','Relatório para o IR','rendimentos, dedutíveis, bens']]],
-      ['Ferramentas','tools',[['data-go="coco"','coco','Coco','conversa e análises'],['data-oz-comprovante','receipt','Importar comprovante','foto, câmera ou PDF'],['data-oz-mais="nota"','scan-line','Nota fiscal (QR)','loja, total e itens da NFC-e'],['data-oz-mais="banco"','smartphone','Avisos do banco','lançar pela notificação'],['data-go="settings"','settings','Configurações',desc.settings]]]
+      ['Ferramentas','tools',[['data-go="coco"','coco','OAZE','conversa e análises'],['data-oz-comprovante','receipt','Importar comprovante','foto, câmera ou PDF'],['data-oz-mais="nota"','scan-line','Nota fiscal (QR)','loja, total e itens da NFC-e'],['data-oz-mais="banco"','smartphone','Avisos do banco','lançar pela notificação'],['data-go="settings"','settings','Configurações',desc.settings]]]
     ];
     /* Cada item com a própria cor viva (classe, não style: vale também no Windows). */
     let corItem=0;
     return `<div class="v3-more-lista v3-more-blocos">${secoes.map(([titulo,tom,linhas])=>`<div class="v3-more-bloco"><span class="v3-label v3-section-title">${esc(titulo.toUpperCase())}</span><section class="v3-panel v3-more-secao" data-tom="${tom}">${linhas.map(([attr,ic,t,s])=>`<button type="button" ${attr}><span class="v3-more-ic oz-cor-${(corItem++)%10}">${ic==='coco'?cocoPetIcon:uiIcons.has(ic)?icon(ic):(global.Icons?.lucide(ic,22)?.outerHTML||icon('more'))}</span><span class="v3-more-txt"><strong>${esc(t)}</strong><small>${esc(s||'')}</small></span><span class="v3-more-seta" aria-hidden="true">›</span></button>`).join('')}</section></div>`).join('')}</div>`;
   }
   function cocoMessages() {
-    if (!state.chat.length) return `<div class="v3-coco-empty"><img src="/assets/coco/rostinhos/02_feliz.png" alt="Coco"></div>`;
-    return state.chat.map((x,i)=>`<article class="v3-coco-message ${x.who==='user'?'is-user':'is-coco'}">${x.who==='coco'?`<img class="v3-coco-message-avatar ${state.cocoSpeaking===i?'is-speaking':''}" src="/assets/coco/rostinhos/${state.cocoSpeaking===i?'06_orgulhosa':'02_feliz'}.png" alt="Coco">`:''}<p>${esc(x.text)}</p>${x.who==='coco'?`<button type="button" class="v3-coco-listen" data-action="coco-speak" data-message-index="${i}" aria-label="${state.cocoSpeaking===i?(state.cocoAudioLoading?'Cancelar preparo do áudio':'Parar áudio'):'Ouvir resposta da Coco'}">${state.cocoSpeaking===i?(state.cocoAudioLoading?'Preparando áudio…':'Parar áudio'):'Ouvir resposta'}</button>`:''}${x.proposal?`<div class="v3-suggestion"><span class="v3-label">LANÇAMENTO PARA REVISAR</span><strong>${esc(x.proposal.descricao)}</strong><small>${money(x.proposal.valor)} · ${esc(shortDate(x.proposal.data))}</small>${x.proposal.sourceNeedsReview?'<small role="status">Conta não identificada. Escolha no formulário.</small>':''}<button type="button" class="v3-primary" data-action="review-proposal" data-proposal-index="${i}">Revisar antes de salvar</button></div>`:''}${x.goalProposal?`<div class="v3-suggestion"><span class="v3-label">META PARA REVISAR</span><strong>${esc(x.goalProposal.nome)}</strong><small>${money(x.goalProposal.valor_alvo)}${x.goalProposal.prazo?' · '+esc(shortDate(x.goalProposal.prazo)):''}</small><button type="button" class="v3-primary" data-action="review-goal-proposal" data-proposal-index="${i}">Revisar meta</button></div>`:''}${x.memory?`<div class="v3-suggestion"><span class="v3-label">MEMÓRIA PARA APROVAR</span><strong>${esc(x.memory.label)}</strong><small>${esc(x.memory.value)}</small><button type="button" class="v3-primary" data-action="remember-proposal" data-proposal-index="${i}">Guardar esta regra</button></div>`:''}</article>`).join('');
+    if (!state.chat.length) return `<div class="v3-coco-empty"><img src="/assets/brand/oaze-mascote-192.png" alt="OAZE"></div>`;
+    return state.chat.map((x,i)=>`<article class="v3-coco-message ${x.who==='user'?'is-user':'is-coco'}">${x.who==='coco'?`<img class="v3-coco-message-avatar ${state.cocoSpeaking===i?'is-speaking':''}" src="/assets/brand/oaze-mascote-192.png" alt="OAZE">`:''}<p>${esc(x.text)}</p>${x.who==='coco'?`<button type="button" class="v3-coco-listen" data-action="coco-speak" data-message-index="${i}" aria-label="${state.cocoSpeaking===i?(state.cocoAudioLoading?'Cancelar preparo do áudio':'Parar áudio'):'Ouvir resposta da OAZE'}">${state.cocoSpeaking===i?(state.cocoAudioLoading?'Preparando áudio…':'Parar áudio'):'Ouvir resposta'}</button>`:''}${x.proposal?`<div class="v3-suggestion"><span class="v3-label">LANÇAMENTO PARA REVISAR</span><strong>${esc(x.proposal.descricao)}</strong><small>${money(x.proposal.valor)} · ${esc(shortDate(x.proposal.data))}</small>${x.proposal.sourceNeedsReview?'<small role="status">Conta não identificada. Escolha no formulário.</small>':''}<button type="button" class="v3-primary" data-action="review-proposal" data-proposal-index="${i}">Revisar antes de salvar</button></div>`:''}${x.goalProposal?`<div class="v3-suggestion"><span class="v3-label">META PARA REVISAR</span><strong>${esc(x.goalProposal.nome)}</strong><small>${money(x.goalProposal.valor_alvo)}${x.goalProposal.prazo?' · '+esc(shortDate(x.goalProposal.prazo)):''}</small><button type="button" class="v3-primary" data-action="review-goal-proposal" data-proposal-index="${i}">Revisar meta</button></div>`:''}${x.memory?`<div class="v3-suggestion"><span class="v3-label">MEMÓRIA PARA APROVAR</span><strong>${esc(x.memory.label)}</strong><small>${esc(x.memory.value)}</small><button type="button" class="v3-primary" data-action="remember-proposal" data-proposal-index="${i}">Guardar esta regra</button></div>`:''}</article>`).join('');
   }
   function cocoTools() {
     const tools=[['debts','wallet','Dívidas','organizar a quitação'],['planning','calendar','Planejar','próximos meses'],['goals','goals','Metas','chegar com calma'],['analysis','reports','Análises','entender os números']];
-    return `<nav class="v3-coco-tools" aria-label="Atalhos financeiros da Coco">${tools.map(([id,glyph,title,sub])=>`<button type="button" class="v3-coco-tool" data-action="coco-topic" data-topic="${id}" aria-pressed="${cocoTopic===id}">${icon(glyph)}<span><strong>${title}</strong><small>${sub}</small></span></button>`).join('')}<button type="button" class="v3-coco-tool" data-coco-tab="Extratos">${icon('receipt')}<span><strong>Extratos</strong><small>importar com revisão</small></span></button><button type="button" class="v3-coco-tool" data-coco-tab="Memória">${icon('categories')}<span><strong>Memória</strong><small>regras e análises</small></span></button></nav>`;
+    return `<nav class="v3-coco-tools" aria-label="Atalhos financeiros da OAZE">${tools.map(([id,glyph,title,sub])=>`<button type="button" class="v3-coco-tool" data-action="coco-topic" data-topic="${id}" aria-pressed="${cocoTopic===id}">${icon(glyph)}<span><strong>${title}</strong><small>${sub}</small></span></button>`).join('')}<button type="button" class="v3-coco-tool" data-coco-tab="Extratos">${icon('receipt')}<span><strong>Extratos</strong><small>importar com revisão</small></span></button><button type="button" class="v3-coco-tool" data-coco-tab="Memória">${icon('categories')}<span><strong>Memória</strong><small>regras e análises</small></span></button></nav>`;
   }
   function renderCocoAnalysis() {
     const months=Array.from({length:6},(_,i)=>U.addMonths(state.ym,i-5));
@@ -2241,19 +2310,19 @@
     const leader=leaders[0];
     const insight=leader ? `${categoryName(leader[0])} soma ${money(leader[1])}, ${Math.round(leader[1]/Math.max(now.expense,1)*100)}% das saídas do mês.` : 'Ainda não há saídas confirmadas neste mês.';
     const pendingInsight=pending.length ? `Previsto para sair: ${money(pendingValue)} em lançamentos pendentes.` : 'Nenhuma saída pendente registrada neste mês.';
-    return `<div class="v3-coco-analysis"><div class="v3-coco-analysis-intro"><span class="v3-label">SEUS DADOS · ${esc(periodLabel(state.ym))}</span><h2>O que os números mostram.</h2><p>Gráficos calculados a partir dos lançamentos do OAZE. Pergunte à Coco o que mudou.</p></div><section class="v3-coco-insight" aria-label="Leitura dos lançamentos"><span class="v3-label">LEITURA CALCULADA · ${esc(periodLabel(state.ym))}</span><strong>${esc(insight)}</strong><p>${esc(pendingInsight)}</p><small>Base: lançamentos deste perfil no OAZE. Valores previstos não são projeções.</small></section><div class="v3-coco-kpis"><div><span>Entradas</span><strong class="v3-sensitive">${money(now.income)}</strong></div><div><span>Saídas</span><strong class="v3-sensitive">${money(now.expense)}</strong></div><div><span>Resultado</span><strong class="v3-sensitive">${money(now.balance)}</strong></div><div><span>Despesas pendentes</span><strong class="v3-sensitive">${money(pendingValue)}</strong><small>${pending.length} lançamento(s)</small></div></div><section class="v3-coco-chart"><div class="v3-row"><h3>Últimos seis meses</h3><small>entradas <i class="v3-coco-legend income"></i> · saídas <i class="v3-coco-legend expense"></i></small></div><div class="v3-coco-bars" role="img" aria-label="Comparativo de entradas e saídas dos últimos seis meses">${series.map((x)=>`<div class="v3-coco-month"><div class="v3-coco-bar-pair"><span class="income" style="height:${Math.max(2,x.income/max*100)}%" title="${esc(periodLabel(x.ym))}: entradas ${esc(moneyReal(x.income))}"></span><span class="expense" style="height:${Math.max(2,x.expense/max*100)}%" title="${esc(periodLabel(x.ym))}: saídas ${esc(moneyReal(x.expense))}"></span></div><small>${esc(periodLabel(x.ym).split(' ')[0])}</small></div>`).join('')}</div></section><section class="v3-coco-chart"><h3>Para onde saiu</h3>${leaders.length?leaders.map(([id,value])=>`<div class="v3-coco-category"><span>${esc(categoryName(id))}</span><div><i style="width:${Math.max(2,value/Math.max(now.expense,1)*100)}%"></i></div><strong class="v3-sensitive">${money(value)}</strong></div>`).join(''):'<p class="v3-muted">Ainda não há saídas confirmadas neste mês.</p>'}</section><button type="button" class="v3-secondary" data-action="coco-analyze">Perguntar à Coco sobre estes números</button></div>`;
+    return `<div class="v3-coco-analysis"><div class="v3-coco-analysis-intro"><span class="v3-label">SEUS DADOS · ${esc(periodLabel(state.ym))}</span><h2>O que os números mostram.</h2><p>Gráficos calculados a partir dos lançamentos do OAZE. Pergunte à OAZE o que mudou.</p></div><section class="v3-coco-insight" aria-label="Leitura dos lançamentos"><span class="v3-label">LEITURA CALCULADA · ${esc(periodLabel(state.ym))}</span><strong>${esc(insight)}</strong><p>${esc(pendingInsight)}</p><small>Base: lançamentos deste perfil no OAZE. Valores previstos não são projeções.</small></section><div class="v3-coco-kpis"><div><span>Entradas</span><strong class="v3-sensitive">${money(now.income)}</strong></div><div><span>Saídas</span><strong class="v3-sensitive">${money(now.expense)}</strong></div><div><span>Resultado</span><strong class="v3-sensitive">${money(now.balance)}</strong></div><div><span>Despesas pendentes</span><strong class="v3-sensitive">${money(pendingValue)}</strong><small>${pending.length} lançamento(s)</small></div></div><section class="v3-coco-chart"><div class="v3-row"><h3>Últimos seis meses</h3><small>entradas <i class="v3-coco-legend income"></i> · saídas <i class="v3-coco-legend expense"></i></small></div><div class="v3-coco-bars" role="img" aria-label="Comparativo de entradas e saídas dos últimos seis meses">${series.map((x)=>`<div class="v3-coco-month"><div class="v3-coco-bar-pair"><span class="income" style="height:${Math.max(2,x.income/max*100)}%" title="${esc(periodLabel(x.ym))}: entradas ${esc(moneyReal(x.income))}"></span><span class="expense" style="height:${Math.max(2,x.expense/max*100)}%" title="${esc(periodLabel(x.ym))}: saídas ${esc(moneyReal(x.expense))}"></span></div><small>${esc(periodLabel(x.ym).split(' ')[0])}</small></div>`).join('')}</div></section><section class="v3-coco-chart"><h3>Para onde saiu</h3>${leaders.length?leaders.map(([id,value])=>`<div class="v3-coco-category"><span>${esc(categoryName(id))}</span><div><i style="width:${Math.max(2,value/Math.max(now.expense,1)*100)}%"></i></div><strong class="v3-sensitive">${money(value)}</strong></div>`).join(''):'<p class="v3-muted">Ainda não há saídas confirmadas neste mês.</p>'}</section><button type="button" class="v3-secondary" data-action="coco-analyze">Perguntar à OAZE sobre estes números</button></div>`;
   }
   function renderCoco() {
-    if (state.sharedId) return `<section class="v3-panel"><h2>Coco indisponível neste perfil</h2><p class="v3-muted">A conta convidada pode consultar os dados, mas não enviá-los à IA. Volte a um perfil seu para conversar com a Coco.</p><button type="button" class="v3-secondary" data-action="profiles">Trocar perfil</button></section>`;
+    if (state.sharedId) return `<section class="v3-panel"><h2>OAZE indisponível neste perfil</h2><p class="v3-muted">A conta convidada pode consultar os dados, mas não enviá-los à IA. Volte a um perfil seu para conversar com a OAZE.</p><button type="button" class="v3-secondary" data-action="profiles">Trocar perfil</button></section>`;
     const consent=!demo&&!cocoAllowed();
-    const content=!demo&&!state.cocoSettings ? `<div class="v3-coco-loading" role="status">${state.cocoError?esc(state.cocoError):'Preparando a Coco…'} ${state.cocoError?'<button type="button" class="v3-secondary" data-action="retry-coco">Tentar novamente</button>':''}</div>` : consent ? `<div class="v3-coco-consent"><h2>Antes de conversar</h2><p>O OAZE envia à OpenAI sua pergunta e os resumos financeiros necessários. Foto ou áudio só são enviados após sua confirmação. Não envie senhas ou números completos de conta.</p><form id="v3-coco-consent-form" class="v3-form"><label class="v3-check"><input type="checkbox" name="accept" required> Autorizo esse uso dos meus dados pela Coco.</label><button type="submit" class="v3-primary">Autorizar Coco</button></form></div>` : `<div class="v3-coco-conversation">${cocoMode==='voice'?voiceControls():`${state.cocoView==='analysis'?renderCocoAnalysis():`<div class="v3-coco-stream" id="v3-chat" role="log" aria-live="polite">${cocoMessages()}${state.cocoAsking?'<p class="v3-coco-thinking" role="status">Coco está pensando…</p>':''}</div>`}<div class="v3-coco-composer">${cocoTools()}${cocoMediaControls()}</div>`}</div>`;
-    return `<div class="v3-coco-page"><header class="v3-coco-header"><div class="v3-coco-title"><h1>coco</h1></div><button type="button" class="v3-coco-home" data-go="home" aria-label="Voltar ao painel">${icon('home')}</button></header>${content}</div>`;
+    const content=!demo&&!state.cocoSettings ? `<div class="v3-coco-loading" role="status">${state.cocoError?esc(state.cocoError):'Preparando a OAZE…'} ${state.cocoError?'<button type="button" class="v3-secondary" data-action="retry-coco">Tentar novamente</button>':''}</div>` : consent ? `<div class="v3-coco-consent"><h2>Antes de conversar</h2><p>O OAZE envia à OpenAI sua pergunta e os resumos financeiros necessários. Foto ou áudio só são enviados após sua confirmação. Não envie senhas ou números completos de conta.</p><form id="v3-coco-consent-form" class="v3-form"><label class="v3-check"><input type="checkbox" name="accept" required> Autorizo esse uso dos meus dados pela OAZE.</label><button type="submit" class="v3-primary">Autorizar OAZE</button></form></div>` : `<div class="v3-coco-conversation">${cocoMode==='voice'?voiceControls():`${state.cocoView==='analysis'?renderCocoAnalysis():`<div class="v3-coco-stream" id="v3-chat" role="log" aria-live="polite">${cocoMessages()}${state.cocoAsking?'<p class="v3-coco-thinking" role="status">OAZE está pensando…</p>':''}</div>`}<div class="v3-coco-composer">${cocoTools()}${cocoMediaControls()}</div>`}</div>`;
+    return `<div class="v3-coco-page"><header class="v3-coco-header"><div class="v3-coco-title"><h1>oaze</h1></div><button type="button" class="v3-coco-home" data-go="home" aria-label="Voltar ao painel">${icon('home')}</button></header>${content}</div>`;
   }
   function render() {
     closeStatusMenu(false);
     renderHead(); renderNav();
     const screens = { home:renderHome, transactions:renderTransactions, wallet:renderWallet, investments:renderInvestments, categories:renderCategories, goals:renderGoals, calendar:renderCalendar, coco:renderCoco, reminders:renderReminders, reports:renderReports, settings:renderSettings, plan:renderPlan, more:renderMore };
-    $('#v3-view').innerHTML = (state.sharedId ? `<div class="v3-shared-banner" role="status">Perfil compartilhado · ${sharedCanEdit()?'pode editar os dados financeiros':'somente leitura'} · cofre e Coco indisponíveis</div>` : '') + (state.page==='investments'?investmentTabs():'') + (screens[state.page]||renderHome)();
+    $('#v3-view').innerHTML = (state.sharedId ? `<div class="v3-shared-banner" role="status">Perfil compartilhado · ${sharedCanEdit()?'pode editar os dados financeiros':'somente leitura'} · cofre e OAZE indisponíveis</div>` : '') + (state.page==='investments'?investmentTabs():'') + (screens[state.page]||renderHome)();
     if(state.page==='home')$('#v3-view .v3-home-identity')?.append($('.v3-top-actions'));
     if(state.page==='investments'&&state.investTab==='planning')$('#v3-view .v3-planning-income')?.insertAdjacentHTML('afterend',renderPlanningGuide());
     if(state.page==='investments'&&state.investTab==='goals')profile().goals.forEach((goal,index)=>{
@@ -2289,6 +2358,7 @@
       updateVoiceVisual();
     }
     montarCarteira();
+    if (state.page === 'transactions') ligarDeslizar();
     document.querySelectorAll('.v3-contactless').forEach((mark)=>{mark.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><path d="M8.5 8.5a5 5 0 0 1 0 7M12 5a10 10 0 0 1 0 14M15.5 2a15 15 0 0 1 0 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';});
     /* Módulos complementares (recursos-app.js) desenham por cima da tela pronta. */
     document.dispatchEvent(new CustomEvent('oaze:render',{detail:{page:state.page,demo}}));
@@ -2316,7 +2386,7 @@
 
      O QUE NÃO ENTRA AQUI
      Ação sem volta continua no confirm() cru: excluir a conta,
-     revogar a Coco, liberar edição de um perfil para outra pessoa.
+     revogar a OAZE, liberar edição de um perfil para outra pessoa.
      Silenciar um aviso só é aceitável quando desfazer é barato.
 
      A lista silenciada é reversível em Configurações; uma porta que
@@ -2418,29 +2488,29 @@
           state.cocoAnalyses = await V3Backend.cocoAnalyses(profileId);
           if (state.cocoTab === 'Memória' && !$('#v3-overlay').hidden) openCoco();
         }
-      } catch (error) { console.error('V3/Coco análise:', error); }
+      } catch (error) { console.error('V3/OAZE análise:', error); }
       finally { analysisBusy = false; }
     }, 750);
   }
-  /* Uso da Coco no dia, em ícone pequeno dentro da barra de mensagem. */
+  /* Uso da OAZE no dia, em ícone pequeno dentro da barra de mensagem. */
   function cocoUsoMini() {
     const c = demo ? { carregado: true, pct_dia: 18, pct_semana: 31 } : (global.Limites?.consumoCoco?.() || {});
     if (!c.carregado || c.ilimitado) return '';
     const pct = Math.max(0, Math.min(100, Math.round(Number(c.pct_dia) || 0)));
     const corpo = global.IconData?.lucide?.['bookmark-check'] || '';
     const nivel = pct >= 100 ? ' is-cheio' : pct >= 80 ? ' is-alto' : '';
-    return `<button type="button" class="v3-coco-uso-mini${nivel}" data-action="coco-uso" aria-label="Uso da Coco hoje: ${pct}%. Esta semana: ${Math.round(Number(c.pct_semana)||0)}%." title="Uso da Coco hoje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${corpo}</svg><span>${pct}%</span></button>`;
+    return `<button type="button" class="v3-coco-uso-mini${nivel}" data-action="coco-uso" aria-label="Uso da OAZE hoje: ${pct}%. Esta semana: ${Math.round(Number(c.pct_semana)||0)}%." title="Uso da OAZE hoje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${corpo}</svg><span>${pct}%</span></button>`;
   }
   function cocoMediaControls() {
     const audio = `<button type="button" class="v3-coco-icon" data-action="voice-start" data-voice-mode="continuous" aria-label="Conversar por voz" title="Conversar por voz" ${state.mediaDraft.trim()?'hidden':''}>${cocoMediaIcon('mic')}</button>`;
-    return `<form class="v3-chat-form" id="v3-chat-form">${cocoUsoMini()}<div class="v3-coco-media"><button type="button" class="v3-coco-icon" data-action="choose-coco-file" aria-label="Anexar arquivo" title="Anexar arquivo">${cocoMediaIcon('attach')}</button><input id="v3-coco-file" type="file" hidden></div><input name="question" maxlength="500" value="${esc(state.mediaDraft)}" placeholder="Mensagem para a Coco" aria-label="Pergunta para a Coco" required ${state.cocoAsking?'disabled':''}>${audio}<button type="submit" aria-label="Enviar mensagem" ${state.mediaDraft.trim()?'':'hidden'} ${state.cocoAsking?'disabled':''}>↑</button></form>`;
+    return `<form class="v3-chat-form" id="v3-chat-form">${cocoUsoMini()}<div class="v3-coco-media"><button type="button" class="v3-coco-icon" data-action="choose-coco-file" aria-label="Anexar arquivo" title="Anexar arquivo">${cocoMediaIcon('attach')}</button><input id="v3-coco-file" type="file" hidden></div><input name="question" maxlength="500" value="${esc(state.mediaDraft)}" placeholder="Mensagem para a OAZE" aria-label="Pergunta para a OAZE" required ${state.cocoAsking?'disabled':''}>${audio}<button type="submit" aria-label="Enviar mensagem" ${state.mediaDraft.trim()?'':'hidden'} ${state.cocoAsking?'disabled':''}>↑</button></form>`;
   }
   function voiceControls() {
     const active = !!voiceSession?.active;
-    const label = ({ IDLE:'Vamos conversar?', LISTENING:'Ouvindo você', PROCESSING:'Conferindo seu OAZE', SPEAKING:'Coco está falando', INTERRUPTED:'Pode falar', ERROR:'Não consegui conectar', OFFLINE:'Conexão encerrada' }[state.voiceState] || 'Vamos conversar?');
+    const label = ({ IDLE:'Vamos conversar?', LISTENING:'Ouvindo você', PROCESSING:'Conferindo seu OAZE', SPEAKING:'OAZE está falando', INTERRUPTED:'Pode falar', ERROR:'Não consegui conectar', OFFLINE:'Conexão encerrada' }[state.voiceState] || 'Vamos conversar?');
     const micOn=active && !!voiceSession.stream?.getAudioTracks().some((track)=>track.enabled);
-    const actor='/assets/coco/'+(state.voiceState==='SPEAKING'?'corpo-explicando':'corpo-neutra_acolhedora')+'.webp';
-    return `<section class="v3-coco-voice-stage v3-voice" data-state="${esc(state.voiceState)}" aria-label="Conversa por voz"><div class="v3-coco-actor"><span class="v3-coco-water-ring" aria-hidden="true"></span><img class="v3-coco-echo echo-one" src="${actor}" alt="" aria-hidden="true"><img class="v3-coco-echo echo-two" src="${actor}" alt="" aria-hidden="true"><img class="v3-coco-character" src="${actor}" alt="Coco"></div><h2 class="v3-voice-status" role="status">${label}</h2><div class="v3-voice-wave" aria-hidden="true">${'<i></i>'.repeat(7)}</div><p class="v3-voice-caption" id="v3-voice-caption" aria-live="polite">${esc(state.voiceAnswerDraft||state.voiceDraftText||state.chat.at(-1)?.text||'')}</p><div class="v3-voice-actions">${active?`<button type="button" class="v3-voice-control" data-action="voice-mute" aria-label="${state.voiceMuted?'Ativar microfone':'Pausar microfone'}" aria-pressed="${state.voiceMuted}">${cocoMediaIcon(state.voiceMuted?'mute':'mic')}<span>${state.voiceMuted?'Ativar':'Pausar'}</span></button><button type="button" class="v3-voice-control is-stop" data-action="voice-stop" aria-label="Encerrar conversa por voz">${cocoMediaIcon('stop')}<span>Encerrar</span></button>`:`<button type="button" class="v3-primary" data-action="voice-start" data-voice-mode="continuous" ${voiceStarting?'disabled':''}>${voiceStarting?'Conectando…':'Conversar por voz'}</button>`}<button type="button" class="v3-voice-control" data-action="coco-mode" data-mode="text" aria-label="Escrever em texto">${cocoMediaIcon('text')}<span>Escrever em texto</span></button>${state.voicePlaybackBlocked?'<button type="button" class="v3-secondary" data-action="voice-unlock-audio">Ativar som</button>':''}</div>${active?`<span class="v3-voice-live">${micOn?'Microfone ativo':'Microfone pausado'}</span>`:''}</section>`;
+    const actor='/assets/brand/oaze-mascote-512.png';
+    return `<section class="v3-coco-voice-stage v3-voice" data-state="${esc(state.voiceState)}" aria-label="Conversa por voz"><div class="v3-coco-actor"><span class="v3-coco-water-ring" aria-hidden="true"></span><img class="v3-coco-echo echo-one" src="${actor}" alt="" aria-hidden="true"><img class="v3-coco-echo echo-two" src="${actor}" alt="" aria-hidden="true"><img class="v3-coco-character" src="${actor}" alt="OAZE"></div><h2 class="v3-voice-status" role="status">${label}</h2><div class="v3-voice-wave" aria-hidden="true">${'<i></i>'.repeat(7)}</div><p class="v3-voice-caption" id="v3-voice-caption" aria-live="polite">${esc(state.voiceAnswerDraft||state.voiceDraftText||state.chat.at(-1)?.text||'')}</p><div class="v3-voice-actions">${active?`<button type="button" class="v3-voice-control" data-action="voice-mute" aria-label="${state.voiceMuted?'Ativar microfone':'Pausar microfone'}" aria-pressed="${state.voiceMuted}">${cocoMediaIcon(state.voiceMuted?'mute':'mic')}<span>${state.voiceMuted?'Ativar':'Pausar'}</span></button><button type="button" class="v3-voice-control is-stop" data-action="voice-stop" aria-label="Encerrar conversa por voz">${cocoMediaIcon('stop')}<span>Encerrar</span></button>`:`<button type="button" class="v3-primary" data-action="voice-start" data-voice-mode="continuous" ${voiceStarting?'disabled':''}>${voiceStarting?'Conectando…':'Conversar por voz'}</button>`}<button type="button" class="v3-voice-control" data-action="coco-mode" data-mode="text" aria-label="Escrever em texto">${cocoMediaIcon('text')}<span>Escrever em texto</span></button>${state.voicePlaybackBlocked?'<button type="button" class="v3-secondary" data-action="voice-unlock-audio">Ativar som</button>':''}</div>${active?`<span class="v3-voice-live">${micOn?'Microfone ativo':'Microfone pausado'}</span>`:''}</section>`;
   }
   async function refreshCoco() {
     if (demo) return;
@@ -2451,7 +2521,7 @@
       state.cocoSettings = await V3Backend.cocoSettings();
       state.cocoMemories = await V3Backend.cocoMemories(profile().id);
       state.cocoAnalyses = await V3Backend.cocoAnalyses(profile().id);
-    } catch (error) { state.cocoSettings=null;state.cocoError=error.message || 'Não consegui carregar as configurações da Coco.'; }
+    } catch (error) { state.cocoSettings=null;state.cocoError=error.message || 'Não consegui carregar as configurações da OAZE.'; }
     finally {
       state.cocoLoading = false;
       if (cocoRefreshPending) { cocoRefreshPending = false; refreshCoco(); return; }
@@ -2480,7 +2550,7 @@
   function renderCocoImport() {
     const report = state.importPreview;
     const picker='<input id="v3-coco-import-file" type="file" accept="application/pdf,text/csv,.pdf,.csv,.ofx,.qfx" hidden>';
-    if (!report) return `<div class="v3-import-empty"><h2>seus extratos, sem adivinhação</h2><p>Escolha um extrato OFX, CSV ou PDF. A leitura acontece neste aparelho, sem envio à OpenAI. A Coco separa movimentos de saldos e mostra uma prévia para você revisar.</p><button type="button" class="v3-secondary" data-action="choose-coco-file">Escolher arquivo</button><small>Layouts ainda desconhecidos e PDFs digitalizados não são importados.</small>${picker}</div>`;
+    if (!report) return `<div class="v3-import-empty"><h2>seus extratos, sem adivinhação</h2><p>Escolha um extrato OFX, CSV ou PDF. A leitura acontece neste aparelho, sem envio à OpenAI. A OAZE separa movimentos de saldos e mostra uma prévia para você revisar.</p><button type="button" class="v3-secondary" data-action="choose-coco-file">Escolher arquivo</button><small>Layouts ainda desconhecidos e PDFs digitalizados não são importados.</small>${picker}</div>`;
     const accounts = profile().accounts.filter((account) => !account.archived && (!account.moeda || account.moeda === 'BRL'));
     const visible = report.rows.slice(0, state.importLimit);
     const positive = report.rows.filter((item) => item.cents > 0).reduce((sum, item) => sum + item.cents, 0) / 100;
@@ -2490,11 +2560,11 @@
   function openCoco() {
     if (state.cocoTab==='Conversa' || state.cocoTab==='Agora') { closeSheet();state.cocoView='conversation';go('coco');return; }
     if (!demo && !state.cocoSettings && state.cocoTab!=='Extratos') {
-      openSheet(`${sheetTop('coco','preparando sua assistente','/assets/coco/corpo-neutra_acolhedora.webp')}<p class="v3-muted">${state.cocoError?esc(state.cocoError):'Carregando consentimento e memória…'}</p>${state.cocoError?'<button type="button" class="v3-secondary" data-action="retry-coco">Tentar novamente</button>':''}`,'Coco');
+      openSheet(`${sheetTop('oaze','preparando sua assistente','/assets/brand/oaze-mascote-512.png')}<p class="v3-muted">${state.cocoError?esc(state.cocoError):'Carregando consentimento e memória…'}</p>${state.cocoError?'<button type="button" class="v3-secondary" data-action="retry-coco">Tentar novamente</button>':''}`,'OAZE');
       return;
     }
     if (!cocoAllowed() && !['Memória','Extratos'].includes(state.cocoTab)) {
-      openSheet(`${sheetTop('coco','seus dados, suas regras','/assets/coco/corpo-neutra_acolhedora.webp')}<div class="v3-coco-consent"><p>Para conversar, o OAZE envia à OpenAI seu pedido, as últimas trocas e resumos financeiros necessários. A voz da Coco é gerada por IA. Fotos e áudios só são enviados quando você escolher um arquivo ou iniciar uma gravação e confirmar o envio. Extratos PDF/CSV reconhecidos são lidos localmente, sem envio do arquivo à OpenAI. A Coco guarda regras que você aprovar e resumos mensais calculados automaticamente; você pode apagar ou pausar ambos depois.</p><p>Não mande senhas, documentos de identidade ou números completos de conta. Revogue o acesso aqui quando quiser.</p><form id="v3-coco-consent-form" class="v3-form"><label class="v3-check"><input type="checkbox" name="accept" required> Autorizo esse uso dos meus dados pela Coco.</label><button class="v3-primary" type="submit">Autorizar Coco</button></form><button type="button" class="v3-secondary" data-coco-tab="Extratos">Ler extrato local sem autorizar IA</button><button type="button" class="v3-secondary" data-action="coco-memory">Ver ou apagar memórias</button></div>`,'Consentimento da Coco');
+      openSheet(`${sheetTop('oaze','seus dados, suas regras','/assets/brand/oaze-mascote-512.png')}<div class="v3-coco-consent"><p>Para conversar, o OAZE envia à OpenAI seu pedido, as últimas trocas e resumos financeiros necessários. A voz da OAZE é gerada por IA. Fotos e áudios só são enviados quando você escolher um arquivo ou iniciar uma gravação e confirmar o envio. Extratos PDF/CSV reconhecidos são lidos localmente, sem envio do arquivo à OpenAI. A OAZE guarda regras que você aprovar e resumos mensais calculados automaticamente; você pode apagar ou pausar ambos depois.</p><p>Não mande senhas, documentos de identidade ou números completos de conta. Revogue o acesso aqui quando quiser.</p><form id="v3-coco-consent-form" class="v3-form"><label class="v3-check"><input type="checkbox" name="accept" required> Autorizo esse uso dos meus dados pela OAZE.</label><button class="v3-primary" type="submit">Autorizar OAZE</button></form><button type="button" class="v3-secondary" data-coco-tab="Extratos">Ler extrato local sem autorizar IA</button><button type="button" class="v3-secondary" data-action="coco-memory">Ver ou apagar memórias</button></div>`,'Consentimento da OAZE');
       return;
     }
     let body='';
@@ -2502,7 +2572,7 @@
       if (demo) body=`<h2 style="margin:10px 0 20px">quatro coisas<br>esperando por você.</h2><div class="v3-suggestion"><span class="v3-label">FEITO POR MIM</span><p>Categorizei 12 lançamentos de setembro do jeito que você costuma fazer.</p><button class="v3-primary" type="button" data-action="demo-only">Tudo certo</button><button class="v3-secondary" type="button" data-action="demo-only">Revisar</button></div><div class="v3-suggestion"><span class="v3-label">PADRÃO VISTO 3 VEZES</span><p>Vi 3 cobranças parecidas da academia perto do dia 5. Quer transformar isso em recorrência?</p><button class="v3-primary" type="button" data-action="demo-only">Criar recorrência</button><button class="v3-secondary" type="button" data-action="demo-only">Agora não</button></div><div class="v3-suggestion"><span class="v3-label">PREVISÃO</span><p>A fatura do Nubank fecha em 2 dias. Outubro começa com R$ 955,30 de sobra.</p><button class="v3-primary" type="button" data-action="demo-only">Lembrar 3 dias antes</button></div>`;
       else {
         const pending=currentTransactions().filter((x)=>!x.confirmed).length, rs=reminders();
-        body=`<h2 style="margin:10px 0 20px">o que precisa<br>da sua atenção</h2>${pending?`<div class="v3-suggestion"><span class="v3-label">LANÇAMENTOS PENDENTES</span><p>${pending} ${pending===1?'lançamento aguarda':'lançamentos aguardam'} confirmação neste mês.</p><button class="v3-primary" type="button" data-go="transactions">Revisar</button></div>`:''}${rs.length?`<div class="v3-suggestion"><span class="v3-label">PRÓXIMOS 30 DIAS</span><p>${rs.length} ${rs.length===1?'compromisso registrado':'compromissos registrados'} para acompanhar.</p><button class="v3-primary" type="button" data-go="reminders">Ver lembretes</button></div>`:''}${!pending&&!rs.length?'<p class="v3-muted">Não há pendências registradas agora. A Coco não inventa alertas.</p>':''}`;
+        body=`<h2 style="margin:10px 0 20px">o que precisa<br>da sua atenção</h2>${pending?`<div class="v3-suggestion"><span class="v3-label">LANÇAMENTOS PENDENTES</span><p>${pending} ${pending===1?'lançamento aguarda':'lançamentos aguardam'} confirmação neste mês.</p><button class="v3-primary" type="button" data-go="transactions">Revisar</button></div>`:''}${rs.length?`<div class="v3-suggestion"><span class="v3-label">PRÓXIMOS 30 DIAS</span><p>${rs.length} ${rs.length===1?'compromisso registrado':'compromissos registrados'} para acompanhar.</p><button class="v3-primary" type="button" data-go="reminders">Ver lembretes</button></div>`:''}${!pending&&!rs.length?'<p class="v3-muted">Não há pendências registradas agora. A OAZE não inventa alertas.</p>':''}`;
       }
     } else if (state.cocoTab==='Conversa') {
       body=`<div class="v3-chat" id="v3-chat">${state.chat.length?state.chat.map((x,i)=>`<div class="v3-chat-message ${x.who==='user'?'user':''}"><p>${esc(x.text)}</p>${x.proposal?`<div class="v3-suggestion"><span class="v3-label">LANÇAMENTO PARA REVISAR</span><strong>${esc(x.proposal.descricao)}</strong><small>${money(x.proposal.valor)} · ${esc(shortDate(x.proposal.data))}</small><button type="button" class="v3-primary" data-action="review-proposal" data-proposal-index="${i}">Revisar no formulário</button><small>Nada será salvo sem sua confirmação.</small></div>`:''}${x.memory?`<div class="v3-suggestion"><span class="v3-label">MEMÓRIA PARA APROVAR</span><strong>${esc(x.memory.label)}</strong><small>${esc(x.memory.value)}</small><button type="button" class="v3-primary" data-action="remember-proposal" data-proposal-index="${i}">Guardar esta regra</button><small>Você poderá apagá-la na aba Memória.</small></div>`:''}</div>`).join(''):'<p>Posso ler os totais do mês e ajudar a organizar suas próximas decisões.</p>'}</div>${cocoMediaControls()}`;
@@ -2510,9 +2580,9 @@
       body = renderCocoImport();
     } else {
       const analyses=state.cocoAnalyses.filter((item)=>item.summary);
-      body=`<h2 style="margin:15px 0">o que aprendi sobre você</h2><p class="v3-muted">Regras precisam da sua confirmação. Análises mensais são calculadas automaticamente com os dados considerados nos totais. Nenhuma delas autoriza pagamentos ou altera lançamentos.</p>${cocoAllowed()?`<button type="button" class="v3-secondary" data-action="pause-learning">${state.cocoSettings?.learning_paused?'Retomar aprendizado':'Pausar aprendizado'}</button>`:'<p class="v3-muted">Acesso revogado; você ainda pode apagar memórias.</p>'}${cocoAllowed()&&!state.cocoSettings?.analysis_consented_at?'<p class="v3-muted">A autorização anterior não incluía análises automáticas. Elas estão desligadas até você autorizar.</p><button type="button" class="v3-secondary" data-action="analysis-consent">Autorizar análises automáticas</button>':''}<h3>Análises automáticas</h3><div class="v3-coco-memories">${analyses.length?analyses.map((m)=>`<div class="v3-suggestion"><span class="v3-label">${esc(periodLabel(m.period))}</span><p>${esc(m.summary)}</p><button type="button" class="v3-secondary" data-action="forget-analysis" data-analysis-period="${esc(m.period)}">Apagar análise</button></div>`).join(''):'<p class="v3-muted">Nenhuma análise mensal guardada.</p>'}</div><h3>Regras confirmadas</h3><div class="v3-coco-memories">${state.cocoMemories.length?state.cocoMemories.map((m)=>`<div class="v3-suggestion"><span class="v3-label">${esc(m.kind.toUpperCase())} · CONFIRMADA</span><strong>${esc(m.label)}</strong><p>${esc(m.value)}</p><small>${esc(new Date(m.created_at).toLocaleDateString('pt-BR'))}</small><button type="button" class="v3-secondary" data-action="forget-memory" data-memory-id="${esc(m.id)}">Esquecer</button></div>`).join(''):'<p class="v3-muted">Nenhuma preferência confirmada ainda.</p>'}</div>${!cocoAllowed()||state.cocoSettings?.learning_paused?'':`<form id="v3-memory-form" class="v3-form"><label>TIPO<select name="kind"><option value="categoria">Categoria</option><option value="conta">Conta</option><option value="recorrencia">Recorrência</option><option value="preferencia">Preferência</option><option value="meta">Meta</option><option value="outro">Outro</option></select></label><label>NOME DA REGRA<input name="label" maxlength="100" required placeholder="Ex.: Uber"></label><label>COMO DEVO LEMBRAR<input name="value" maxlength="240" required placeholder="Ex.: Categorizar como Transporte"></label><button class="v3-primary" type="submit">Guardar regra</button></form>`}${cocoAllowed()?'<button type="button" class="v3-link" data-action="revoke-coco">Revogar acesso da Coco</button>':'<button type="button" class="v3-link" data-coco-tab="Conversa">Voltar ao consentimento</button>'}`;
+      body=`<h2 style="margin:15px 0">o que aprendi sobre você</h2><p class="v3-muted">Regras precisam da sua confirmação. Análises mensais são calculadas automaticamente com os dados considerados nos totais. Nenhuma delas autoriza pagamentos ou altera lançamentos.</p>${cocoAllowed()?`<button type="button" class="v3-secondary" data-action="pause-learning">${state.cocoSettings?.learning_paused?'Retomar aprendizado':'Pausar aprendizado'}</button>`:'<p class="v3-muted">Acesso revogado; você ainda pode apagar memórias.</p>'}${cocoAllowed()&&!state.cocoSettings?.analysis_consented_at?'<p class="v3-muted">A autorização anterior não incluía análises automáticas. Elas estão desligadas até você autorizar.</p><button type="button" class="v3-secondary" data-action="analysis-consent">Autorizar análises automáticas</button>':''}<h3>Análises automáticas</h3><div class="v3-coco-memories">${analyses.length?analyses.map((m)=>`<div class="v3-suggestion"><span class="v3-label">${esc(periodLabel(m.period))}</span><p>${esc(m.summary)}</p><button type="button" class="v3-secondary" data-action="forget-analysis" data-analysis-period="${esc(m.period)}">Apagar análise</button></div>`).join(''):'<p class="v3-muted">Nenhuma análise mensal guardada.</p>'}</div><h3>Regras confirmadas</h3><div class="v3-coco-memories">${state.cocoMemories.length?state.cocoMemories.map((m)=>`<div class="v3-suggestion"><span class="v3-label">${esc(m.kind.toUpperCase())} · CONFIRMADA</span><strong>${esc(m.label)}</strong><p>${esc(m.value)}</p><small>${esc(new Date(m.created_at).toLocaleDateString('pt-BR'))}</small><button type="button" class="v3-secondary" data-action="forget-memory" data-memory-id="${esc(m.id)}">Esquecer</button></div>`).join(''):'<p class="v3-muted">Nenhuma preferência confirmada ainda.</p>'}</div>${!cocoAllowed()||state.cocoSettings?.learning_paused?'':`<form id="v3-memory-form" class="v3-form"><label>TIPO<select name="kind"><option value="categoria">Categoria</option><option value="conta">Conta</option><option value="recorrencia">Recorrência</option><option value="preferencia">Preferência</option><option value="meta">Meta</option><option value="outro">Outro</option></select></label><label>NOME DA REGRA<input name="label" maxlength="100" required placeholder="Ex.: Uber"></label><label>COMO DEVO LEMBRAR<input name="value" maxlength="240" required placeholder="Ex.: Categorizar como Transporte"></label><button class="v3-primary" type="submit">Guardar regra</button></form>`}${cocoAllowed()?'<button type="button" class="v3-link" data-action="revoke-coco">Revogar acesso da OAZE</button>':'<button type="button" class="v3-link" data-coco-tab="Conversa">Voltar ao consentimento</button>'}`;
     }
-    openSheet(`${sheetTop('coco',demo?'demonstração de interface':'sua assistente','/assets/coco/corpo-neutra_acolhedora.webp')}<button type="button" class="v3-link" data-coco-tab="Conversa">← Voltar para conversa</button>${body}`,'Coco');
+    openSheet(`${sheetTop('oaze',demo?'demonstração de interface':'sua assistente','/assets/brand/oaze-mascote-512.png')}<button type="button" class="v3-link" data-coco-tab="Conversa">← Voltar para conversa</button>${body}`,'OAZE');
   }
   function installComposerPickers(form) {
     const labelNames={category:'Categoria',source:'Conta ou cartão',destination:'Conta de destino',situacao:'Situação',remindDaysBefore:'Lembre-me na agenda',type:'Tipo de investimento',accountId:'Conta do aporte',indexer:'Rendimento do CDB',liquidity:'Liquidez'};
@@ -2640,7 +2710,7 @@
       ? (editing.cancelado ? 'cancelado' : (editing.confirmed ? 'pago' : 'pendente'))
       : ((proposal?.confirmado) === false ? 'pendente' : 'pago');
     const meioInicial = editing ? (editing.meio || '') : '';
-    openSheet(`${sheetTop(editing ? 'editar lançamento' : proposal ? (proposal.sourceTag==='import'?'revisar extrato':'revisar proposta da Coco') : 'novo lançamento', demo ? 'demonstração sem gravação' : 'seu registro financeiro')}${editing || proposal ? '' : `<div class="v3-segment">${['Despesa','Receita','Transferir','Aporte'].map((x) => `<button type="button" data-compose-kind="${x}" class="${current === x ? 'is-active' : ''}">${x}</button>`).join('')}</div>`}<form class="v3-form" id="v3-form-tx"><input type="hidden" name="id" value="${esc(editing?.id || '')}"><input type="hidden" name="kind" value="${esc(current)}"><input type="hidden" name="sourceTag" value="${proposal?.sourceTag==='import'?'import':proposal?'uglez':'manual'}"><label id="v3-tx-amount-label">VALOR (R$)<input name="amount" inputmode="decimal" data-money="true" autocomplete="off" value="${esc(fmt(amount))}" placeholder="0,00" required></label><small id="v3-tx-currency-hint" class="v3-muted"></small><label>DESCRIÇÃO<input name="description" maxlength="120" value="${esc(editing?.description || proposal?.descricao || '')}" placeholder="Ex.: mercado" required></label>${current === 'Transferir' ? '' : `<label>CATEGORIA<select name="category" required><option value="">Escolha uma categoria</option>${categoryOptions}</select><p class="v3-sugestao" id="v3-sugestao" hidden></p></label>`}${current === 'Despesa' ? `<fieldset class="v3-payment-kind"><legend>PAGAMENTO</legend><div class="v3-segment" role="group" aria-label="Débito ou crédito"><button type="button" data-payment-kind="debit" aria-pressed="${paymentKind==='debit'}" class="${paymentKind==='debit'?'is-active':''}">Débito</button><button type="button" data-payment-kind="credit" aria-pressed="${paymentKind==='credit'}" class="${paymentKind==='credit'?'is-active':''}">Crédito</button></div></fieldset>` : ''}<label id="v3-tx-source-label">${current === 'Transferir' ? 'CONTA DE ORIGEM' : current === 'Despesa' ? (paymentKind === 'credit' ? 'CARTÃO DE CRÉDITO' : 'CONTA DE DÉBITO') : 'ONDE FOI RECEBIDO'}<select name="source" required><option value="">Selecione</option>${targets}</select></label>${current === 'Transferir' ? `<label>CONTA DE DESTINO<select name="destination" required><option value="">Selecione</option>${accounts.map((a) => `<option value="${esc(a.id)}" ${editing?.toAccountId === a.id ? 'selected' : ''}>${esc(a.bank || a.name)}</option>`).join('')}</select></label>` : ''}<div class="v3-form-row"><label id="v3-tx-data">DATA<input type="date" name="date" value="${esc(editing?.date || proposal?.data || (selectedDate && U.isValidISO(selectedDate) ? selectedDate : U.todayISO()))}" required></label><label id="v3-tx-fatura" hidden>FATURA<select name="fatura"></select><small class="v3-muted">A compra cai nesta fatura; o dia certo o OAZE escolhe dentro do ciclo.</small></label><label>SITUAÇÃO<select name="situacao">${[['pago','✓ Pago — entra nos totais'],['pendente','✗ Não pago — fica previsto'],['cancelado','🚫 Cancelado — não entra em total nenhum']].map(([v,t])=>`<option value="${v}" ${situacaoInicial===v?'selected':''}>${esc(t)}</option>`).join('')}</select></label></div><details class="v3-mais" ${editing?.recurring || Number(editing?.installments) > 1 ? 'open' : ''}><summary>Mais detalhes</summary><div class="v3-mais-corpo"><label id="v3-tx-meio-label">COMO<select name="meio"><option value="">Não informado</option></select><small class="v3-muted">Como o dinheiro entrou ou saiu dessa conta.</small></label><label class="v3-check"><input type="checkbox" name="recurring" ${editing?.recurring ? 'checked' : ''}> Repetir mensalmente</label><div id="v3-repeat-fields" ${editing?.recurring ? '' : 'hidden'}><label>DATA DA REPETIÇÃO<input type="date" name="repeatDate" value="${esc(editing?.date || proposal?.data || (selectedDate && U.isValidISO(selectedDate) ? selectedDate : U.todayISO()))}" ${editing?.recurring ? 'required' : ''}></label><label>TERMINAR RECORRÊNCIA EM (OPCIONAL)<input type="month" name="recurEnd" value="${esc(editing?.recurEnd || '')}"></label></div>${editing ? '' : `<label>PARCELAS (SOMENTE DESPESA NÃO RECORRENTE)<input type="number" name="installments" min="1" max="72" value="1"></label>`}<label>OBSERVAÇÕES<input name="notes" maxlength="500" value="${esc(editing?.notes || proposal?.notes || '')}" placeholder="Opcional"></label></div></details>${proposal?'<p class="v3-muted">Revise valor, data, categoria e origem. Nada será salvo automaticamente.</p>':''}<button type="submit" class="v3-primary">${demo ? 'Ver na demonstração' : 'Salvar lançamento'}</button>${editing ? `<button type="button" class="v3-secondary" data-action="delete-transaction" data-transaction="${esc(editing.id)}">Excluir lançamento</button>` : ''}</form>`, editing ? 'Editar lançamento' : 'Novo lançamento');
+    openSheet(`${sheetTop(editing ? 'editar lançamento' : proposal ? (proposal.sourceTag==='import'?'revisar extrato':'revisar proposta da OAZE') : 'novo lançamento', demo ? 'demonstração sem gravação' : 'seu registro financeiro')}${editing || proposal ? '' : `<div class="v3-segment">${['Despesa','Receita','Transferir','Aporte'].map((x) => `<button type="button" data-compose-kind="${x}" class="${current === x ? 'is-active' : ''}">${x}</button>`).join('')}</div>`}<form class="v3-form" id="v3-form-tx"><input type="hidden" name="id" value="${esc(editing?.id || '')}"><input type="hidden" name="kind" value="${esc(current)}"><input type="hidden" name="sourceTag" value="${proposal?.sourceTag==='import'?'import':proposal?'uglez':'manual'}"><label id="v3-tx-amount-label">VALOR (R$)<input name="amount" inputmode="decimal" data-money="true" autocomplete="off" value="${esc(fmt(amount))}" placeholder="0,00" required></label><small id="v3-tx-currency-hint" class="v3-muted"></small><label>DESCRIÇÃO<input name="description" maxlength="120" value="${esc(editing?.description || proposal?.descricao || '')}" placeholder="Ex.: mercado" required></label>${current === 'Transferir' ? '' : `<label>CATEGORIA<select name="category" required><option value="">Escolha uma categoria</option>${categoryOptions}</select><p class="v3-sugestao" id="v3-sugestao" hidden></p></label>`}${current === 'Despesa' ? `<fieldset class="v3-payment-kind"><legend>PAGAMENTO</legend><div class="v3-segment" role="group" aria-label="Débito ou crédito"><button type="button" data-payment-kind="debit" aria-pressed="${paymentKind==='debit'}" class="${paymentKind==='debit'?'is-active':''}">Débito</button><button type="button" data-payment-kind="credit" aria-pressed="${paymentKind==='credit'}" class="${paymentKind==='credit'?'is-active':''}">Crédito</button></div></fieldset>` : ''}<label id="v3-tx-source-label">${current === 'Transferir' ? 'CONTA DE ORIGEM' : current === 'Despesa' ? (paymentKind === 'credit' ? 'CARTÃO DE CRÉDITO' : 'CONTA DE DÉBITO') : 'ONDE FOI RECEBIDO'}<select name="source" required><option value="">Selecione</option>${targets}</select></label>${current === 'Transferir' ? `<label>CONTA DE DESTINO<select name="destination" required><option value="">Selecione</option>${accounts.map((a) => `<option value="${esc(a.id)}" ${editing?.toAccountId === a.id ? 'selected' : ''}>${esc(a.bank || a.name)}</option>`).join('')}</select></label>` : ''}<div class="v3-form-row"><label id="v3-tx-data">DATA<input type="date" name="date" value="${esc(editing?.date || proposal?.data || (selectedDate && U.isValidISO(selectedDate) ? selectedDate : U.todayISO()))}" required></label><label id="v3-tx-fatura" hidden>FATURA<select name="fatura"></select><small class="v3-muted">A compra cai nesta fatura; o dia certo o OAZE escolhe dentro do ciclo.</small></label><label>SITUAÇÃO<select name="situacao">${[['pago','✓ Pago — entra nos totais'],['pendente','✗ Não pago — fica previsto'],['cancelado','🚫 Cancelado — não entra em total nenhum']].map(([v,t])=>`<option value="${v}" ${situacaoInicial===v?'selected':''}>${esc(t)}</option>`).join('')}</select></label></div><details class="v3-mais" ${editing?.recurring || Number(editing?.installments) > 1 ? 'open' : ''}><summary>Mais detalhes</summary><div class="v3-mais-corpo"><label id="v3-tx-meio-label">COMO<select name="meio"><option value="">Não informado</option></select><small class="v3-muted">Como o dinheiro entrou ou saiu dessa conta.</small></label><label class="v3-check"><input type="checkbox" name="recurring" ${editing?.recurring ? 'checked' : ''}> Repetir mensalmente</label><div id="v3-repeat-fields" ${editing?.recurring ? '' : 'hidden'}><label>DATA DA REPETIÇÃO<input type="date" name="repeatDate" value="${esc(editing?.date || proposal?.data || (selectedDate && U.isValidISO(selectedDate) ? selectedDate : U.todayISO()))}" ${editing?.recurring ? 'required' : ''}></label><label>TERMINAR RECORRÊNCIA EM (OPCIONAL)<input type="month" name="recurEnd" value="${esc(editing?.recurEnd || '')}"></label></div>${editing ? '' : `<label>PARCELAS (SOMENTE DESPESA NÃO RECORRENTE)<input type="number" name="installments" min="1" max="72" value="1"></label>`}<label>OBSERVAÇÕES<input name="notes" maxlength="500" value="${esc(editing?.notes || proposal?.notes || '')}" placeholder="Opcional"></label></div></details>${proposal?'<p class="v3-muted">Revise valor, data, categoria e origem. Nada será salvo automaticamente.</p>':''}<button type="submit" class="v3-primary">${demo ? 'Ver na demonstração' : 'Salvar lançamento'}</button>${editing ? `<button type="button" class="v3-secondary" data-action="delete-transaction" data-transaction="${esc(editing.id)}">Excluir lançamento</button>` : ''}</form>`, editing ? 'Editar lançamento' : 'Novo lançamento');
     const txForm=document.getElementById('v3-form-tx');
     if(!editing&&draftDescription!=null)txForm.elements.description.value=String(draftDescription).slice(0,120);
     const transfer=current==='Transferir';
@@ -2816,16 +2886,43 @@
     segment.before(head);
     head.append(segment);
     head.insertAdjacentHTML('beforeend','<button type="button" class="v3-calc-launch" data-action="calculator" aria-label="Abrir calculadora" aria-expanded="false" title="Calculadora"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path d="M7.5 7h9M8 11h1m3 0h1m3 0h1M8 15h1m3 0h1m3 0h1M8 19h1m3 0h5"/></svg></button>');
-    head.insertAdjacentHTML('afterend','<section class="v3-calculator" role="dialog" aria-label="Calculadora" hidden><div class="v3-calc-head"><h2>calculadora</h2><button type="button" data-action="calc-close" aria-label="Fechar calculadora">×</button></div><label>CONTA<input inputmode="none" readonly autocomplete="off" placeholder="0,00" maxlength="80" aria-label="Expressão da calculadora; use os botões abaixo"></label><strong class="v3-calc-display" data-calc-result>0,00</strong><div class="v3-calc-keys">'+['7','8','9','÷','4','5','6','×','1','2','3','−','C','0',',','+','⌫','='].map((key)=>`<button type="button" data-action="${key==='='?'calc-run':'calc-key'}" data-calc-key="${key}">${key}</button>`).join('')+'</div><div class="v3-calc-controls"><button type="button" data-action="calc-copy" disabled>Copiar resultado</button><button type="button" data-action="calc-use" disabled>Usar valor</button></div><div class="v3-calc-history"><small>HISTÓRICO</small><div data-calc-history></div></div></section>');
+    head.insertAdjacentHTML('afterend','<section class="v3-calculator" role="dialog" aria-label="Calculadora" hidden><div class="v3-calc-head"><h2>calculadora</h2><button type="button" data-action="calc-close" aria-label="Fechar calculadora">×</button></div><label>CONTA<input inputmode="none" readonly autocomplete="off" placeholder="0,00" maxlength="80" aria-label="Expressão da calculadora; use os botões abaixo"></label><strong class="v3-calc-display" data-calc-result>0,00</strong><div class="v3-calc-keys">'+['7','8','9','÷','4','5','6','×','1','2','3','−','C','0',',','+','⌫','='].map((key)=>`<button type="button" data-action="${key==='='?'calc-run':'calc-key'}" data-calc-key="${key}">${key}</button>`).join('')+'</div><small class="v3-calc-dica">Dá para usar o teclado: números, + − * /, Enter calcula, Esc fecha.</small><div class="v3-calc-controls"><button type="button" data-action="calc-copy" disabled>Copiar resultado</button><button type="button" data-action="calc-use" disabled>Usar valor</button></div><div class="v3-calc-history"><small>HISTÓRICO</small><div data-calc-history></div></div></section>');
   }
   function calculateExpression(value) {
-    const source=String(value||'').replace(/\s/g,'').replace(/,/g,'.').replace(/[×x]/gi,'*').replace(/÷/g,'/').replace(/−/g,'-');
+    let source=String(value||'').replace(/\s/g,'').replace(/,/g,'.').replace(/[×x]/gi,'*').replace(/÷/g,'/').replace(/−/g,'-');
+    /* conta que começa negativa ("-50+20") vale: o sinal fica no primeiro número */
+    const negativo=source.startsWith('-');
+    if(negativo)source=source.slice(1);
     if(!/^\d+(?:\.\d+)?(?:[+*/-]\d+(?:\.\d+)?)*$/.test(source))return null;
     const parts=source.match(/\d+(?:\.\d+)?|[+*/-]/g);
+    if(negativo)parts[0]='-'+parts[0];
     const stack=[Number(parts[0])];
     for(let i=1;i<parts.length;i+=2){const op=parts[i],next=Number(parts[i+1]);if(op==='*'||op==='/'){const previous=stack.pop();if(op==='/'&&next===0)return null;stack.push(op==='*'?previous*next:previous/next);}else stack.push(op,next);}
     let total=stack[0];for(let i=1;i<stack.length;i+=2)total=stack[i]==='+'?total+stack[i+1]:total-stack[i+1];
     return Number.isFinite(total)?U.round2(total):null;
+  }
+  /* CALCULADORA PELO TECLADO (10/11/2026), no computador.
+     Com a calculadora aberta: números, vírgula ou ponto, + - * / x,
+     Enter ou = calcula, Backspace apaga, Delete ou C limpa, Esc fecha.
+     Os botões na tela piscam junto, para a tecla e o botão contarem a
+     mesma história. No celular nada muda: lá o teclado é a tela. */
+  function calcTeclado(ev) {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const panel = [...document.querySelectorAll('.v3-calculator')].find((p) => !p.hidden && p.isConnected);
+    if (!panel) return;
+    const ativo = document.activeElement;
+    if (ativo && !panel.contains(ativo) && ['INPUT','TEXTAREA','SELECT'].includes(ativo.tagName)) return;
+    const k = ev.key;
+    const mapa = { '+':'+', '-':'−', '*':'×', 'x':'×', 'X':'×', '/':'÷', ',':',', '.':',', 'Backspace':'⌫', 'Delete':'C', 'c':'C', 'C':'C', 'Enter':'=', '=':'=' };
+    const tecla = /^\d$/.test(k) ? k : mapa[k];
+    if (k === 'Escape') { ev.preventDefault(); ev.stopPropagation(); panel.querySelector('[data-action="calc-close"]')?.click(); return; }
+    if (!tecla) return;
+    if (k === 'Enter' && ativo?.closest?.('.v3-calc-controls, .v3-calc-history, .v3-calc-head')) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const botao = panel.querySelector(`[data-calc-key="${tecla}"]`);
+    if (!botao) return;
+    botao.classList.add('is-tecla'); setTimeout(() => botao.classList.remove('is-tecla'), 120);
+    botao.click();
   }
   function updateCalculator(panel) {
     panel.querySelector('[data-calc-history]').innerHTML=calculatorHistory.map((entry)=>`<button type="button" data-action="calc-history" data-calc-value="${esc(entry.value)}">${esc(entry.expression)} = ${esc(entry.value)}</button>`).join('');
@@ -3253,7 +3350,7 @@
   function setupInvestmentAssistant(form) {
     if (!form) return;
     form.querySelector('button[type="submit"]').insertAdjacentHTML('beforebegin',
-      '<section class="v3-invest-assist" aria-live="polite"><div class="v3-invest-assist-head"><img src="/assets/coco/corpo-neutra_acolhedora.webp" alt=""><strong>Ajuda para identificar o ativo</strong></div><p class="v3-invest-assist-status">Informe o nome e o valor para receber uma sugestão. Nada será alterado sem você confirmar.</p><div class="v3-invest-assist-suggestion" hidden></div><div class="v3-invest-assist-valuation"></div></section>');
+      '<section class="v3-invest-assist" aria-live="polite"><div class="v3-invest-assist-head"><img src="/assets/brand/oaze-mascote-512.png" alt=""><strong>Ajuda para identificar o ativo</strong></div><p class="v3-invest-assist-status">Informe o nome e o valor para receber uma sugestão. Nada será alterado sem você confirmar.</p><div class="v3-invest-assist-suggestion" hidden></div><div class="v3-invest-assist-valuation"></div></section>');
     const status = form.querySelector('.v3-invest-assist-status');
     const suggestionBox = form.querySelector('.v3-invest-assist-suggestion');
     const valuation = form.querySelector('.v3-invest-assist-valuation');
@@ -3342,19 +3439,19 @@
       if (!live() || demo || state.sharedId || name.length < 4 || !(amount > 0) || name === lastName) return;
       lastName = name;
       const request = ++serial;
-      status.textContent = 'Coco está identificando o investimento…';
+      status.textContent = 'OAZE está identificando o investimento…';
       suggestionBox.hidden = true;
       try {
         const data = await V3Backend.investmentMarket({ action: 'interpret', name });
         if (!live() || request !== serial || form.elements.name.value.trim() !== name) return;
         suggestion = data.suggestion;
-        if (!suggestion?.type) { status.textContent = 'Coco não identificou o tipo com segurança. Escolha os campos manualmente.'; return; }
+        if (!suggestion?.type) { status.textContent = 'OAZE não identificou o tipo com segurança. Escolha os campos manualmente.'; return; }
         const parts = [suggestion.type, suggestion.ticker, suggestion.rate && suggestion.indexer === 'cdi' ? `${suggestion.rate}% do CDI` : null].filter(Boolean);
-        status.textContent = 'Sugestão da Coco · confira antes de aplicar';
+        status.textContent = 'Sugestão da OAZE · confira antes de aplicar';
         suggestionBox.hidden = false;
         suggestionBox.innerHTML = `<span>${esc(parts.join(' · '))}</span><button type="button">Usar sugestão</button>`;
       } catch (error) {
-        if (live() && request === serial) status.textContent = `${error.message || 'Coco indisponível.'} Você pode preencher manualmente.`;
+        if (live() && request === serial) status.textContent = `${error.message || 'OAZE indisponível.'} Você pode preencher manualmente.`;
       }
     }
     suggestionBox.addEventListener('click', (event) => {
@@ -3406,7 +3503,7 @@
       form.elements.name.value = draft.nome;
       form.elements.target.value = Number(draft.valor_alvo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       if (draft.prazo) form.elements.deadline.value = draft.prazo;
-      form.querySelector('button[type="submit"]')?.insertAdjacentHTML('beforebegin', '<p class="v3-muted">Proposta da Coco: confira nome, valor e prazo antes de salvar.</p>');
+      form.querySelector('button[type="submit"]')?.insertAdjacentHTML('beforebegin', '<p class="v3-muted">Proposta da OAZE: confira nome, valor e prazo antes de salvar.</p>');
     }
   }
   function goalDepositForm(id, tirar) {
@@ -3486,7 +3583,7 @@
       const status=s.accepted?'aceito':new Date(s.expires_at).getTime()<Date.now()?'expirado':'aguardando';
       return `<div class="v3-profile-row"><span><strong>${esc(s.label||'Convite '+s.id.slice(0,8))}</strong><small class="v3-muted" style="display:block">${esc(p?.name||'Perfil removido')} · ${status} · ${s.permission==='edit'?'pode editar':'somente leitura'}</small></span><button type="button" class="v3-link" data-action="shared-permission" data-share-id="${esc(s.id)}" data-permission="${s.permission==='edit'?'read':'edit'}" aria-label="Mudar acesso de ${esc(s.label||p?.name||'convite')} para ${s.permission==='edit'?'somente leitura':'edição'}">${s.permission==='edit'?'Deixar só leitura':'Permitir edição'}</button><button type="button" class="v3-link" data-action="shared-revoke" data-share-id="${esc(s.id)}">Revogar</button></div>`;
     }).join('');
-    return `<div class="v3-stack" style="margin-top:16px">${own}</div>${demo?'':`<form class="v3-form" id="v3-form-profile"><label>NOVO PERFIL<input name="name" maxlength="60" placeholder="Ex.: Família ou trabalho" required></label><button type="submit" class="v3-secondary">Criar perfil</button></form><details class="v3-profile-extra"><summary>Perfis recebidos e convites</summary><h3 class="v3-profile-heading">Compartilhados comigo</h3>${incoming||'<p class="v3-muted">Nenhum perfil compartilhado com esta conta.</p>'}<h3 class="v3-profile-heading">Meus convites</h3>${outgoing||'<p class="v3-muted">Nenhum convite criado.</p>'}<p class="v3-muted">Links expiram em 7 dias; cofre e Coco não são compartilhados.</p></details>`}`;
+    return `<div class="v3-stack" style="margin-top:16px">${own}</div>${demo?'':`<form class="v3-form" id="v3-form-profile"><label>NOVO PERFIL<input name="name" maxlength="60" placeholder="Ex.: Família ou trabalho" required></label><button type="submit" class="v3-secondary">Criar perfil</button></form><details class="v3-profile-extra"><summary>Perfis recebidos e convites</summary><h3 class="v3-profile-heading">Compartilhados comigo</h3>${incoming||'<p class="v3-muted">Nenhum perfil compartilhado com esta conta.</p>'}<h3 class="v3-profile-heading">Meus convites</h3>${outgoing||'<p class="v3-muted">Nenhum convite criado.</p>'}<p class="v3-muted">Links expiram em 7 dias; cofre e OAZE não são compartilhados.</p></details>`}`;
   }
   async function loadShares() {
     if (demo) return;
@@ -3953,8 +4050,8 @@
   async function askCoco(form) {
     const q=String(new FormData(form).get('question')||'').trim(); if (!q) return;
     if (demo) { toast('A conversa de demonstração não envia perguntas.'); return; }
-    if (!global.Sync || !Sync.currentUser || !Sync.currentUser()) { toast('Entre na sua conta para conversar com a Coco.'); return; }
-    if (!cocoAllowed()) { toast('Autorize a Coco antes de conversar.'); return; }
+    if (!global.Sync || !Sync.currentUser || !Sync.currentUser()) { toast('Entre na sua conta para conversar com a OAZE.'); return; }
+    if (!cocoAllowed()) { toast('Autorize a OAZE antes de conversar.'); return; }
     if (voiceSession?.active) {
       if (await voiceSession.sendText(q)) {state.chat.push({who:'user',text:q});state.mediaDraft='';render();}
       else toast('A voz ainda está conectando. Tente novamente em instantes.');
@@ -3983,7 +4080,7 @@
     const waitingNotice=setTimeout(()=>{
       if (!state.cocoAsking) return;
       const status=document.querySelector('.v3-coco-thinking');
-      if (status) status.textContent='A Coco ainda está preparando a resposta…';
+      if (status) status.textContent='A OAZE ainda está preparando a resposta…';
     },8000);
     let answered=false;
     try {
@@ -3991,14 +4088,14 @@
       body.conversa=previous.slice(-3);
       body.profile_id=profile().id;
       const r=await AI.chamarFuncao(body);
-      if (r.erro) throw new Error(r.mensagem || 'A Coco está indisponível agora.');
+      if (r.erro) throw new Error(r.mensagem || 'A OAZE está indisponível agora.');
       const proposal=proposalForReview(r.acao_proposta);
       const goalProposal=goalProposalForReview(r.meta_proposta);
       const memory=r.memoria_proposta && ['categoria','conta','recorrencia','preferencia','meta','outro'].includes(r.memoria_proposta.kind)
         ? {kind:r.memoria_proposta.kind,label:String(r.memoria_proposta.label||'').slice(0,100),value:String(r.memoria_proposta.value||'').slice(0,240)} : null;
       state.chat.push({who:'coco',text:r.texto || (proposal?'Preparei um lançamento para você revisar.':goalProposal?'Preparei uma meta para você revisar.':memory?'Posso guardar esta preferência, se você confirmar.':'Não consegui responder agora.'),proposal,goalProposal,memory});
       answered=true;
-    } catch (e) { console.error('V3/Coco:',e); state.chat.push({who:'coco',text:e.message || 'A conversa está indisponível agora. Tente de novo.'}); }
+    } catch (e) { console.error('V3/OAZE:',e); state.chat.push({who:'coco',text:e.message || 'A conversa está indisponível agora. Tente de novo.'}); }
     clearTimeout(waitingNotice);state.cocoAsking=false;render();
     if (speakAfter && answered) playCocoAnswer(state.chat.length-1);
   }
@@ -4009,8 +4106,8 @@
   function updateVoiceVisual() {
     const stage=$('.v3-coco-voice-stage');if(!stage)return;
     stage.dataset.state=state.voiceState;
-    const label=$('.v3-voice-status');if(label)label.textContent=({IDLE:'Vamos conversar?',LISTENING:'Ouvindo você',PROCESSING:'Conferindo seu OAZE',SPEAKING:'Coco está falando',INTERRUPTED:'Pode falar',ERROR:'Não consegui conectar',OFFLINE:'Conexão encerrada'}[state.voiceState]||'Vamos conversar?');
-    const actor='/assets/coco/'+(state.voiceState==='SPEAKING'?'corpo-explicando':'corpo-neutra_acolhedora')+'.webp';
+    const label=$('.v3-voice-status');if(label)label.textContent=({IDLE:'Vamos conversar?',LISTENING:'Ouvindo você',PROCESSING:'Conferindo seu OAZE',SPEAKING:'OAZE está falando',INTERRUPTED:'Pode falar',ERROR:'Não consegui conectar',OFFLINE:'Conexão encerrada'}[state.voiceState]||'Vamos conversar?');
+    const actor='/assets/brand/oaze-mascote-512.png';
     stage.querySelectorAll('.v3-coco-actor img').forEach((img)=>{if(img.getAttribute('src')!==actor)img.src=actor;});
     updateVoiceCaption();
   }
@@ -4038,7 +4135,7 @@
       try {
         return {objetivo,valorExtraMensal:extra,retrato:AI.resumoDividas()};
       } catch(error) {
-        console.error('V3/Coco dívidas:',error);
+        console.error('V3/OAZE dívidas:',error);
         return {erro:'Não consegui montar o retrato das dívidas agora.'};
       }
     }
@@ -4066,7 +4163,7 @@
   }
   async function startVoice(mode) {
     if(demo){cocoMode='voice';state.voiceState='IDLE';render();toast('Prévia visual: o microfone não é aberto aqui.');return;}
-    if(state.sharedId||!cocoAllowed()) {toast('Autorize a Coco em um perfil seu antes de usar a voz.');return;}
+    if(state.sharedId||!cocoAllowed()) {toast('Autorize a OAZE em um perfil seu antes de usar a voz.');return;}
     if(voiceSession?.active||voiceStarting)return;
     if(!global.CocoRealtime||!navigator.mediaDevices?.getUserMedia){toast('Voz em tempo real indisponível neste navegador.');return;}
     stopCocoAudio();cocoMode='voice';state.voiceMuted=false;state.voiceMode=mode==='push'?'push':'continuous';
@@ -4098,7 +4195,7 @@
         onTool:voiceTool,
         onError:(value)=>toast(value),
         onDisconnect:()=>{if(voiceSession===session){stopVoice();toast('Conexão de voz encerrada. A conversa por texto continua disponível.');}},
-        onPlaybackBlocked:()=>{state.voicePlaybackBlocked=true;render();toast('Toque em Ativar som para ouvir a Coco.');},
+        onPlaybackBlocked:()=>{state.voicePlaybackBlocked=true;render();toast('Toque em Ativar som para ouvir a OAZE.');},
         onDeviceFallback:()=>{state.voiceDevice='';toast('O microfone anterior não está disponível. Usando o microfone padrão.');},
         onLimit:()=>{if(voiceSession===session){stopVoice();toast('Sessão de voz encerrada após 10 minutos. Você pode iniciar outra.');}}
       });
@@ -4117,7 +4214,7 @@
         try {
           const settings=await V3Backend.cocoSettings();
           if(voiceSession!==session)return;
-          if(!settings?.consented_at||settings.revoked_at){stopVoice();toast('A autorização da Coco foi revogada.');}
+          if(!settings?.consented_at||settings.revoked_at){stopVoice();toast('A autorização da OAZE foi revogada.');}
         } catch {if(voiceSession===session){stopVoice();toast('Não consegui confirmar sua autorização. A voz foi encerrada.');}}
       },30000);
       if(voiceSession===session)render();
@@ -4160,7 +4257,7 @@
     } catch (error) { if(request===cocoAudioRequest){stopCocoAudio();toast(error.message || 'Não consegui falar esta resposta.');} }
   }
   async function saveCocoMemory(memory) {
-    if (demo || !cocoAllowed() || state.cocoSettings?.learning_paused) { toast('O aprendizado da Coco está pausado.'); return; }
+    if (demo || !cocoAllowed() || state.cocoSettings?.learning_paused) { toast('O aprendizado da OAZE está pausado.'); return; }
     const kind=String(memory.kind||''),label=String(memory.label||'').trim().slice(0,100),value=String(memory.value||'').trim().slice(0,240);
     if (!['categoria','conta','recorrencia','preferencia','meta','outro'].includes(kind) || !label || !value || state.cocoMemories.length>=50) {
       toast('Confira a regra ou apague uma memória antiga antes de continuar.'); return;
@@ -4181,7 +4278,7 @@
       } catch (error) { toast(error.message || 'Não consegui ler este extrato. Nada foi salvo.'); }
       return;
     }
-    if (demo || !cocoAllowed()) { toast('Autorize a Coco antes de enviar arquivos.'); return; }
+    if (demo || !cocoAllowed()) { toast('Autorize a OAZE antes de enviar arquivos.'); return; }
     const image=['image/jpeg','image/png','image/webp'].includes(file.type);
     const audio=['audio/webm','audio/mpeg','audio/mp4','audio/x-m4a','audio/wav','audio/wave'].includes(file.type);
     const localText=/\.(txt|md|json|log)$/i.test(file.name) || ['text/plain','text/markdown','application/json'].includes(file.type);
@@ -4191,12 +4288,12 @@
       if(!value){toast('O arquivo não contém texto legível.');return;}
       state.mediaDraft=(`Leia este trecho de ${file.name}: ${value}`).slice(0,500);
       state.cocoView='conversation';go('coco');$('#v3-chat-form [name="question"]')?.focus();
-      toast('Confira o trecho antes de enviar à Coco.');return;
+      toast('Confira o trecho antes de enviar à OAZE.');return;
     }
     if (!image && !audio) { toast('Arquivo escolhido, mas este formato ainda não pode ser lido. Use foto, áudio, extrato PDF/CSV ou texto.'); return; }
     const max=image?4_000_000:8_000_000;
     if (file.size>max || file.size<100) { toast('Arquivo fora do limite: foto até 4 MB, áudio até 8 MB.'); return; }
-    if (!await ask('coco-midia',`Enviar ${image?'esta foto':'este áudio'} à Coco? O conteúdo pode incluir dados sensíveis e será processado pela OpenAI. O arquivo não ficará guardado no OAZE.`,'Enviar')) return;
+    if (!await ask('coco-midia',`Enviar ${image?'esta foto':'este áudio'} à OAZE? O conteúdo pode incluir dados sensíveis e será processado pela OpenAI. O arquivo não ficará guardado no OAZE.`,'Enviar')) return;
     toast('Lendo arquivo…');
     try {
       const result=await V3Backend.cocoReadMedia(file,profile().id);
@@ -4206,7 +4303,7 @@
       state.cocoTab='Conversa';state.cocoView='conversation';state.mediaDraft=(captura?'Registre este gasto já pago: ':'')+String(result.texto||'').slice(0,captura?470:500);state.voiceDraft=audio;
       closeSheet();go('coco');$('#v3-chat-form [name="question"]')?.focus();
       if((sendRecording||captura) && state.mediaDraft){await askCoco($('#v3-chat-form'));}
-      else toast('Revise o texto antes de enviar à Coco.');
+      else toast('Revise o texto antes de enviar à OAZE.');
     } catch (error) { toast(error.message || 'Não consegui ler o arquivo.'); }
   }
   async function toggleCocoRecording() {
@@ -4262,7 +4359,7 @@
       (navEditorOpen ? $('#v3-nav-editor [data-nav-visibility]:not(:disabled)') : $('.v3-sidebar-edit'))?.focus(); return;
     }
     if (target.dataset.action === 'sidebar-reset') {
-      navPrefs = { order: [...NAV_PAGES], hidden: [], collapsed: false };
+      navPrefs = { order: [...NAV_PAGES], hidden: [...NAV_OCULTOS_PADRAO], collapsed: false };
       saveNavPrefs(); renderNav(); $('#v3-nav-editor [data-action="sidebar-reset"]')?.focus(); return;
     }
     if (target.dataset.navVisibility) {
@@ -4354,10 +4451,13 @@
     if(action==='calculator') {const panel=target.closest('.v3-compose-head')?.nextElementSibling;if(panel?.classList.contains('v3-calculator')){panel.hidden=!panel.hidden;target.setAttribute('aria-expanded',String(!panel.hidden));if(!panel.hidden){updateCalculator(panel);panel.querySelector('[data-calc-key="7"]')?.focus();}}return;}
     if(action==='calc-close') {const panel=target.closest('.v3-calculator');if(panel){panel.hidden=true;panel.previousElementSibling?.querySelector('.v3-calc-launch')?.setAttribute('aria-expanded','false');panel.previousElementSibling?.querySelector('.v3-calc-launch')?.focus();}return;}
     if(action==='calc-key') {const panel=target.closest('.v3-calculator'),input=panel?.querySelector('input'),key=target.dataset.calcKey;if(!input)return;if(key==='C')input.value='';else if(key==='⌫')input.value=input.value.slice(0,-1);else input.value+=key;return;}
-    if(action==='calc-run') {const panel=target.closest('.v3-calculator'),expression=panel?.querySelector('input')?.value||'',result=calculateExpression(expression);if(result==null){toast('Use números e +, −, × ou ÷.');return;}const value=result.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});panel.dataset.result=value;panel.querySelector('[data-calc-result]').textContent=value;panel.querySelector('[data-action="calc-copy"]').disabled=false;panel.querySelector('[data-action="calc-use"]').disabled=result<0;calculatorHistory=[{expression,value},...calculatorHistory].slice(0,8);updateCalculator(panel);return;}
+    if(action==='calc-run') {const panel=target.closest('.v3-calculator'),expression=panel?.querySelector('input')?.value||'',result=calculateExpression(expression);if(result==null){toast('Use números e +, −, × ou ÷.');return;}const fmt2=(n)=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});const value=fmt2(result);panel.dataset.result=value;
+      /* Resultado negativo entra no lançamento só como número (10/11/2026):
+         o sinal já vem do tipo — despesa sai, receita entra. */
+      panel.dataset.valor=fmt2(Math.abs(result));panel.querySelector('[data-calc-result]').textContent=value;panel.querySelector('[data-action="calc-copy"]').disabled=false;const usar=panel.querySelector('[data-action="calc-use"]');usar.disabled=result===0;usar.textContent=result<0?`Usar ${panel.dataset.valor}`:'Usar valor';calculatorHistory=[{expression,value},...calculatorHistory].slice(0,8);updateCalculator(panel);return;}
     if(action==='calc-history') {const panel=target.closest('.v3-calculator');panel.querySelector('input').value=target.dataset.calcValue;return;}
     if(action==='calc-copy') {const value=target.closest('.v3-calculator')?.dataset.result;if(value)navigator.clipboard.writeText(value).then(()=>toast('Valor copiado.')).catch(()=>toast('Não consegui copiar neste navegador.'));return;}
-    if(action==='calc-use') {const panel=target.closest('.v3-calculator'),input=panel?.nextElementSibling?.querySelector('[name="amount"]'),value=panel?.dataset.result;if(input&&value){input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));panel.hidden=true;}return;}
+    if(action==='calc-use') {const panel=target.closest('.v3-calculator'),input=panel?.nextElementSibling?.querySelector('[name="amount"]'),value=panel?.dataset.valor||panel?.dataset.result;if(input&&value){input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));panel.hidden=true;}return;}
     if (action==='refresh-invest-market') { refreshInvestmentMarket(true); return; }
     if (action==='shared-open') {openShared(target.dataset.shareId);return;}
     if (action==='shared-revoke') {
@@ -4395,7 +4495,7 @@
     if (action==='profile-share') {
       const p=Store.state().profiles.find((item)=>item.id===target.dataset.profileId);
       if(!p)return;
-      openSheet(`${sheetTop('compartilhar perfil',p.name)}<p>O link pode ser aceito uma vez por outra conta OAZE, em até 7 dias. O convidado acessa só este perfil; cofre e Coco ficam privados.</p><label class="v3-share-link-label">IDENTIFIQUE O CONVITE<input id="v3-share-label" maxlength="60" placeholder="Ex.: parceiro, contadora ou equipe"></label><label class="v3-share-link-label">PERMISSÃO<select id="v3-share-permission"><option value="read">Somente leitura</option><option value="edit">Pode editar dados financeiros</option></select></label><p class="v3-muted">Quem pode editar também pode excluir lançamentos, cartões e metas deste perfil. Você pode mudar ou revogar o acesso depois.</p><button type="button" class="v3-primary" style="margin-top:20px" data-action="profile-share-create" data-profile-id="${esc(p.id)}">Criar link de convite</button>`,'Compartilhar perfil');return;
+      openSheet(`${sheetTop('compartilhar perfil',p.name)}<p>O link pode ser aceito uma vez por outra conta OAZE, em até 7 dias. O convidado acessa só este perfil; cofre e OAZE ficam privados.</p><label class="v3-share-link-label">IDENTIFIQUE O CONVITE<input id="v3-share-label" maxlength="60" placeholder="Ex.: parceiro, contadora ou equipe"></label><label class="v3-share-link-label">PERMISSÃO<select id="v3-share-permission"><option value="read">Somente leitura</option><option value="edit">Pode editar dados financeiros</option></select></label><p class="v3-muted">Quem pode editar também pode excluir lançamentos, cartões e metas deste perfil. Você pode mudar ou revogar o acesso depois.</p><button type="button" class="v3-primary" style="margin-top:20px" data-action="profile-share-create" data-profile-id="${esc(p.id)}">Criar link de convite</button>`,'Compartilhar perfil');return;
     }
     if (action==='profile-share-create') {
       const button=target;button.disabled=true;
@@ -4480,7 +4580,7 @@
       return;
     }
     if (action==='analysis-consent') {
-      if (!cocoAllowed() || !global.confirm('Autorizar a Coco a guardar resumos mensais automáticos e usá-los como contexto nas próximas conversas? Você poderá pausar e apagar cada análise.')) return;
+      if (!cocoAllowed() || !global.confirm('Autorizar a OAZE a guardar resumos mensais automáticos e usá-los como contexto nas próximas conversas? Você poderá pausar e apagar cada análise.')) return;
       V3Backend.cocoConsent(true).then(()=>refreshCoco()).catch((error)=>toast(error.message||'Não consegui registrar a autorização.'));
       return;
     }
@@ -4490,7 +4590,7 @@
       return;
     }
     if (action==='revoke-coco') {
-      if (!global.confirm('Revogar o acesso da Coco? As memórias ficam guardadas para você apagar, mas não serão usadas enquanto o acesso estiver revogado.')) return;
+      if (!global.confirm('Revogar o acesso da OAZE? As memórias ficam guardadas para você apagar, mas não serão usadas enquanto o acesso estiver revogado.')) return;
       clearTimeout(analysisTimer);
       V3Backend.cocoConsent(false).then(()=>{stopVoice();stopCocoAudio();state.chat=[];state.mediaDraft='';state.voiceDraft=false;state.importPreview=null;state.importAccountId='';refreshCoco();})
         .catch((e)=>toast(e.message||'Não consegui revogar o acesso.'));
@@ -4573,7 +4673,7 @@
     if (action==='retry-coco'){refreshCoco();return;}
     if (action==='close'){closeSheet();return;}
     if (action==='back'){go('more');return;}
-    if (action==='new'){const k={despesa:'Despesa',receita:'Receita',transferir:'Transferir',aporte:'Aporte'}[target.dataset.kind]||'Despesa';composer(k,target.dataset.date);return;}
+    if (action==='new'){const k={despesa:'Despesa',receita:'Receita',transferir:'Transferir',aporte:'Aporte'}[target.dataset.kind];if(!k){menuNovo(target.dataset.date);return;}composer(k,target.dataset.date);return;}
     if (action==='new-recurring') { composer('Despesa'); const button=$('#v3-form-tx [data-repeat-mode="recurring"]'); if(button)button.click(); else { const recurring=$('#v3-form-tx [name="recurring"]'); if(recurring){recurring.checked=true;updateRepeatFields(recurring.form);} } return; }
     if (['pause-recurring','resume-recurring','end-recurring'].includes(action)) { changeRecurring(target.dataset.recurringId,action); return; }
     if (action==='add-account'){accountForm();return;}
@@ -4719,7 +4819,7 @@
       const c=demo?{pct_dia:18,pct_semana:31}:(global.Limites?.consumoCoco?.()||{});
       const html=!demo&&global.OazeCocoUso?global.OazeCocoUso.painel():'';
       const barra=(r,p)=>`<div class="oz-uso-linha"><span>${r}</span><strong>${p}%</strong></div><div class="oz-barra"><i style="width:${Math.min(100,p)}%"></i></div>`;
-      openSheet(sheetTop('uso da coco','hoje e nesta semana')+(html||`<section class="v3-panel oz-coco-uso">${barra('Hoje',Math.round(Number(c.pct_dia)||0))}${barra('Esta semana',Math.round(Number(c.pct_semana)||0))}</section>`),'Uso da Coco');
+      openSheet(sheetTop('uso da coco','hoje e nesta semana')+(html||`<section class="v3-panel oz-coco-uso">${barra('Hoje',Math.round(Number(c.pct_dia)||0))}${barra('Esta semana',Math.round(Number(c.pct_semana)||0))}</section>`),'Uso da OAZE');
       if(!demo&&global.OazeCocoUso)void global.OazeCocoUso.atualizar();
       return;
     }
@@ -4826,7 +4926,7 @@
     state.investTab=investmentTab;
     if (path==='/app/analises') state.cocoView='analysis';
     if(!demo && global.OazeCookies) OazeCookies.mostrar();
-    if(!demo) refreshCoco().catch((error)=>console.error('V3/Coco configuração:',error));
+    if(!demo) refreshCoco().catch((error)=>console.error('V3/OAZE configuração:',error));
     (function cocoSaiDaFrente() {
       const fab = document.querySelector('.v3-coco-fab');
       if (!fab) return;
@@ -5092,6 +5192,7 @@
       const vazio=document.getElementById('v3-bank-vazio');
       if(vazio)vazio.hidden=achou>0;
     });
+    document.addEventListener('keydown',calcTeclado,true);
     document.addEventListener('keydown',(ev)=>{if(ev.key==='Escape'&&statusMenu){ev.preventDefault();closeStatusMenu();return;}if(ev.key==='Escape'&&!$('#v3-overlay').hidden){closeSheet();return;}if(ev.key==='Escape'&&navEditorOpen){ev.preventDefault();navEditorOpen=false;renderNav();$('.v3-sidebar-edit')?.focus();return;}if(ev.key?.toLowerCase()==='n'&&!ev.ctrlKey&&!ev.altKey&&!ev.metaKey&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName||'')){ev.preventDefault();composer('Despesa');}});
     addEventListener('resize',()=>{closeStatusMenu(false);});
     render();

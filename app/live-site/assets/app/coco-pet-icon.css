@@ -18,3 +18,15 @@
 .v3-coco-fab.coco-viva .v3-coco-pet img{animation:none;will-change:auto;transform:none}
 @media(max-width:900px){.v3-coco-fab.coco-viva .v3-coco-pet{width:80px}}
 @media(prefers-reduced-motion:reduce){.v3-coco-fab.coco-viva{transition:opacity .22s ease}}
+/* OAZE e Coco são uma só (10/11/2026): o ícone novo é quadrado e tem
+   fundo próprio, então vira selo arredondado em vez de corpo solto. */
+.v3-coco-pet{width:26px;height:26px;border-radius:8px;overflow:hidden}
+.v3-coco-pet img{width:100%;height:100%;object-fit:cover;transform:none}
+.v3-more button>.v3-coco-pet,.v3-more-ic .v3-coco-pet{width:30px;height:30px;border-radius:9px}
+.v3-nav-editor-row>span .v3-coco-pet{width:20px;height:20px;border-radius:6px}
+.v3-coco-fab .v3-coco-pet,.v3-coco-fab.coco-viva .v3-coco-pet{width:64px;height:64px;border-radius:50%;filter:none;box-shadow:0 10px 24px rgba(2,8,12,.55),0 0 0 3px rgba(240,229,207,.9)}
+.v3-coco-fab .v3-coco-pet img{animation:oaze-respira 3.6s ease-in-out infinite}
+@keyframes oaze-respira{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@media(max-width:900px){.v3-coco-fab .v3-coco-pet,.v3-coco-fab.coco-viva .v3-coco-pet{width:60px;height:60px}}
+@media(prefers-reduced-motion:reduce){.v3-coco-fab .v3-coco-pet img{animation:none}}
+.v3-coco-message-avatar,.v3-coco-empty img{border-radius:50%;object-fit:cover}

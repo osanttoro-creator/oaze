@@ -47,7 +47,7 @@
 
   let direitos = PADRAO;
   let consumoIA = { usado: 0, limite: PADRAO.limites.ai_queries_per_month };
-  /* 31/10/2026: a Coco é medida em duas janelas, dia e semana, e o
+  /* 31/10/2026: a OAZE é medida em duas janelas, dia e semana, e o
      servidor devolve só a porcentagem — a pessoa não precisa contar
      perguntas. */
   const COCO_VAZIO = { pct_dia: 0, pct_semana: 0, renova_dia: null, renova_semana: null, ilimitado: false, carregado: false };
@@ -64,7 +64,7 @@
   Limites.plano = () => direitos.plano;
   Limites.consumoIA = () => consumoIA;
   Limites.consumoCoco = () => consumoCoco;
-  /** Atualiza a barra com o que a própria resposta da Coco trouxe. */
+  /** Atualiza a barra com o que a própria resposta da OAZE trouxe. */
   Limites.registrarUsoCoco = function (uso) {
     if (!uso || typeof uso.pct_dia !== 'number') return;
     consumoCoco = Object.assign({}, consumoCoco, uso, { carregado: true });

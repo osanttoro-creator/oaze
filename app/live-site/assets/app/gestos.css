@@ -1,0 +1,62 @@
+/* gestos.css — menu de ações e deslizar nas linhas (10/11/2026) */
+
+/* ---------- menu de ações ---------- */
+.oz-acoes{position:fixed;inset:0;z-index:120;display:flex;align-items:flex-end;justify-content:center;padding:0 10px calc(10px + env(safe-area-inset-bottom,0px))}
+.oz-acoes-fundo{position:absolute;inset:0;background:rgba(1,10,15,.55);opacity:0;transition:opacity .18s ease}
+.oz-acoes-caixa{position:relative;width:min(440px,100%);display:grid;gap:8px;transform:translateY(24px);opacity:0;transition:transform .22s cubic-bezier(.2,.8,.2,1),opacity .18s ease}
+.oz-acoes.is-aberto .oz-acoes-fundo{opacity:1}
+.oz-acoes.is-aberto .oz-acoes-caixa{transform:none;opacity:1}
+.oz-acoes-grupo{display:grid;border-radius:22px;overflow:hidden;background:#163038;border:1px solid rgba(240,229,207,.1);box-shadow:0 18px 50px rgba(2,8,12,.6)}
+.oz-acoes-cabeca{display:grid;gap:3px;padding:14px 18px 12px;text-align:center;border-bottom:1px solid rgba(240,229,207,.08)}
+.oz-acoes-cabeca strong{font-size:14px;color:var(--milk,#F0E5CF)}
+.oz-acoes-cabeca small{font-size:12px;color:var(--muted,rgba(240,229,207,.6))}
+.oz-acoes-op{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:10px 18px;border:0;border-top:1px solid rgba(240,229,207,.07);background:transparent;color:var(--milk,#F0E5CF);font:inherit;font-size:16px;text-align:left;cursor:pointer}
+.oz-acoes-op:first-of-type{border-top:0}
+.oz-acoes-cabeca+.oz-acoes-op{border-top:0}
+.oz-acoes-op:hover,.oz-acoes-op:focus-visible{background:rgba(240,229,207,.07);outline:none}
+.oz-acoes-op:focus-visible{box-shadow:inset 0 0 0 2px var(--teal,#5FA99B)}
+.oz-acoes-ic{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:11px;background:rgba(95,169,155,.16);color:var(--teal,#5FA99B)}
+.oz-acoes-ic svg{width:19px;height:19px}
+.oz-acoes-txt{display:grid;gap:2px;flex:1;min-width:0}
+.oz-acoes-txt strong{font-weight:600}
+.oz-acoes-txt small{font-size:12px;color:var(--muted,rgba(240,229,207,.6))}
+.oz-acoes-op.is-perigo,.oz-acoes-op.is-perigo .oz-acoes-ic{color:#F08C7A}
+.oz-acoes-op.is-perigo .oz-acoes-ic{background:rgba(240,140,122,.14)}
+.oz-acoes-marca{color:var(--teal,#5FA99B);font-weight:700}
+.oz-acoes-cancelar{min-height:56px;border:0;border-radius:22px;background:#1d3a44;color:var(--milk,#F0E5CF);font:inherit;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 18px 50px rgba(2,8,12,.5)}
+.oz-acoes-cancelar:focus-visible{outline:2px solid var(--teal,#5FA99B);outline-offset:2px}
+@media (min-width:901px){
+  .oz-acoes{align-items:center}
+  .oz-acoes-caixa{width:min(380px,100%);transform:scale(.96)}
+}
+@media (prefers-reduced-motion:reduce){
+  .oz-acoes-fundo,.oz-acoes-caixa{transition:none}
+}
+
+/* ---------- deslizar ---------- */
+.oz-desliza{position:relative;margin-bottom:var(--oz-margem,8px);border-radius:var(--oz-raio,19px);overflow:hidden;touch-action:pan-y}
+.oz-desliza>.v3-tx{position:relative;z-index:1;margin-bottom:0!important;transform:translateX(var(--oz-dx,0px));transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+.oz-desliza.is-arrastando>.v3-tx{transition:none}
+.oz-desliza-fundo{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:stretch;border-radius:inherit}
+.oz-desliza-dir{display:flex;align-items:center;padding-left:18px;flex:1;background:#2f5f57;color:var(--milk,#F0E5CF);font-weight:600;font-size:13px;transition:background .15s ease}
+.oz-desliza-dir span{display:flex;align-items:center;gap:8px;opacity:.75;transition:opacity .15s ease,transform .15s ease}
+.oz-desliza.is-alem .oz-desliza-dir{background:var(--teal,#5FA99B);color:var(--night,#0D1821)}
+.oz-desliza.is-alem .oz-desliza-dir span{opacity:1;transform:scale(1.06)}
+.oz-desliza-dir.is-pendente{background:#5b4a2c}
+.oz-desliza.is-alem .oz-desliza-dir.is-pendente{background:#E9B45E}
+.oz-desliza-esq{display:flex;flex:none}
+.oz-desliza-esq button{display:grid;place-items:center;align-content:center;gap:4px;width:78px;border:0;color:var(--milk,#F0E5CF);font:inherit;font-size:11px;font-weight:600;background:#355565}
+.oz-desliza-esq button svg{width:20px;height:20px}
+.oz-desliza-esq button.is-perigo{background:#B4513F}
+.oz-desliza-dir svg{width:18px;height:18px}
+@media (prefers-reduced-motion:reduce){.oz-desliza>.v3-tx{transition:none}}
+
+/* ---------- calculadora pelo teclado (10/11/2026) ---------- */
+.v3-calc-dica{display:block;margin:6px 0 2px;font-size:11px;color:var(--muted,rgba(240,229,207,.6))}
+.v3-calc-keys button.is-tecla{background:var(--teal,#5FA99B)!important;color:var(--night,#0D1821)!important;transform:scale(.96)}
+@media (max-width:900px),(hover:none){.v3-calc-dica{display:none}}
+/* a faixa só aparece com a linha em movimento ou aberta; nesse tempo a
+   linha ganha fundo sólido, porque a lista tem fundo transparente */
+.oz-desliza-fundo{opacity:0;transition:opacity .12s ease}
+.oz-desliza.is-arrastando .oz-desliza-fundo,.oz-desliza.is-aberta .oz-desliza-fundo{opacity:1}
+.oz-desliza.is-arrastando>.v3-tx,.oz-desliza.is-aberta>.v3-tx{background:#14262f}

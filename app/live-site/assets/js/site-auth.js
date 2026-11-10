@@ -43,10 +43,10 @@
 
   /* UMA AUTORIZAÇÃO, NÃO TRÊS
      O texto da caixa em /entrar e /cadastro cobre privacidade,
-     termos e o uso dos dados financeiros pela Coco. Por isso o aceite
+     termos e o uso dos dados financeiros pela OAZE. Por isso o aceite
      carrega `coco`: sem esse campo, o app voltaria a abrir a tela de
-     consentimento da Coco na primeira conversa — a segunda pergunta
-     que já havia sido respondida na porta. Revogar a Coco continua
+     consentimento da OAZE na primeira conversa — a segunda pergunta
+     que já havia sido respondida na porta. Revogar a OAZE continua
      possível em Configurações, e revogar é o que desfaz isto. */
   A.novoAceite = function (origem) {
     return {

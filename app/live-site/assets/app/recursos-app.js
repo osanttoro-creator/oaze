@@ -2,7 +2,7 @@
    recursos-app.js — funções do app que não cabem no painel base
    (31/10/2026)
 
-   · Coco em porcentagem: barras do dia e da semana.
+   · OAZE em porcentagem: barras do dia e da semana.
    · Anúncio premiado no Semente (Android): +10 lançamentos no mês.
    · Avisos: vencimento na véspera e no dia, orçamento, metas, score,
      dólar e dicas — com preferências por tipo.
@@ -76,11 +76,11 @@
     const c = Limites.consumoCoco();
     if (!c.carregado || c.ilimitado) return '';
     const alto = Math.max(c.pct_dia, c.pct_semana) >= 80;
-    return '<section class="v3-panel oz-coco-uso" data-oz-coco-uso aria-label="Uso da Coco">'
+    return '<section class="v3-panel oz-coco-uso" data-oz-coco-uso aria-label="Uso da OAZE">'
       + '<h2>uso da coco</h2>'
       + barra('Hoje', c.pct_dia, quando(c.renova_dia, false))
       + barra('Esta semana', c.pct_semana, quando(c.renova_semana, true))
-      + (alto && plano() === 'free' ? '<p class="v3-muted">No Oásis, a Coco tem 10 vezes mais uso por dia e por semana. <button type="button" class="v3-link" data-go="plan">Ver planos</button></p>' : '')
+      + (alto && plano() === 'free' ? '<p class="v3-muted">No Oásis, a OAZE tem 10 vezes mais uso por dia e por semana. <button type="button" class="v3-link" data-go="plan">Ver planos</button></p>' : '')
       + '</section>';
   }
   async function atualizarCoco(forcar) {
@@ -95,7 +95,7 @@
   }
   /* 01/11/2026: o painel grande de uso só aparece quando a pessoa toca no
      ícone pequeno da barra de mensagem (abre numa gaveta). Nada é inserido
-     sozinho na tela da Coco nem em Configurações. */
+     sozinho na tela da OAZE nem em Configurações. */
   function inserirCoco(pagina) {
     if (pagina) return;
     const html = painelCoco();
@@ -475,7 +475,7 @@
         + sel('metaDias', [[3, '3 dias antes'], [7, '7 dias antes'], [15, '15 dias antes'], [30, '30 dias antes']], p.metaDias, 'Quando avisar da meta')
         + caixa('orcamento', 'Orçamento por categoria', 'Quando uma categoria passar das faixas abaixo')
         + chips('faixas', [[50, '50%'], [80, '80%'], [100, '100%'], [120, '120%']], p.faixas, 'Faixas do orçamento')
-        + '</fieldset><fieldset class="oz-prefs"><legend>Coco de olho</legend>'
+        + '</fieldset><fieldset class="oz-prefs"><legend>OAZE de olho</legend>'
         + caixa('padrao', 'Gasto fora do padrão', 'Categoria gastando bem mais que a média dos últimos 3 meses')
         + sel('sensibilidade', [['baixa', 'Só quando for muito acima (80%)'], ['media', 'Acima de 50%'], ['alta', 'Qualquer alta de 25%']], p.sensibilidade, 'Sensibilidade')
         + caixa('duplicada', 'Cobrança duplicada', 'Dois lançamentos iguais em até 3 dias')
@@ -485,8 +485,8 @@
         + caixa('dicas', 'Dicas', 'Conteúdo educativo sobre reserva e juros; nunca indicação de produto')
         + '</fieldset><fieldset class="oz-prefs"><legend>Quando e como</legend>'
         + sel('hora', horas, p.hora, 'Horário dos avisos')
-        + sel('maxDia', [[1, '1 por dia'], [3, 'até 3 por dia'], [5, 'até 5 por dia'], [10, 'sem limite prático']], p.maxDia, 'Quantos avisos da Coco por dia')
-        + caixa('diasUteis', 'Só em dias úteis', 'Avisos da Coco ficam para segunda; vencimentos sempre avisam')
+        + sel('maxDia', [[1, '1 por dia'], [3, 'até 3 por dia'], [5, 'até 5 por dia'], [10, 'sem limite prático']], p.maxDia, 'Quantos avisos da OAZE por dia')
+        + caixa('diasUteis', 'Só em dias úteis', 'Avisos da OAZE ficam para segunda; vencimentos sempre avisam')
         + caixa('detalhes', 'Mostrar nomes e valores', 'Desligado: o aviso diz só "uma conta vence amanhã"')
         + '</fieldset><div class="v3-estado-actions"><button type="submit" class="v3-secondary">Cancelar</button><button type="button" class="v3-primary" data-oz-salvar-avisos>Salvar</button></div>',
         'Escolher avisos');
@@ -522,7 +522,7 @@
     const c = contexto();
     if (!c || c.demo || !c.profile) { ultimosInsights = []; return; }
     try { ultimosInsights = await insights(c.profile, Object.assign({}, prefs(), { dolar: true, dicas: true, orcamento: true })); } catch { ultimosInsights = []; }
-    /* O Início já pode estar desenhado: redesenha só o bloco da Coco. */
+    /* O Início já pode estar desenhado: redesenha só o bloco da OAZE. */
     const bloco = document.querySelector('[data-oz-inicio]');
     if (bloco) bloco.outerHTML = blocoInicio();
   }
@@ -553,10 +553,10 @@
     { id: 'localizacao', nome: 'Localização', por: 'Opcional. Guarda o local de uma compra quando você toca em "Usar minha localização" (arredondado a ~100 m). Nunca em segundo plano.',
       estado: () => consultar('geolocation'),
       pedir: () => new Promise((ok) => navigator.geolocation ? navigator.geolocation.getCurrentPosition(() => ok(), () => ok(), { timeout: 15000, maximumAge: 600000 }) : ok()) },
-    { id: 'microfone', nome: 'Microfone', por: 'Conversa por voz com a Coco. Fica ligado só durante a conversa.',
+    { id: 'microfone', nome: 'Microfone', por: 'Conversa por voz com a OAZE. Fica ligado só durante a conversa.',
       estado: () => consultar('microphone'),
       async pedir() { const s = await navigator.mediaDevices.getUserMedia({ audio: true }); s.getTracks().forEach((t) => t.stop()); } },
-    { id: 'camera', nome: 'Câmera', por: 'Foto de recibo para a Coco ler. Só quando você escolhe anexar uma foto.',
+    { id: 'camera', nome: 'Câmera', por: 'Foto de recibo para a OAZE ler. Só quando você escolhe anexar uma foto.',
       estado: () => consultar('camera'),
       async pedir() { const s = await navigator.mediaDevices.getUserMedia({ video: true }); s.getTracks().forEach((t) => t.stop()); } }
   ];
@@ -654,12 +654,12 @@
 
   /* =============================================================
      INÍCIO: CONVERSA E INSIGHTS (inspiração Pierre)
-     A Coco sai da aba e vira a primeira coisa do Início: uma barra
+     A OAZE sai da aba e vira a primeira coisa do Início: uma barra
      de pergunta com atalhos e os insights do mês, antes de a pessoa
      precisar perguntar.
      ============================================================= */
   const ATALHOS = ['Para onde foi meu dinheiro este mês?', 'Quanto gastei no cartão?', 'Vou fechar o mês no azul?', 'Tenho conta vencendo esta semana?'];
-  /* O widget da Coco é um widget como os outros (01/11/2026): entra na
+  /* O widget da OAZE é um widget como os outros (01/11/2026): entra na
      ordem escolhida, pode ser removido e editado (o que ele mostra). */
   const CHAVE_COCO = 'oaze.v3.inicio.coco';
   function opcoesCoco() {
@@ -673,7 +673,7 @@
     d.className = 'oz-coco-editar';
     d.setAttribute('aria-labelledby', 'oz-coco-editar-t');
     const linha = (k, t) => '<label class="v3-check"><input type="checkbox" name="' + k + '" ' + (o[k] ? 'checked' : '') + '> ' + t + '</label>';
-    d.innerHTML = '<form method="dialog" class="v3-form"><h2 id="oz-coco-editar-t">Widget da Coco</h2><p class="v3-muted">A barra de pergunta fica sempre. Escolha o resto.</p>'
+    d.innerHTML = '<form method="dialog" class="v3-form"><h2 id="oz-coco-editar-t">Widget da OAZE</h2><p class="v3-muted">A barra de pergunta fica sempre. Escolha o resto.</p>'
       + linha('captura', 'Botões "Foto do recibo" e "Lançar à mão"') + linha('atalhos', 'Perguntas prontas') + linha('insights', 'Insights do mês')
       + '<button type="submit" class="v3-primary" value="ok">Salvar</button><button type="button" class="v3-secondary" data-oz-coco-remover>Remover da Início</button><button type="submit" class="v3-link" value="cancelar">Cancelar</button></form>';
     document.body.appendChild(d);
@@ -690,7 +690,7 @@
     d.querySelector('[data-oz-coco-remover]').addEventListener('click', () => {
       d.close('remover');
       if (global.OazeInicio) global.OazeInicio.remover('coco');
-      avisar('Widget da Coco removido. Para trazer de volta: Gerenciar widgets.');
+      avisar('Widget da OAZE removido. Para trazer de volta: Gerenciar widgets.');
     });
     d.showModal();
   }
@@ -698,11 +698,11 @@
     const o = opcoesCoco();
     const insightsHtml = o.insights ? (ultimosInsights || []).slice(0, 2).map((x) =>
       '<li><strong>' + esc(x.titulo) + '</strong><small>' + esc(x.texto || x.corpo) + '</small></li>').join('') : '';
-    return '<section class="v3-panel oz-inicio-coco" data-oz-inicio aria-label="Converse com a Coco">'
-      + '<div class="oz-coco-topo"><span class="v3-label">COCO</span><button type="button" class="v3-link oz-coco-editar-botao" data-oz-coco-editar aria-label="Editar widget da Coco">editar</button></div>'
-      + '<form data-oz-pergunta><label class="oz-sr" for="oz-pergunta">Pergunte à Coco</label>'
-      + '<input id="oz-pergunta" name="pergunta" maxlength="500" autocomplete="off" placeholder="Pergunte à Coco">'
-      + '<button type="submit" class="v3-primary" aria-label="Enviar pergunta à Coco">›</button></form>'
+    return '<section class="v3-panel oz-inicio-coco" data-oz-inicio aria-label="Converse com a OAZE">'
+      + '<div class="oz-coco-topo"><span class="v3-label">COCO</span><button type="button" class="v3-link oz-coco-editar-botao" data-oz-coco-editar aria-label="Editar widget da OAZE">editar</button></div>'
+      + '<form data-oz-pergunta><label class="oz-sr" for="oz-pergunta">Pergunte à OAZE</label>'
+      + '<input id="oz-pergunta" name="pergunta" maxlength="500" autocomplete="off" placeholder="Pergunte à OAZE">'
+      + '<button type="submit" class="v3-primary" aria-label="Enviar pergunta à OAZE">›</button></form>'
       + '<div class="oz-captura"' + (o.captura ? '' : ' hidden') + '><button type="button" class="v3-secondary" data-oz-recibo>Foto do recibo</button>'
       + '<button type="button" class="v3-secondary" data-action="new">Lançar à mão</button>'
       + '<input id="v3-coco-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></div>'
@@ -726,7 +726,7 @@
     const pergunta = String(texto || '').trim().slice(0, 500);
     if (!pergunta) return;
     const ir = document.querySelector('[data-go="coco"]');
-    if (!ir) { avisar('A Coco ainda não está disponível. Tente novamente.'); return; }
+    if (!ir) { avisar('A OAZE ainda não está disponível. Tente novamente.'); return; }
     if (pendingCoco) { pendingCoco.observer.disconnect(); clearTimeout(pendingCoco.timer); pendingCoco = null; }
     ir.click();
     const enviar = () => {
@@ -743,7 +743,7 @@
     observer.observe(document.body, { childList: true, subtree: true });
     const timer = setTimeout(() => {
       observer.disconnect(); pendingCoco = null;
-      avisar('A conversa da Coco não abriu. Entre na área Coco e tente novamente.');
+      avisar('A conversa da OAZE não abriu. Entre na área OAZE e tente novamente.');
     }, 15000);
     pendingCoco = { observer, timer };
     enviar();
@@ -760,7 +760,7 @@
     if (ev.target.closest('[data-oz-recibo]')) capturarRecibo();
     if (ev.target.closest('[data-oz-coco-editar]')) editarCoco();
   });
-  /* Captura rápida: a foto vai à Coco (com o aviso de privacidade de
+  /* Captura rápida: a foto vai à OAZE (com o aviso de privacidade de
      sempre) e volta como proposta de lançamento já preenchida. */
   function capturarRecibo() {
     const c = contexto();
@@ -777,9 +777,9 @@
     entrada.click();
   }
   /* Importar comprovante (31/10/2026, inspiração Kontto): galeria,
-     câmera ou PDF. Foto vai à Coco e volta como proposta para revisar;
+     câmera ou PDF. Foto vai à OAZE e volta como proposta para revisar;
      PDF, CSV e OFX são lidos neste aparelho pelo leitor de extratos.
-     O arquivo entra pelo mesmo caminho do anexo da Coco: um campo
+     O arquivo entra pelo mesmo caminho do anexo da OAZE: um campo
      temporário com o id que o painel já escuta. */
   function entregarArquivo(arquivo) {
     const temp = document.createElement('input');
@@ -799,7 +799,7 @@
       ['pdf', 'PDF ou extrato', 'Comprovante ou extrato do banco (PDF, CSV, OFX)', 'application/pdf,text/csv,.pdf,.csv,.ofx,.qfx', false]
     ];
     const d = dialogo('Importar comprovante',
-      '<p class="v3-muted">A Coco lê valor, descrição e data e monta o lançamento para você revisar antes de salvar.</p>'
+      '<p class="v3-muted">A OAZE lê valor, descrição e data e monta o lançamento para você revisar antes de salvar.</p>'
       + '<div class="oz-comprovante">' + opcoes.map(([id, t, s, accept, cam]) =>
         '<label class="oz-comprovante-op" tabindex="0" role="button"><span><strong>' + esc(t) + '</strong><small>' + esc(s) + '</small></span><span aria-hidden="true">›</span>'
         + '<input type="file" class="oz-arquivo-oculto" tabindex="-1" data-oz-comp="' + id + '" accept="' + accept + '"' + (cam ? ' capture="environment"' : '') + '></label>').join('')
