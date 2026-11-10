@@ -1,4 +1,152 @@
 {
+ "salario": [
+  {
+   "id": "s1",
+   "text": "O salário caiu. E agora?"
+  },
+  {
+   "id": "s2",
+   "text": "Antes de pensar em guardar, olha o que vence este mês."
+  },
+  {
+   "id": "s3",
+   "text": "Aluguel, luz, internet, a fatura do cartão."
+  },
+  {
+   "id": "s4",
+   "text": "Esse dinheiro já tem dono."
+  },
+  {
+   "id": "s5",
+   "text": "Depois, separa o essencial até o próximo pagamento: mercado, transporte, farmácia."
+  },
+  {
+   "id": "s6",
+   "text": "O que sobrar é o que dá pra guardar de verdade."
+  },
+  {
+   "id": "s7",
+   "text": "Pode ser pouco. Pouco, todo mês, vira reserva."
+  },
+  {
+   "id": "s8",
+   "text": "Não existe porcentagem certa pra todo mundo."
+  },
+  {
+   "id": "s9",
+   "text": "Existe uma ordem: o que vence, o que é essencial. E só depois, o que dá pra guardar."
+  }
+ ],
+ "parcelinha": [
+  {
+   "id": "p1",
+   "text": "Só uma parcelinha..."
+  },
+  {
+   "id": "p2",
+   "text": "O fone, em dez vezes de trinta e nove reais."
+  },
+  {
+   "id": "p3",
+   "text": "O tênis, em seis de sessenta."
+  },
+  {
+   "id": "p4",
+   "text": "A blusa, em quatro de quarenta e cinco."
+  },
+  {
+   "id": "p5",
+   "text": "Cada parcela parece leve. Juntas, são cento e quarenta e quatro reais por mês."
+  },
+  {
+   "id": "p6",
+   "text": "Antes do aluguel, do mercado, de qualquer imprevisto."
+  },
+  {
+   "id": "p7",
+   "text": "Somando tudo, são novecentos e trinta reais de salários que você ainda nem recebeu."
+  },
+  {
+   "id": "p8",
+   "text": "Limite do cartão não é dinheiro seu. É o quanto o banco deixa você gastar do que ainda vai entrar."
+  },
+  {
+   "id": "p9",
+   "text": "Antes de parcelar, olha quanto dos próximos meses já está ocupado."
+  }
+ ],
+ "coco": [
+  {
+   "id": "c1",
+   "text": "Para onde foi o meu dinheiro?"
+  },
+  {
+   "id": "c2",
+   "text": "Quase nunca é uma compra grande."
+  },
+  {
+   "id": "c3",
+   "text": "É o café, a corrida de aplicativo, o lanche, a taxa de entrega."
+  },
+  {
+   "id": "c4",
+   "text": "Sozinho, cada gasto parece nada."
+  },
+  {
+   "id": "c5",
+   "text": "Faz um teste: pega só os últimos sete dias e junta tudo por tipo."
+  },
+  {
+   "id": "c6",
+   "text": "Comida fora, transporte, delivery, assinatura."
+  },
+  {
+   "id": "c7",
+   "text": "Agora dá pra ver o tamanho: cento e noventa e oito reais em uma semana."
+  },
+  {
+   "id": "c8",
+   "text": "Sem culpa. Não é pra cortar tudo."
+  },
+  {
+   "id": "c9",
+   "text": "É pra escolher o que vale a pena pra você."
+  }
+ ],
+ "recebo": [
+  {
+   "id": "r1",
+   "text": "Recebo pouco. Por onde começo?"
+  },
+  {
+   "id": "r2",
+   "text": "Se o dinheiro está contado, o plano precisa caber nele. Não o contrário."
+  },
+  {
+   "id": "r3",
+   "text": "Primeiro, o que mantém você em pé: casa, comida, luz e água."
+  },
+  {
+   "id": "r4",
+   "text": "Depois, o que te leva pro trabalho. Sem transporte, o resto para."
+  },
+  {
+   "id": "r5",
+   "text": "Se tiver dívida, a parcela mínima entra antes de qualquer compra."
+  },
+  {
+   "id": "r6",
+   "text": "Talvez não sobre nada. E tudo bem. Esse mês, a meta é não atrasar o essencial."
+  },
+  {
+   "id": "r7",
+   "text": "Sobrou um pouco? Separa, nem que sejam dez reais. É o começo de uma folga."
+  },
+  {
+   "id": "r8",
+   "text": "Planejar não é ter muito. É saber o que vem primeiro."
+  }
+ ],
  "d": [
   {
    "id": "d1",
@@ -639,10 +787,352 @@
    "text": "Porque o Léo nunca esquece de pedir. Ele só esquece de pagar."
   }
  ],
- "amostra_voz": [
+ "teaser": [
   {
-   "id": "teste",
-   "text": "Caiu o salário e às seis da tarde já tinha sumido metade. Não foi o Pix, nem o app do banco: foram os boletos que já tinham dono. Na Ouêiz, a Coco separa primeiro o que vence. Depois, o que sobra é seu de verdade."
+   "id": "a1",
+   "text": "Seu dinheiro some e você nem vê pra onde?"
+  },
+  {
+   "id": "a2",
+   "text": "Um café aqui, uma assinatura ali, um pix que você esqueceu."
+  },
+  {
+   "id": "a3",
+   "text": "No fim do mês, a conta não fecha e ninguém explica por quê."
+  },
+  {
+   "id": "a4",
+   "text": "A gente fez uma coisa pra isso."
+  },
+  {
+   "id": "a5",
+   "text": "Dia vinte de novembro, ela chega."
+  },
+  {
+   "id": "a6",
+   "text": "Ativa o lembrete pra não perder."
+  }
+ ],
+ "quemecoco": [
+  {
+   "id": "b1",
+   "text": "Essa é a Coco."
+  },
+  {
+   "id": "b2",
+   "text": "Ela é um axolote. Vive num oásis e não tem pressa."
+  },
+  {
+   "id": "b3",
+   "text": "Não julga o delivery de ontem, nem a compra parcelada do mês passado."
+  },
+  {
+   "id": "b4",
+   "text": "O papel dela é simples: te ajudar a enxergar pra onde o seu dinheiro vai."
+  },
+  {
+   "id": "b5",
+   "text": "Sem planilha, sem sermão."
+  },
+  {
+   "id": "b6",
+   "text": "Dia vinte, você conhece ela de perto. Ouêiz."
+  }
+ ],
+ "feriado": [
+  {
+   "id": "c1",
+   "text": "Feriado prolongado: quanto você gastou?"
+  },
+  {
+   "id": "c2",
+   "text": "Não o grande. Os pequenos."
+  },
+  {
+   "id": "c3",
+   "text": "O lanche na estrada. O gelo. A rodada que você pagou porque era sua vez."
+  },
+  {
+   "id": "c4",
+   "text": "Sozinhos parecem nada. Somados, viram uma conta que aparece só na fatura."
+  },
+  {
+   "id": "c5",
+   "text": "O truque é anotar na hora, não no fim do mês."
+  },
+  {
+   "id": "c6",
+   "text": "Faz isso hoje: lembra de três gastos do feriado e escreve aí nos comentários."
+  }
+ ],
+ "listabf": [
+  {
+   "id": "d1",
+   "text": "A Black Friday não começa no dia. Começa na lista."
+  },
+  {
+   "id": "d2",
+   "text": "Antes de ver qualquer oferta, escreve o que você já precisava comprar."
+  },
+  {
+   "id": "d3",
+   "text": "Do lado de cada item, o preço de hoje."
+  },
+  {
+   "id": "d4",
+   "text": "E um teto: quanto você aceita gastar no total."
+  },
+  {
+   "id": "d5",
+   "text": "No dia, o que não está na lista não entra no carrinho."
+  },
+  {
+   "id": "d6",
+   "text": "Desconto bom é em coisa que você ia comprar de qualquer jeito."
+  }
+ ],
+ "porque": [
+  {
+   "id": "e1",
+   "text": "Quantas planilhas de gastos você já começou?"
+  },
+  {
+   "id": "e2",
+   "text": "A primeira semana vai bem. Na segunda, você esquece um dia. Na terceira, desiste."
+  },
+  {
+   "id": "e3",
+   "text": "O problema nunca foi você. É que planilha dá trabalho demais."
+  },
+  {
+   "id": "e4",
+   "text": "A Ouêiz nasceu pra quem largou a planilha e ainda quer saber pra onde o dinheiro vai."
+  },
+  {
+   "id": "e5",
+   "text": "Faltam dois dias. Ativa o lembrete."
+  }
+ ],
+ "oquefaz": [
+  {
+   "id": "f1",
+   "text": "Um cartão em cada banco e nenhuma ideia do total?"
+  },
+  {
+   "id": "f2",
+   "text": "Na Ouêiz, suas contas e cartões de bancos diferentes ficam num lugar só."
+  },
+  {
+   "id": "f3",
+   "text": "Gastou? Conta pra Coco, do seu jeito."
+  },
+  {
+   "id": "f4",
+   "text": "E você enxerga o mês inteiro, sem montar planilha."
+  },
+  {
+   "id": "f5",
+   "text": "Amanhã, dia vinte, a Ouêiz chega. Link na bio."
+  }
+ ],
+ "descontocaro": [
+  {
+   "id": "g1",
+   "text": "Setenta por cento de desconto. Em quê?"
+  },
+  {
+   "id": "g2",
+   "text": "Se o preço subiu na semana passada, o desconto é só o preço voltando."
+  },
+  {
+   "id": "g3",
+   "text": "Antes de comprar, procura o histórico de preço do produto."
+  },
+  {
+   "id": "g4",
+   "text": "E faz a pergunta que ninguém faz: eu compraria isso pelo preço cheio?"
+  },
+  {
+   "id": "g5",
+   "text": "Se a resposta é não, o desconto não é economia. É gasto novo."
+  },
+  {
+   "id": "g6",
+   "text": "Salva esse vídeo pra hoje à noite."
+  }
+ ],
+ "rendaextra": [
+  {
+   "id": "h1",
+   "text": "Dezembro é o mês em que todo mundo gasta. Ou seja: alguém está vendendo."
+  },
+  {
+   "id": "h2",
+   "text": "Encomenda de comida de festa. Embrulho de presente. Trabalho temporário no comércio."
+  },
+  {
+   "id": "h3",
+   "text": "Começa pelo que você já sabe fazer, não pelo que está na moda."
+  },
+  {
+   "id": "h4",
+   "text": "Antes de cobrar, soma o custo: material, transporte e o seu tempo."
+  },
+  {
+   "id": "h5",
+   "text": "E separa o que entrar com um destino, antes de virar gasto."
+  },
+  {
+   "id": "h6",
+   "text": "Qual seria a sua? Comenta aí."
+  }
+ ],
+ "assinaturas": [
+  {
+   "id": "i1",
+   "text": "Quantas assinaturas você paga hoje? Agora conta de verdade."
+  },
+  {
+   "id": "i2",
+   "text": "Streaming, música, nuvem, aquele aplicativo que você testou de graça e esqueceu."
+  },
+  {
+   "id": "i3",
+   "text": "Cada uma parece pequena. Juntas, viram uma conta fixa que você nunca decidiu ter."
+  },
+  {
+   "id": "i4",
+   "text": "Abre a fatura do cartão e procura tudo que se repete todo mês."
+  },
+  {
+   "id": "i5",
+   "text": "Usou na última semana? Fica. Não lembra a última vez? Cancela."
+  },
+  {
+   "id": "i6",
+   "text": "Manda esse vídeo pra quem assina tudo."
+  }
+ ],
+ "reserva": [
+  {
+   "id": "j1",
+   "text": "Reserva de emergência: quanto é suficiente?"
+  },
+  {
+   "id": "j2",
+   "text": "A conta não começa no salário. Começa no seu custo do mês."
+  },
+  {
+   "id": "j3",
+   "text": "Aluguel, mercado, contas, transporte. O que você precisa pra viver."
+  },
+  {
+   "id": "j4",
+   "text": "Se esse custo é dois mil reais, cada mês guardado são dois mil reais."
+  },
+  {
+   "id": "j5",
+   "text": "A referência mais comum é de três a seis meses. Quem tem renda que varia costuma mirar mais."
+  },
+  {
+   "id": "j6",
+   "text": "E reserva fica onde dá pra sacar no mesmo dia. Não é pra render muito. É pra estar lá."
+  }
+ ],
+ "cdb": [
+  {
+   "id": "k1",
+   "text": "CDB em trinta segundos."
+  },
+  {
+   "id": "k2",
+   "text": "Você empresta dinheiro pro banco. O banco te devolve com juros."
+  },
+  {
+   "id": "k3",
+   "text": "Muitos rendem uma porcentagem do CDI, a taxa que anda junto com a Selic."
+  },
+  {
+   "id": "k4",
+   "text": "Olha duas coisas: se tem liquidez diária, pra sacar quando quiser, e o prazo."
+  },
+  {
+   "id": "k5",
+   "text": "Ele tem proteção do FGC até um limite por pessoa e por instituição. Confere o valor atual no site do FGC."
+  },
+  {
+   "id": "k6",
+   "text": "Salva pra quando alguém te perguntar o que é CDB."
+  }
+ ],
+ "contabar": [
+  {
+   "id": "l1",
+   "text": "A conta chegou. E aí, divide por igual?"
+  },
+  {
+   "id": "l2",
+   "text": "Você tomou um suco. Ele pediu três drinques e a porção."
+  },
+  {
+   "id": "l3",
+   "text": "Dividir por igual é rápido, mas alguém sempre sai pagando o dos outros."
+  },
+  {
+   "id": "l4",
+   "text": "Combina antes de pedir: cada um paga o seu, e o que é de todo mundo divide."
+  },
+  {
+   "id": "l5",
+   "text": "Falar de dinheiro no começo evita o climão no final."
+  },
+  {
+   "id": "l6",
+   "text": "Marca aquele amigo que sempre pede a porção."
+  }
+ ],
+ "presentedura": [
+  {
+   "id": "m1",
+   "text": "Feliz Natal. Tem mais um presente aqui."
+  },
+  {
+   "id": "m2",
+   "text": "Ele está vazio de propósito. É uma meta pra dois mil e vinte e sete."
+  },
+  {
+   "id": "m3",
+   "text": "Escolhe uma só. Com valor e com data."
+  },
+  {
+   "id": "m4",
+   "text": "Escreve nos comentários pra ela ficar registrada."
+  }
+ ],
+ "retro": [
+  {
+   "id": "n1",
+   "text": "Antes de planejar dois mil e vinte e sete, olha pra trás."
+  },
+  {
+   "id": "n2",
+   "text": "Três perguntas."
+  },
+  {
+   "id": "n3",
+   "text": "Um: qual gasto deste ano você faria de novo sem pensar?"
+  },
+  {
+   "id": "n4",
+   "text": "Dois: qual você queria desfazer?"
+  },
+  {
+   "id": "n5",
+   "text": "Três: o que você deixou de fazer por falta de dinheiro, e se era mesmo falta de dinheiro."
+  },
+  {
+   "id": "n6",
+   "text": "As respostas já são o seu plano. Salva pra responder com calma."
   }
  ]
 }

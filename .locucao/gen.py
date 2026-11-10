@@ -1,6 +1,6 @@
 import asyncio, json, os, edge_tts
 req = json.load(open(".locucao/request.json"))
-VOICES = ["pt-BR-ThalitaMultilingualNeural"]
+VOICES = ["pt-BR-FranciscaNeural"]
 async def main():
     TEST = ["pt-BR-ThalitaMultilingualNeural", "pt-BR-ThalitaNeural", "pt-BR-FranciscaNeural", "pt-BR-BrendaNeural", "pt-BR-ElzaNeural", "pt-BR-LeticiaNeural"]
     jobs = []
