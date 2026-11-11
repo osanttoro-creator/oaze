@@ -80,13 +80,12 @@
 .oz-check>input[type="checkbox"]:checked::before{content:"ON";left:11px;right:auto;color:#07141c}
 .oz-check>input[type="checkbox"]:checked::after{left:41px;background:#07141c}
 .oz-check>input[type="checkbox"]:focus-visible{outline:3px solid #f0e5cf;outline-offset:3px}
-.v3-agenda-check[role="checkbox"]{display:inline-flex;position:relative;flex:none;width:76px;height:40px;min-width:76px;border-radius:999px;border:1px solid rgba(240,229,207,.36);background:#22323b;align-items:center;justify-content:center}
-.v3-agenda-check[role="checkbox"] span{display:none}
-.v3-agenda-check[role="checkbox"]::before{content:"OFF";position:absolute;right:9px;color:#f0e5cf;font:700 11px/1 Arial,sans-serif}
-.v3-agenda-check[role="checkbox"]::after{content:"";position:absolute;left:5px;top:5px;width:28px;height:28px;border-radius:50%;background:#f0e5cf}
-.v3-agenda-check[role="checkbox"].is-paid{background:#5fa99b;border-color:#5fa99b}
-.v3-agenda-check[role="checkbox"].is-paid::before{content:"ON";left:11px;right:auto;color:#07141c}
-.v3-agenda-check[role="checkbox"].is-paid::after{left:41px;background:#07141c}
+/* Agenda (11/11/2026): o interruptor ON/OFF de 76 px nao cabia na coluna de 36 px
+   e cobria o texto; e "ON" nao diz "pago". Volta a ser o check redondo dos lancamentos. */
+.v3-agenda-check[role="checkbox"]{display:grid;place-items:center;flex:none;width:36px;height:36px;min-width:36px;border-radius:50%;border:2px solid rgba(240,229,207,.4);background:transparent;padding:0;cursor:pointer}
+.v3-agenda-check[role="checkbox"] span{display:block;width:auto;height:auto;border:0;background:none;color:var(--night,#0D1821);font:700 17px/1 var(--body,sans-serif)}
+.v3-agenda-check[role="checkbox"]:hover{border-color:var(--teal,#5FA99B);background:rgba(95,169,155,.14)}
+.v3-agenda-check[role="checkbox"].is-paid{background:var(--teal,#5FA99B);border-color:var(--teal,#5FA99B)}
 .v3-agenda-check[role="checkbox"]:focus-visible{outline:3px solid #f0e5cf;outline-offset:3px}
 
 /* Seletores nativos seguem a mesma escala de texto e a cor de contexto. */
