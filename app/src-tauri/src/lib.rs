@@ -48,6 +48,10 @@ pub fn run() {
             oaze_deep_link_ready,
         ])
         .setup(|app| {
+            // Também registra o retorno OAuth quando o executável é aberto fora do instalador.
+            #[cfg(windows)]
+            app.deep_link().register_all()?;
+
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

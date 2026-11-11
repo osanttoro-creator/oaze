@@ -7,7 +7,7 @@ on:
     branches: [main]
     paths: ['app/**', '.github/workflows/app-ci.yml']
   pull_request:
-    paths: ['app/**']
+    paths: ['app/**', '.github/workflows/app-ci.yml']
   workflow_call:
 
 jobs:
@@ -27,6 +27,10 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: node tools/test-coco-import.mjs
+      - run: node tools/test-import-auto.mjs
+      - run: node tools/test-invest-market.mjs
+      - run: node tools/test-invest-daily.cjs
       - run: npm run build
       - run: npm run build:published
       # Varre segredo no código e no pacote, e confere que a CSP cobre o que o
@@ -50,8 +54,3 @@ jobs:
             echo "::error::o pacote principal passou do teto"
             exit 1
           fi
-      - uses: actions/upload-artifact@v4
-        with:
-          name: published-dist
-          path: app/dist-live
-          retention-days: 7

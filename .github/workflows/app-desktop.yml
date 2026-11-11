@@ -1,4 +1,4 @@
-# Pacote de teste Windows. O projeto macOS permanece no repositório, fora desta rodada.
+# Candidato de produção Windows. O projeto macOS permanece fora desta rodada.
 #
 # Windows: gera MSI e instalador NSIS. A Store aceita MSI/EXE assinados com certificado
 # de código, ou MSIX — a escolha está em docs/02-TRD.md.
@@ -12,6 +12,7 @@ on:
     paths:
       - 'app/**'
       - '.github/workflows/app-desktop.yml'
+      - '.github/workflows/app-ci.yml'
 
 jobs:
   verifica:
@@ -19,6 +20,8 @@ jobs:
 
   desktop:
     needs: verifica
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -28,8 +31,8 @@ jobs:
     env:
       VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
-      VITE_OAZE_ENV: staging
-      VITE_OAZE_SYNC_ENABLED: "false"
+      VITE_OAZE_ENV: production
+      VITE_OAZE_SYNC_ENABLED: "true"
     defaults:
       run:
         working-directory: app
@@ -47,17 +50,42 @@ jobs:
       - name: Verifica configuração da conta
         shell: bash
         run: |
-          if { [ -n "$VITE_SUPABASE_URL" ] && [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; } ||
-             { [ -z "$VITE_SUPABASE_URL" ] && [ -n "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; }; then
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
             echo "::error::Configure as duas variáveis públicas OAZE_SUPABASE_URL e OAZE_SUPABASE_PUBLISHABLE_KEY."
             exit 1
           fi
       - run: npm ci
       - run: npx tauri build
       - uses: actions/upload-artifact@v4
+        if: github.head_ref != 'codex/oaze-multiplatform-foundation'
         with:
           name: oaze-windows-teste-${{ github.run_number }}
           path: |
             app/src-tauri/target/release/app.exe
             app/src-tauri/target/release/bundle/msi/*.msi
             app/src-tauri/target/release/bundle/nsis/*.exe
+      - name: Disponibiliza instaladores em release de teste
+        if: github.head_ref == 'codex/oaze-multiplatform-foundation'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $tag = "app-v${version}-windows-rc"
+          $assets = @(
+            Get-ChildItem 'src-tauri/target/release/bundle/nsis' -Filter '*.exe' -File -ErrorAction SilentlyContinue
+            Get-ChildItem 'src-tauri/target/release/bundle/msi' -Filter '*.msi' -File -ErrorAction SilentlyContinue
+          ) | ForEach-Object FullName
+          if (-not $assets -or $assets.Count -eq 0) { throw 'Instaladores Windows não encontrados.' }
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --clobber
+          } else {
+            gh release create $tag @assets --draft --prerelease --target $env:RELEASE_SHA --title "OAZE $version Windows - candidato" --notes "Build de produção do Windows. Requer teste instalado antes do lançamento; instaladores EXE/MSI não são assinados para a Microsoft Store."
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao disponibilizar instaladores Windows.' }
+          gh release edit $tag --draft=false
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao publicar a prévia Windows.' }
+          Write-Host "Prévia publicada: $tag"

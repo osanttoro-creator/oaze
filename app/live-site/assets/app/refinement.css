@@ -114,6 +114,7 @@ body.v3{background:#0d1821}
 .v3-mini-card.v3-tx-selo{width:40px;height:40px;border-radius:13px;background:var(--swatch);color:var(--swatch-ink,#fff);display:grid;place-items:center;position:relative;overflow:visible}
 .v3-mini-card.v3-tx-selo:after{content:none}
 .v3-tx-selo>svg{width:20px;height:20px;stroke:currentColor;fill:none}
+.v3-tx-selo>svg.v3-merchant-logo{width:22px;height:22px;stroke:none;fill:currentColor}
 .v3-tx-banco{position:absolute;right:-5px;bottom:-5px;width:20px;height:20px;border-radius:7px;display:grid;place-items:center;background:var(--bank-bg);color:var(--bank-ink);box-shadow:0 0 0 2px var(--panel,#132733)}
 .v3-tx-banco svg{width:13px;height:13px}
 .v3-tx-banco .v3-fi{width:12px;height:12px}
@@ -152,14 +153,20 @@ body.v3{background:#0d1821}
 .v3-bloco-setas button:disabled{opacity:.28}
 .v3-bloco-item.is-arrastando{background:#1d3a40;box-shadow:0 14px 34px rgba(0,0,0,.5);z-index:80;border-top-color:transparent;cursor:grabbing;pointer-events:none}
 /* gerenciador de widgets: gaveta larga, uma coluna, arraste com vaga */
-.v3-sheet.is-largo{width:min(640px,100%)}
-@media (min-width:901px){#v3-sheet.v3-sheet.is-largo{width:min(640px,100%)!important}}
+.v3-sheet.is-largo{width:min(800px,100%)}
+@media (min-width:901px){#v3-sheet.v3-sheet.is-largo{width:min(800px,100%)!important}}
 .v3-sheet.is-largo .v3-bloco-lista{margin-top:14px;padding:6px 12px}
 .v3-bloco-item{touch-action:pan-y;user-select:none;-webkit-user-select:none}
 @media (pointer:fine){.v3-bloco-item{cursor:grab}.v3-bloco-item label,.v3-bloco-item button{cursor:pointer}}
 .v3-bloco-alca{width:44px!important;height:48px!important}
 .v3-bloco-alca:hover{color:var(--milk)}
 .v3-bloco-vaga{list-style:none;border:1.5px dashed rgba(95,169,155,.55);border-radius:12px;background:rgba(95,169,155,.07);margin:2px 0}
+@media (prefers-reduced-motion:no-preference){
+  #v3-sheet.v3-sheet.is-largo{animation:v3-widget-drawer-in .28s cubic-bezier(.2,.8,.2,1) both}
+  .v3-bloco-item:not(.is-arrastando){transition:transform .18s ease,background .18s ease,border-color .18s ease}
+  .v3-bloco-item:not(.is-arrastando):hover{background:rgba(95,169,155,.08);border-color:rgba(95,169,155,.25)}
+}
+@keyframes v3-widget-drawer-in{from{opacity:.75;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 body.v3-arrastando,body.v3-arrastando *{cursor:grabbing!important;user-select:none!important}
 @media (prefers-reduced-motion:reduce){.v3-bloco-item{transition:none!important}}
 /* Widget da Coco: título e "editar" */

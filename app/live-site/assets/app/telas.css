@@ -146,28 +146,26 @@ img, video, svg { max-width: 100%; }
 #v3-form-investment .v3-picker-options button b{color:var(--teal)}
 #v3-form-investment .v3-picker-caret{transition:none}
 
-/* =============================================================
-   CARTÃO NA COR DO BANCO (01/11/2026)
-   Antes: material escuro ("Night Ocean") com a cor do banco só como
-   brilho no canto — na prática, cartão sem cor. Agora o corpo do
-   cartão é a cor de identidade da instituição, com luz e sombra por
-   cima, e o texto escuro ou claro conforme o fundo (.is-claro).
-   ============================================================= */
+/* Carteira: material preto translúcido, com faixa da cor escolhida. */
 html .v3-wallet-item, html .v3-wallet-item:not(.is-selected) {
-  color: var(--card-ink, #f8f4e9);
-  border: 1px solid color-mix(in srgb, var(--card-plastic) 62%, white);
-  border-left-width: 1px;
+  color: #f0e5cf;
+  border: 1px solid rgba(240,229,207,.24);
+  border-left: 7px solid var(--card-plastic,#5fa99b);
   background:
-    radial-gradient(ellipse 95% 75% at 12% -5%, rgba(255,255,255,.30), transparent 62%),
-    radial-gradient(ellipse 85% 95% at 105% 110%, rgba(0,0,0,.34), transparent 70%),
-    linear-gradient(140deg, color-mix(in srgb, var(--card-plastic) 86%, white) 0%, var(--card-plastic) 42%, color-mix(in srgb, var(--card-plastic) 68%, black) 100%);
-  box-shadow: 0 18px 32px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.28);
+    radial-gradient(ellipse 85% 70% at 90% 5%,color-mix(in srgb,var(--card-plastic,#5fa99b) 14%,transparent),transparent 72%),
+    linear-gradient(145deg,rgba(5,10,15,.86),rgba(7,14,21,.76) 55%,rgba(3,8,13,.82));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 32px rgba(0,0,0,.35), inset 0 1px rgba(255,255,255,.12);
 }
-html .v3-wallet-item:after { background: none !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), inset 0 -40px 60px rgba(0,0,0,.12); }
-html .v3-wallet-item:before { opacity: .6; }
+html .v3-wallet-item:after {
+  background: linear-gradient(90deg,var(--card-plastic,#5fa99b),transparent 80%) left top / 100% 7px no-repeat !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+html .v3-wallet-item:before { opacity: .28; }
 html .v3-wallet-item .v3-bankmark {
   background: var(--bank-bg); color: var(--bank-ink);
-  border: 1.5px solid color-mix(in srgb, var(--card-ink, #fff) 40%, transparent);
+  border: 1.5px solid rgba(240,229,207,.35);
   box-shadow: 0 3px 10px rgba(0,0,0,.28);
 }
 html .v3-wallet-item .v3-card-top strong,
@@ -175,10 +173,9 @@ html .v3-wallet-item .v3-card-number,
 html .v3-wallet-item .v3-card-footer,
 html .v3-wallet-item .v3-card-validity,
 html .v3-wallet-item .v3-contactless,
-html .v3-wallet-item .v3-card-hide { color: var(--card-ink, #f8f4e9); text-shadow: none; }
-html .v3-wallet-item.is-claro .v3-card-oaze { filter: brightness(.12); opacity: .85; }
-html .v3-wallet-item.is-claro .v3-card-hide { background: rgba(0,0,0,.12); }
-html .v3-wallet-item:not(.is-claro) .v3-card-hide { background: rgba(0,0,0,.22); }
+html .v3-wallet-item .v3-card-hide { color: #f0e5cf; text-shadow: none; }
+html .v3-wallet-item.is-claro .v3-card-oaze { filter: none; opacity: 1; }
+html .v3-wallet-item .v3-card-hide { background: rgba(0,0,0,.28); }
 
 /* =============================================================
    MAIS COM COR (01/11/2026): cada item com a própria cor viva,
