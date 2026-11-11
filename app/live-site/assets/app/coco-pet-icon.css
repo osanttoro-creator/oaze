@@ -29,4 +29,4 @@
 @keyframes oaze-respira{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
 @media(max-width:900px){.v3-coco-fab .v3-coco-pet,.v3-coco-fab.coco-viva .v3-coco-pet{width:60px;height:60px}}
 @media(prefers-reduced-motion:reduce){.v3-coco-fab .v3-coco-pet img{animation:none}}
-.v3-coco-message-avatar,.v3-coco-empty img{border-radius:50%;object-fit:cover}
+/* conversa usa o rostinho antigo (transparente), sem recorte redondo */
