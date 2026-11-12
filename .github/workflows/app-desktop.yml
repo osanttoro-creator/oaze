@@ -4,15 +4,13 @@
 # de código, ou MSIX — a escolha está em docs/02-TRD.md.
 name: App · Windows
 
+# 12/11/2026: sem gatilho em pull_request. O repositório é privado e os
+# 2.000 minutos grátis do mês acabaram em 5/11, quase todos em compilações
+# repetidas a cada atualização do PR. Rodar à mão (Run workflow) ou pela tag.
 on:
   workflow_dispatch:
   push:
     tags: ['app-v*']
-  pull_request:
-    paths:
-      - 'app/**'
-      - '.github/workflows/app-desktop.yml'
-      - '.github/workflows/app-ci.yml'
 
 jobs:
   verifica:

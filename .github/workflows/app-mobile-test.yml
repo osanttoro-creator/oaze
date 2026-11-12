@@ -1,6 +1,9 @@
 # Pacote de teste Android. O projeto iOS permanece no repositório, fora desta rodada.
 name: App · Android
 
+# 12/11/2026: sem gatilho em pull_request. O repositório é privado e os
+# 2.000 minutos grátis do mês acabaram em 5/11, quase todos em compilações
+# repetidas a cada atualização do PR. Rodar à mão (Run workflow) ou pela tag.
 on:
   workflow_dispatch:
   push:
@@ -9,10 +12,6 @@ on:
       - "app/**"
       - ".github/workflows/app-mobile-test.yml"
       - ".github/workflows/app-ci.yml"
-  pull_request:
-    paths:
-      - "app/**"
-      - ".github/workflows/app-mobile-test.yml"
 
 permissions:
   contents: read
