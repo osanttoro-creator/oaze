@@ -45,6 +45,12 @@ type NativeWindow = Window & {
   OAZE_NATIVE_DESKTOP?: boolean;
   OAZE_NATIVE_SAVE_PDF?: (fileName: string, base64: string) => Promise<void>;
   OAZE_BILLING_READONLY?: boolean;
+  OAZE_NATIVE_PLAY?: {
+    ofertas(): Promise<Array<{ produto: string; ciclo: 'monthly' | 'annual'; preco: string; token: string }>>;
+    assinar(ciclo: 'monthly' | 'annual'): Promise<{ plano: string; status: string }>;
+    restaurar(): Promise<{ plano: string; status: string } | null>;
+    gerenciar(produto?: string): Promise<void>;
+  };
   OAZE_NATIVE_BIOMETRICS?: {
     isEnabled(): boolean;
     available(): Promise<boolean>;
@@ -190,6 +196,74 @@ if (android) {
     pendentes: async () => (await banco.pendentes()).itens || [],
     remover: (id) => banco.remover({ id }),
     abrirAjustes: () => banco.abrirAjustes(),
+  };
+}
+
+/* Assinatura do Oásis pela Google Play (só no pacote da loja).
+   O app abre a compra da Google e manda o purchaseToken para oaze-play;
+   o servidor confere a compra com a Google, amarra à conta (SHA-256 do id
+   do usuário, o mesmo valor que vai como obfuscatedAccountId) e libera
+   o plano. Renovação, cancelamento e estorno chegam ao servidor pelas
+   notificações da Google, sem depender do app. */
+interface OazePlayPlugin {
+  produtos(o: { ids: string[] }): Promise<{ ofertas: Array<{ produto: string; plano: string; oferta: string; token: string; preco: string }> }>;
+  comprar(o: { produto: string; token: string; conta: string }): Promise<{ produto: string; token: string; pendente: boolean }>;
+  compras(): Promise<{ compras: Array<{ produto: string; token: string; pendente: boolean }> }>;
+}
+const PLAY_PRODUTOS = { monthly: 'oaze_oasis_mensal', annual: 'oaze_oasis_anual' } as const;
+if (android && nativeWindow.OAZE_BILLING_READONLY) {
+  const play = registerPlugin<OazePlayPlugin>('OazePlay');
+  const sessao = async () => {
+    const client = auth?.cliente();
+    const { data } = client ? await client.auth.getSession() : { data: { session: null } };
+    if (!client || !data.session) throw new Error('Entre na sua conta para assinar.');
+    return { client, user: data.session.user };
+  };
+  const hash = async (texto: string) => Array.from(new Uint8Array(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto))))
+    .map((b) => b.toString(16).padStart(2, '0')).join('');
+  const verificar = async (produto: string, token: string) => {
+    const { client } = await sessao();
+    const { data, error } = await client.functions.invoke('oaze-play', { body: { acao: 'verificar', produto, token } });
+    if (error) {
+      let mensagem = 'Não foi possível confirmar a compra agora. Se foi cobrado, abra "Restaurar compra" em instantes.';
+      try { const corpo = await (error as { context?: Response }).context?.json(); if (corpo?.mensagem) mensagem = corpo.mensagem; } catch { /* mensagem padrão */ }
+      throw new Error(mensagem);
+    }
+    return { plano: String(data?.plano || 'free'), status: String(data?.status || '') };
+  };
+  let carregadas: Array<{ produto: string; ciclo: 'monthly' | 'annual'; preco: string; token: string }> | null = null;
+  nativeWindow.OAZE_NATIVE_PLAY = {
+    async ofertas() {
+      const r = await play.produtos({ ids: Object.values(PLAY_PRODUTOS) });
+      /* Só o plano básico (sem oferta promocional): o OAZE não anuncia
+         desconto nem teste grátis pela Play nesta fase. */
+      carregadas = r.ofertas.filter((o) => !o.oferta).map((o) => ({
+        produto: o.produto, preco: o.preco, token: o.token,
+        ciclo: o.produto === PLAY_PRODUTOS.annual ? 'annual' as const : 'monthly' as const,
+      }));
+      return carregadas;
+    },
+    async assinar(ciclo) {
+      const { user } = await sessao();
+      const lista = carregadas ?? await this.ofertas();
+      const oferta = lista.find((o) => o.ciclo === ciclo);
+      if (!oferta) throw new Error('Este plano ainda não está disponível na Google Play.');
+      const compra = await play.comprar({ produto: oferta.produto, token: oferta.token, conta: await hash(user.id) });
+      if (compra.pendente) throw new Error('Pagamento pendente na Google Play. O plano é liberado assim que ele for aprovado.');
+      return verificar(compra.produto, compra.token);
+    },
+    async restaurar() {
+      await sessao();
+      const { compras } = await play.compras();
+      const valida = compras.find((c) => !c.pendente && (Object.values(PLAY_PRODUTOS) as string[]).includes(c.produto));
+      return valida ? verificar(valida.produto, valida.token) : null;
+    },
+    async gerenciar(produto) {
+      const url = 'https://play.google.com/store/account/subscriptions?package=site.oaze.app'
+        + (produto ? '&sku=' + encodeURIComponent(produto) : '');
+      await Browser.open({ url });
+    },
   };
 }
 

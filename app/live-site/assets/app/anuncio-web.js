@@ -14,6 +14,9 @@
    ============================================================= */
 (function (global) {
   'use strict';
+  /* 12/11/2026: o app para Windows é só do Oásis, que não tem anúncio.
+     No Windows este módulo nem se registra. */
+  if (global.__TAURI_INTERNALS__) return;
   /* No Android quem mostra é o AdMob (OAZE_NATIVE_ADS, da ponte nativa, que
      carrega depois deste arquivo); a escolha é feita na hora do clique. */
 

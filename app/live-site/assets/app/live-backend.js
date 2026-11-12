@@ -173,7 +173,7 @@
   V3Backend.subscription = async function () {
     if (!client || !user) throw new Error('Entre na sua conta para consultar a assinatura.');
     const { data, error } = await bounded(client.from('subscriptions')
-      .select('plan_id,status,billing_cycle,current_period_end,cancel_at_period_end,stripe_subscription_id,asaas_subscription_id')
+      .select('plan_id,status,billing_cycle,current_period_end,cancel_at_period_end,stripe_subscription_id,asaas_subscription_id,origem,play_produto')
       .eq('user_id', user.id).maybeSingle());
     if (error) throw error;
     return data || { plan_id: 'free', status: 'free', cancel_at_period_end: false };

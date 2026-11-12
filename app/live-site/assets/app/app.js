@@ -2273,22 +2273,25 @@
   function renderPlan() {
     const list = global.Planos ? Planos.LISTA : [];
     const playReadonly = !!global.OAZE_BILLING_READONLY;
+    const play = playReadonly ? global.OAZE_NATIVE_PLAY : null;
+    if (play && !demo && !state.playOfertas && !state.playCarregando) carregarOfertasPlay();
     const sub = state.subscription, current = sub?.plan_id || 'free';
     const paid = current !== 'free' && ['active', 'past_due', 'canceled'].includes(sub?.status) && (!sub?.current_period_end || new Date(sub.current_period_end) > new Date());
-    const linkedSubscription=!!(sub?.stripe_subscription_id || sub?.asaas_subscription_id);
+    const linkedSubscription=!!(sub?.stripe_subscription_id || sub?.asaas_subscription_id || sub?.origem === 'google_play');
     const period = state.billing === 'annual' ? 'ano' : 'mês';
     const status = demo ? 'Prévia: nenhuma assinatura é criada aqui.' : state.billingError ? `Não consegui consultar sua assinatura: ${esc(state.billingError)}` : !sub ? 'Consultando sua assinatura…' : sub.status === 'past_due' && sub.stripe_subscription_id ? 'Pagamento pendente. Confira seu cartão e suas cobranças na Stripe.' : paid ? `Plano ${esc(Planos.get(current).nome)} · ${sub.cancel_at_period_end ? 'cancelamento agendado' : 'ativo'}` : 'Seu plano atual é Semente.';
     const renewDate = sub?.current_period_end && !Number.isNaN(new Date(sub.current_period_end).getTime()) ? new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(sub.current_period_end)) : '';
-    const paidDetails = !demo && (paid || sub?.stripe_subscription_id) ? `<section class="v3-panel v3-billing-details" aria-label="Sua cobrança"><h2>cobrança</h2><dl><div><dt>Ciclo</dt><dd>${sub.billing_cycle === 'annual' ? 'Anual' : sub.billing_cycle === 'monthly' ? 'Mensal' : 'Não informado'}</dd></div>${renewDate ? `<div><dt>${sub.cancel_at_period_end ? 'Acesso até' : 'Fim do período atual'}</dt><dd>${esc(renewDate)}</dd></div>` : ''}<div><dt>Forma de pagamento</dt><dd>${sub.stripe_subscription_id ? 'Gerenciada com segurança pela Stripe' : 'Consulte o suporte'}</dd></div></dl>${playReadonly ? '<p class="v3-muted">Gerencie a forma de pagamento no canal em que contratou a assinatura.</p>' : sub.stripe_subscription_id ? '<button type="button" class="v3-secondary" data-action="billing-portal">Atualizar cartão e consultar cobranças</button>' : '<a class="v3-secondary" href="/suporte">Pedir ajuda sobre a cobrança</a>'}<p class="v3-muted">O OAZE não recebe nem guarda o número completo do seu cartão.</p></section>` : '';
+    const paidDetails = !demo && (paid || sub?.stripe_subscription_id) ? `<section class="v3-panel v3-billing-details" aria-label="Sua cobrança"><h2>cobrança</h2><dl><div><dt>Ciclo</dt><dd>${sub.billing_cycle === 'annual' ? 'Anual' : sub.billing_cycle === 'monthly' ? 'Mensal' : 'Não informado'}</dd></div>${renewDate ? `<div><dt>${sub.cancel_at_period_end ? 'Acesso até' : 'Fim do período atual'}</dt><dd>${esc(renewDate)}</dd></div>` : ''}<div><dt>Forma de pagamento</dt><dd>${sub.origem === 'google_play' ? 'Google Play' : sub.stripe_subscription_id ? 'Gerenciada com segurança pela Stripe' : 'Consulte o suporte'}</dd></div></dl>${play && sub.origem === 'google_play' ? '<button type="button" class="v3-secondary" data-action="play-manage">Gerenciar ou cancelar na Google Play</button>' : playReadonly ? '<p class="v3-muted">Gerencie a forma de pagamento no canal em que contratou a assinatura.</p>' : sub.stripe_subscription_id ? '<button type="button" class="v3-secondary" data-action="billing-portal">Atualizar cartão e consultar cobranças</button>' : '<a class="v3-secondary" href="/suporte">Pedir ajuda sobre a cobrança</a>'}<p class="v3-muted">O OAZE não recebe nem guarda o número completo do seu cartão.</p></section>` : '';
     return `<div class="v3-plan-head"><div class="v3-segment" role="group" aria-label="Ciclo de cobrança"><button type="button" data-billing="monthly" class="${state.billing === 'monthly' ? 'is-active' : ''}" aria-pressed="${state.billing === 'monthly'}">Mensal</button><button type="button" data-billing="annual" class="${state.billing === 'annual' ? 'is-active' : ''}" aria-pressed="${state.billing === 'annual'}">Anual</button></div></div><p class="v3-plan-status" role="status">${status}</p>${paidDetails}${!demo&&paid&&!sub.cancel_at_period_end&&!linkedSubscription?'<p class="v3-plan-alert" role="alert">Não foi possível identificar a assinatura ligada a este plano. <a href="/suporte">Peça ajuda para conferir a cobrança ou cancelar</a> antes de assinar outro.</p>':''}${!playReadonly && !demo && !(paid && !sub?.cancel_at_period_end) ? `<form class="v3-panel v3-cupom" data-cupom-form><label for="v3-cupom-codigo">TEM UM CUPOM?</label><span class="v3-cupom-linha"><input id="v3-cupom-codigo" name="codigo" maxlength="40" autocomplete="off" autocapitalize="characters" value="${esc(state.cupom?.codigo || '')}" placeholder="CÓDIGO"><button type="submit" class="v3-secondary" ${state.paymentBusy ? 'disabled' : ''}>Aplicar</button></span>${state.cupom ? `<p class="v3-cupom-ok" role="status"><strong>${esc(state.cupom.codigo)}</strong>: ${esc(state.cupom.descricao)}. Vale no pagamento e junto com o teste de 30 dias. <button type="button" class="v3-link" data-action="remover-cupom">remover</button></p>` : ''}</form>` : ''}<div class="v3-grid v3-plan-grid">${list.map((p) => {
       const isCurrent = p.id === current && (p.id === 'free' || paid);
-      const disabled = playReadonly || demo || !sub || !!state.billingError || state.paymentBusy || isCurrent || (paid && !sub.cancel_at_period_end) || (sub.status === 'past_due' && linkedSubscription) || p.id === 'free';
+      const disabled = (playReadonly && !play) || demo || !sub || !!state.billingError || state.paymentBusy || isCurrent || (paid && !sub.cancel_at_period_end) || (sub.status === 'past_due' && linkedSubscription) || p.id === 'free';
       const price = state.billing === 'annual' ? p.anualCentavos : p.mensalCentavos;
-      const label = isCurrent ? 'Plano atual' : p.id === 'free' ? 'Plano inicial' : playReadonly ? 'Assinatura indisponível neste app' : paid && !sub.cancel_at_period_end ? 'Cancele o plano atual antes' : demo ? 'Disponível no app' : 'Assinar com Stripe';
+      const precoPlay = play && p.id !== 'free' ? (state.playOfertas || []).find((o) => o.ciclo === state.billing)?.preco : '';
+      const label = isCurrent ? 'Plano atual' : p.id === 'free' ? 'Plano inicial' : playReadonly ? (play ? 'Assinar pela Google Play' : 'Assinatura indisponível neste app') : paid && !sub.cancel_at_period_end ? 'Cancele o plano atual antes' : demo ? 'Disponível no app' : 'Assinar com Stripe';
       const quantidade=(n,sing,plural)=>n==null?`${plural[0].toUpperCase()+plural.slice(1)} sem limite`:`Até ${n} ${n===1?sing:plural}`;
       const resumo=p.id==='free'?'O essencial para começar a organizar seu dinheiro.':'Mais espaço para contas, cartões e conversas com a OAZE.';
-      return `<section class="v3-panel v3-plan${p.destaque ? ' highlight' : ''}"><div class="v3-row"><h2>${esc(p.nome)}</h2>${p.destaque ? '<span class="v3-label">PLANO PRINCIPAL</span>' : ''}</div><p class="v3-plan-summary">${resumo}</p><p class="v3-money">${money(price / 100)} <span>por ${period}</span></p><ul><li>${quantidade(p.limites.workspaces,'espaço','espaços')}</li><li>${quantidade(p.limites.accounts,'conta','contas')}</li><li>${quantidade(p.limites.credit_cards,'cartão','cartões')}</li><li>${p.limites.ai_queries_per_month == null ? 'Conversas com a OAZE sem limite mensal' : `${p.limites.ai_queries_per_month} ${p.limites.ai_queries_per_month===1?'pedido':'pedidos'} à OAZE por mês`}</li></ul><button type="button" class="${p.destaque ? 'v3-secondary' : 'v3-primary'}" data-action="subscribe" data-plan="${esc(p.id)}" ${disabled ? 'disabled' : ''}>${label}</button></section>`;
-    }).join('')}</div>${!playReadonly && !demo && paid && !sub.cancel_at_period_end && linkedSubscription ? '<button type="button" class="v3-secondary v3-plan-cancel" data-action="cancel-subscription">Cancelar renovação da assinatura</button>' : ''}${!playReadonly && !demo && paid && sub?.stripe_subscription_id ? '<button type="button" class="v3-link v3-plan-reembolso" data-action="pedir-reembolso">Pedir reembolso (até 7 dias depois da cobrança)</button>' : ''}`;
+      return `<section class="v3-panel v3-plan${p.destaque ? ' highlight' : ''}"><div class="v3-row"><h2>${esc(p.nome)}</h2>${p.destaque ? '<span class="v3-label">PLANO PRINCIPAL</span>' : ''}</div><p class="v3-plan-summary">${resumo}</p><p class="v3-money">${precoPlay ? esc(precoPlay) : money(price / 100)} <span>por ${period}</span></p><ul><li>${quantidade(p.limites.workspaces,'espaço','espaços')}</li><li>${quantidade(p.limites.accounts,'conta','contas')}</li><li>${quantidade(p.limites.credit_cards,'cartão','cartões')}</li><li>${p.limites.ai_queries_per_month == null ? 'Conversas com a OAZE sem limite mensal' : `${p.limites.ai_queries_per_month} ${p.limites.ai_queries_per_month===1?'pedido':'pedidos'} à OAZE por mês`}</li></ul><button type="button" class="${p.destaque ? 'v3-secondary' : 'v3-primary'}" data-action="subscribe" data-plan="${esc(p.id)}" ${disabled ? 'disabled' : ''}>${label}</button></section>`;
+    }).join('')}</div>${play && !demo ? '<button type="button" class="v3-link v3-plan-reembolso" data-action="play-restore">Restaurar compra feita na Google Play</button>' : ''}${!playReadonly && !demo && paid && !sub.cancel_at_period_end && linkedSubscription ? '<button type="button" class="v3-secondary v3-plan-cancel" data-action="cancel-subscription">Cancelar renovação da assinatura</button>' : ''}${!playReadonly && !demo && paid && sub?.stripe_subscription_id ? '<button type="button" class="v3-link v3-plan-reembolso" data-action="pedir-reembolso">Pedir reembolso (até 7 dias depois da cobrança)</button>' : ''}`;
   }
   function renderMore() {
     const desc = { investments: `${money(invested())} investidos`, categories: `${profile().categories.length} em uso`, goals: 'metas e dinheiro guardado', calendar: 'calendário e recorrências', coco: 'conversa e análises', settings: 'privacidade, ajuda e contato', plan: demo ? 'OAZE mensal' : 'planos vigentes' };
@@ -4081,8 +4084,81 @@
       state.billingError = error.message || 'Conexão indisponível.';
     }
     if (state.page === 'plan') render();
+    portaoWindows();
+  }
+  /* App para Windows é do Oásis (12/11/2026). Quem entra no Windows com
+     conta Semente vê esta tela e não o painel: pode assinar (Stripe, no
+     navegador, o que a Microsoft Store permite para apps), conferir de
+     novo depois de pagar ou sair. Sem assinatura conhecida (erro de rede)
+     a tela não aparece: ninguém é trancado fora por falta de conexão. */
+  function oasisAtivo(sub) {
+    if (!sub || sub.plan_id === 'free') return false;
+    if (!['active', 'past_due', 'canceled'].includes(sub.status)) return false;
+    return !sub.current_period_end || new Date(sub.current_period_end) > new Date();
+  }
+  function portaoWindows() {
+    const desktop = !!(global.OAZE_NATIVE_DESKTOP || global.__TAURI_INTERNALS__);
+    const atual = document.getElementById('oz-windows-oasis');
+    if (!desktop || demo || !state.subscription || state.billingError || oasisAtivo(state.subscription)) { atual?.remove(); return; }
+    if (atual) { atual.querySelector('[data-oz-assinar]').disabled = !!state.paymentBusy; return; }
+    const pro = global.Planos ? Planos.get('pro') : null;
+    const preco = (c) => pro ? moneyReal((c === 'annual' ? pro.anualCentavos : pro.mensalCentavos) / 100) : '';
+    const capa = document.createElement('div');
+    capa.id = 'oz-windows-oasis';
+    capa.setAttribute('role', 'dialog');
+    capa.setAttribute('aria-modal', 'true');
+    capa.setAttribute('aria-labelledby', 'oz-windows-oasis-titulo');
+    capa.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:24px;background:#0D1821;color:#F0E5CF;overflow:auto';
+    capa.innerHTML = `<div style="max-width:440px;text-align:center"><img src="/assets/brand/oaze-mascote-192.png" alt="" width="96" height="96" style="border-radius:24px"><h1 id="oz-windows-oasis-titulo" style="font-size:24px;margin:20px 0 8px">O OAZE para Windows é do plano Oásis</h1><p style="opacity:.8;line-height:1.5">Sua conta está no plano Semente, que funciona no app de Android. Assine o Oásis para usar o OAZE no computador, sem limites e sem anúncios.</p><div role="group" aria-label="Ciclo de cobrança" style="display:flex;gap:8px;justify-content:center;margin:18px 0"><button type="button" class="v3-secondary" data-oz-ciclo="monthly" aria-pressed="true">Mensal · ${preco('monthly')}</button><button type="button" class="v3-secondary" data-oz-ciclo="annual" aria-pressed="false">Anual · ${preco('annual')}</button></div><p><button type="button" class="v3-primary" data-oz-assinar style="min-width:240px">Assinar o Oásis</button></p><p style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px"><button type="button" class="v3-link" data-oz-conferir>Já assinei, conferir de novo</button><button type="button" class="v3-link" data-action="sign-out">Sair da conta</button></p><p style="opacity:.6;font-size:13px">O pagamento abre no navegador, pela Stripe. O OAZE não vê o número do seu cartão.</p></div>`;
+    const marcar = (c) => capa.querySelectorAll('[data-oz-ciclo]').forEach((b) => {
+      const sim = b.dataset.ozCiclo === c;
+      b.setAttribute('aria-pressed', String(sim)); b.classList.toggle('is-active', sim);
+    });
+    state.billing = state.billing === 'annual' ? 'annual' : 'monthly';
+    marcar(state.billing);
+    capa.addEventListener('click', (e) => {
+      const ciclo = e.target.closest('[data-oz-ciclo]');
+      if (ciclo) { state.billing = ciclo.dataset.ozCiclo; marcar(state.billing); return; }
+      if (e.target.closest('[data-oz-assinar]')) { void startCheckout('pro'); return; }
+      if (e.target.closest('[data-oz-conferir]')) { toast('Conferindo sua assinatura…'); void refreshSubscription(); }
+    });
+    document.body.appendChild(capa);
+    capa.querySelector('[data-oz-assinar]').focus();
+  }
+  /* Google Play (pacote da loja): a compra é da Google, a liberação é do
+     servidor (oaze-play). Ver src/native/published-bridge.ts. */
+  async function carregarOfertasPlay() {
+    const play = global.OAZE_NATIVE_PLAY;
+    if (!play || state.playCarregando) return;
+    state.playCarregando = true;
+    try { state.playOfertas = await play.ofertas(); }
+    catch (error) { state.playOfertas = []; }
+    finally { state.playCarregando = false; if (state.page === 'plan') render(); }
+  }
+  async function playCheckout() {
+    const play = global.OAZE_NATIVE_PLAY;
+    if (!play || demo || state.paymentBusy) return;
+    state.paymentBusy = true; render();
+    try {
+      const r = await play.assinar(state.billing === 'annual' ? 'annual' : 'monthly');
+      await refreshSubscription();
+      toast(r.plano === 'pro' ? 'Oásis ativo. Obrigado por assinar!' : 'Compra recebida. O plano aparece em instantes.');
+    } catch (error) { toast(error.message || 'A compra não foi concluída. Nada foi cobrado.'); }
+    finally { state.paymentBusy = false; render(); }
+  }
+  async function playRestore() {
+    const play = global.OAZE_NATIVE_PLAY;
+    if (!play || demo || state.paymentBusy) return;
+    state.paymentBusy = true; render();
+    try {
+      const r = await play.restaurar();
+      await refreshSubscription();
+      toast(r ? 'Assinatura da Google Play restaurada.' : 'Nenhuma assinatura do OAZE nesta conta Google.');
+    } catch (error) { toast(error.message || 'Não foi possível restaurar agora.'); }
+    finally { state.paymentBusy = false; render(); }
   }
   async function startCheckout(planId) {
+    if (global.OAZE_NATIVE_PLAY && planId === 'pro') { playCheckout(); return; }
     if (global.OAZE_BILLING_READONLY || demo || state.paymentBusy || planId !== 'pro' || !state.subscription || state.billingError) return;
     state.paymentBusy = true; render();
     try {
@@ -4950,6 +5026,8 @@
     }
     if (action==='subscribe'){startCheckout(target.dataset.plan);return;}
     if (action==='billing-portal'){openBillingPortal();return;}
+    if (action==='play-restore'){playRestore();return;}
+    if (action==='play-manage'){global.OAZE_NATIVE_PLAY?.gerenciar(state.subscription?.play_produto||'');return;}
     /* CUPOM E REEMBOLSO (07/11/2026) */
     if (action==='remover-cupom'){state.cupom=null;render();return;}
     if (action==='pedir-reembolso'){
