@@ -699,7 +699,7 @@
     const insightsHtml = o.insights ? (ultimosInsights || []).slice(0, 2).map((x) =>
       '<li><strong>' + esc(x.titulo) + '</strong><small>' + esc(x.texto || x.corpo) + '</small></li>').join('') : '';
     return '<section class="v3-panel oz-inicio-coco" data-oz-inicio aria-label="Converse com a OAZE">'
-      + '<div class="oz-coco-topo"><span class="v3-label">COCO</span><button type="button" class="v3-link oz-coco-editar-botao" data-oz-coco-editar aria-label="Editar widget da OAZE">editar</button></div>'
+      + '<div class="oz-coco-topo"><span class="v3-label">OAZE</span><button type="button" class="v3-link oz-coco-editar-botao" data-oz-coco-editar aria-label="Editar widget da OAZE">editar</button></div>'
       + '<form data-oz-pergunta><label class="oz-sr" for="oz-pergunta">Pergunte à OAZE</label>'
       + '<input id="oz-pergunta" name="pergunta" maxlength="500" autocomplete="off" placeholder="Pergunte à OAZE">'
       + '<button type="submit" class="v3-primary" aria-label="Enviar pergunta à OAZE">›</button></form>'

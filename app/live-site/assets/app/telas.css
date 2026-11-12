@@ -39,6 +39,8 @@ img, video, svg { max-width: 100%; }
   .oz-lista li > button { grid-column: 1 / -1; justify-self: start; }
   .v3-sheet { padding: 16px !important; }
   .v3-coco-fab { right: 10px !important; }
+  /* seis atalhos da OAZE em 3 colunas não cabem em 280 px */
+  .v3-coco-tools { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
 
 /* ---------- 2. dobrável aberto / tablet pequeno (600–900 px) ---------- */

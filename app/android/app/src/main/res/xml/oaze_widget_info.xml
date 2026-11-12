@@ -10,4 +10,5 @@
     android:widgetCategory="home_screen"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/oaze_widget"
+    android:previewLayout="@layout/oaze_widget"
     android:description="@string/oaze_widget_descricao" />

@@ -70,8 +70,11 @@
   /* Na carteira: "R$ X em caixinhas · livre R$ Y" embaixo do saldo da conta aberta. */
   function linhaCarteira() {
     const bolso = document.querySelector('.v3-wallet-pocket');
+    /* Sem a carteira na tela não há perfil a consultar: o observador roda
+       em toda mudança do DOM, inclusive antes de o perfil existir. */
+    if (!bolso) return;
     const porquinhos = (P().goals || []).filter((g) => g.accountId && g.saved > 0);
-    if (!bolso || !porquinhos.length) return;
+    if (!porquinhos.length) return;
     const total = porquinhos.reduce((s, g) => s + g.saved, 0);
     let linha = bolso.querySelector('[data-oz-cx-linha]');
     const html = '<small class="oz-cx-linha" data-oz-cx-linha>' + reais(total) + ' guardado em porquinhos · <button type="button" class="v3-link" data-go="goals">ver</button></small>';
@@ -528,7 +531,7 @@
 
   /* Formulário de lançamento e carteira: campos que aparecem sozinhos. */
   new MutationObserver(() => {
-    linhaCarteira();
+    try { linhaCarteira(); } catch { /* perfil ainda não carregado */ }
   }).observe(document.body, { childList: true, subtree: true });
   document.addEventListener('oaze:render', () => { try { linhaCarteira(); } catch { /* sem perfil */ } });
 

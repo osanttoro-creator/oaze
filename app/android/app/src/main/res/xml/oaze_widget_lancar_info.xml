@@ -8,4 +8,5 @@
     android:widgetCategory="home_screen"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/oaze_widget_lancar"
+    android:previewLayout="@layout/oaze_widget_lancar"
     android:description="@string/oaze_widget_lancar_descricao" />
