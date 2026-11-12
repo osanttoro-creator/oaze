@@ -1,0 +1,24 @@
+{
+  "appId": "site.oaze.app",
+  "appName": "OAZE",
+  "webDir": "www",
+  "backgroundColor": "#071822",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 300,
+      "launchAutoHide": true,
+      "backgroundColor": "#071822",
+      "showSpinner": false
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_oaze",
+      "iconColor": "#D8B45E"
+    }
+  }
+}

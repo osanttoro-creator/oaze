@@ -30,3 +30,8 @@ app/android/app/src/main/assets/public/
 *.p8
 *.p12
 *.mobileprovision
+
+# 12/11/2026: o site tem repositório próprio (osanttoro-creator/dashboard) e o
+# marketing são arquivos de mídia; os dois moram aqui só por organização.
+site/
+marketing/
