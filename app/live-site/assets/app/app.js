@@ -1058,7 +1058,7 @@
     const marca = x.kind === 'expense' ? global.MarcasOAZE?.forName(x.description) : null;
     const cor = x.kind === 'transfer' ? '#C9A44C' : marca ? marca.bg : cat ? categoryColor(cat) : '#5A6B75';
     const miolo = x.kind === 'transfer' ? (global.Icons?.lucide('arrow-left-right', 18)?.outerHTML || '') :
-      marca ? marca.svg.replace('<svg ', '<svg class="v3-merchant-logo" ') : categoryIconHtml(cat);
+      marca ? (marca.url ? `<img class="v3-merchant-img" src="${esc(marca.url)}" alt="" loading="lazy" decoding="async">` : '') + marca.svg.replace('<svg ', `<svg class="v3-merchant-logo"${marca.url ? ' hidden' : ''} `) : categoryIconHtml(cat);
     const inst = card ? (card.bank || card.name || '') : '';
     let banco = '';
     if (inst) {

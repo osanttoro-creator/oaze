@@ -23,7 +23,7 @@ function replaceRequired(text, oldValue, newValue, filename) {
    no site; só os domínios do SDK e do servidor de anúncios entram. */
 const ADS = "https://imasdk.googleapis.com https://*.doubleclick.net https://*.googlesyndication.com https://*.googleadservices.com https://*.google.com https://*.gstatic.com";
 const policy = "default-src 'self'; script-src 'self' https://imasdk.googleapis.com; style-src 'self' 'unsafe-inline'; " +
-  "font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://*.supabase.co " + ADS + "; " +
+  "font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://*.supabase.co https://cdn.brandfetch.io " + ADS + "; " +
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co " + ADS + "; media-src 'self' blob: " + ADS + "; " +
   "object-src 'none'; base-uri 'self'; frame-src " + ADS;
 function harden(html, name) {
