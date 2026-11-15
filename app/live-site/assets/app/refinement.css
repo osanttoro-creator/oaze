@@ -1,6 +1,6 @@
 /* Acabamento do /app. Cartões usam Night Ocean com luz da instituição. */
-body.v3{background:#0d1821}
-.v3-main{position:relative;isolation:isolate;max-width:none;background:radial-gradient(ellipse 78% 61% at 93% 9%,rgba(233,135,94,.17),transparent 72%),radial-gradient(ellipse 85% 80% at 12% 68%,rgba(36,83,112,.38),transparent 78%),#0d1821;overflow:clip}
+body.v3{background:#1c3340}
+.v3-main{position:relative;isolation:isolate;max-width:none;background:radial-gradient(ellipse 78% 61% at 93% 9%,rgba(233,135,94,.17),transparent 72%),radial-gradient(ellipse 85% 80% at 12% 68%,rgba(36,83,112,.38),transparent 78%),#1c3340;overflow:clip}
 .v3-main:before{content:"";position:fixed;z-index:-1;pointer-events:none;inset:-35% 0 -35% 15%;background:radial-gradient(ellipse 40% 35% at 84% 30%,rgba(233,135,94,.16),transparent 74%),radial-gradient(ellipse 53% 52% at 19% 76%,rgba(65,126,151,.21),transparent 76%);filter:blur(38px);animation:oaze-ambient 22s ease-in-out infinite alternate}
 @keyframes oaze-ambient{from{transform:translate3d(-4%,2%,0) scale(1)}to{transform:translate3d(7%,-5%,0) scale(1.08)}}
 .v3-sidebar{background:linear-gradient(155deg,rgba(18,40,53,.76),rgba(9,23,32,.7));border-right:1px solid rgba(240,229,207,.13);box-shadow:inset -1px 0 rgba(255,255,255,.04),12px 0 36px rgba(1,10,15,.16);backdrop-filter:blur(24px) saturate(130%);-webkit-backdrop-filter:blur(24px) saturate(130%)}
@@ -8,7 +8,7 @@ body.v3{background:#0d1821}
 .v3-profile .v3-avatar{border-radius:13px;background:linear-gradient(145deg,#477182,#243e50);box-shadow:inset 0 1px rgba(255,255,255,.2)}
 .v3-top-actions{margin-left:auto;justify-content:flex-end}.v3-top-actions .v3-icon-button:last-child{margin-left:5px}
 .v3-wallet-pocket{background:radial-gradient(ellipse at 45% 0%,#223642 0%,#12232d 56%,#0a141c 100%);border:1px solid rgba(240,229,207,.19);border-radius:24px 24px 30px 30px;box-shadow:inset 0 1px rgba(255,255,255,.12),0 22px 42px rgba(1,10,15,.28)}
-.v3-wallet-pocket:before{left:calc(50% - 48px);right:auto;top:-1px;width:96px;height:38px;border:0;border-radius:0 0 50px 50px;background:#0d1821;box-shadow:0 1px 0 rgba(240,229,207,.17)}
+.v3-wallet-pocket:before{left:calc(50% - 48px);right:auto;top:-1px;width:96px;height:38px;border:0;border-radius:0 0 50px 50px;background:#1c3340;box-shadow:0 1px 0 rgba(240,229,207,.17)}
 .v3-wallet-pocket:after{inset:12px 13px 11px;border:1px solid rgba(240,229,207,.11);border-radius:16px 16px 22px 22px}
 .v3-trans-head{display:grid;grid-template-columns:minmax(0,1fr);gap:15px;align-items:start}.v3-totals{justify-content:flex-start;text-align:left;gap:12px}.v3-totals>div{min-width:190px;padding:16px 20px;border:1px solid rgba(240,229,207,.1);border-radius:20px;background:rgba(27,58,72,.55);box-shadow:inset 0 1px rgba(255,255,255,.05)}.v3-totals strong{font-size:clamp(17px,1.9vw,25px);font-weight:600;letter-spacing:-.04em}.v3-totals .v3-label{margin-bottom:5px}
 .v3-transactions .v3-trans-explain{display:none}

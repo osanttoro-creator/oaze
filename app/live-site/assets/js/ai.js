@@ -235,8 +235,20 @@
       conversa: AI.conversaRecente(),
       /* A resposta vem na língua da tela. É só a chave ('en'); o nome
          da língua que entra nas instruções é escrito no servidor. */
-      idioma: (global.I18n && global.I18n.lang) || 'pt'
+      idioma: (global.I18n && global.I18n.lang) || 'pt',
+      /* O quiz de entrada (como a pessoa registra, como a renda chega,
+         o momento dela). O servidor só aceita valores de lista fechada
+         e ignora tudo quando o aprendizado está pausado. */
+      perfil_uso: AI.perfilDeUso()
     };
+  };
+
+  AI.perfilDeUso = function () {
+    try {
+      const q = JSON.parse(localStorage.getItem('oaze.boasvindas') || 'null');
+      if (!q || q.pulou) return null;
+      return { objetivos: q.objetivos || [], registro: q.registro || [], renda: q.renda || null, momento: q.momento || null, amigo: q.amigo || null };
+    } catch (e) { return null; }
   };
 
   /* Totais simples não precisam de um modelo para fazer aritmética.

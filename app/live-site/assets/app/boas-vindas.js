@@ -1,19 +1,32 @@
 /* =============================================================
-   boas-vindas.js — antes do primeiro login (31/10/2026)
-   Inspiração Kontto: três telas curtas antes de pedir e-mail.
-   1. boas-vindas  2. o que resolver primeiro  3. de onde sai o dinheiro
-   e um fecho dizendo o que já ficou pronto.
+   boas-vindas.js — o quiz de entrada com a turma (14/11/2026)
+   -------------------------------------------------------------
+   Antes do primeiro login, a OAZE faz cinco perguntas curtas para
+   entender como a pessoa vai usar o app. Cada pergunta é feita por
+   quem cuida do assunto:
 
-   As respostas ficam neste aparelho (localStorage) e o painel usa
-   depois do login: os blocos do Início seguem os objetivos, e a
-   primeira conta já vem com o banco escolhido. Nada é enviado.
-   Aparece uma vez; "Já uso o OAZE" fecha direto no login.
+     1. OAZE  o que resolver primeiro        (monta o Início)
+     2. Tico  como prefere registrar gastos  (conversa, extrato, mão)
+     3. Lume  como o dinheiro entra          (fixo, variável…)
+     4. Bia   o momento de agora             (escolhe o amigo que recebe)
+     5. Nilo  de onde sai o dinheiro         (a primeira conta)
+
+   As respostas ficam neste aparelho (localStorage) e o app usa depois
+   do login: os blocos do Início seguem os objetivos, a primeira conta
+   já vem com o banco escolhido, um amigo se apresenta e a conversa
+   passa a saber o jeito da pessoa. Aparece uma vez; "Já uso a OAZE"
+   fecha direto na entrada.
+
+   As chaves antigas continuam valendo (oaze.boasvindas guarda
+   objetivos e banco como antes), então quem respondeu a versão de
+   31/10 não perde nada.
    ============================================================= */
 (function (global) {
   'use strict';
 
   const CHAVE = 'oaze.boasvindas';
   const CHAVE_INICIO = 'oaze.v3.inicio';
+  const T = '/assets/turma/';
   const ler = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
   const gravar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* sem armazenamento */ } };
   if (ler(CHAVE)) return;
@@ -22,19 +35,42 @@
   const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
   const OBJETIVOS = [
-    { id: 'onde', titulo: 'Pra onde vai meu dinheiro', blocos: ['categorias', 'ultimos'], ic: 'M3 17l6-6 4 4 8-8M15 7h6v6' },
-    { id: 'mes', titulo: 'Não estourar o mês', blocos: ['sobra', 'tetos', 'planejado'], ic: 'M12 8v5l3 2M9 2h6M12 22a9 9 0 1 0 0-18 9 9 0 0 0 0 18z' },
-    { id: 'contas', titulo: 'Faturas e contas em dia', blocos: ['faturas', 'proximos', 'fixas'], ic: 'M4 5h16v14l-3-2-3 2-2-2-2 2-3-2-3 2zM8 9h8M8 13h6' },
-    { id: 'meta', titulo: 'Juntar pra uma meta', blocos: ['metas', 'reserva'], ic: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z' },
-    { id: 'relatorio', titulo: 'Ter tudo num relatório', blocos: ['comparativo', 'indicadores'], ic: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h6' }
+    { id: 'onde', titulo: 'Pra onde vai meu dinheiro', blocos: ['categorias', 'ultimos'], ic: 'dinheiro-voando' },
+    { id: 'mes', titulo: 'Não estourar o mês', blocos: ['sobra', 'tetos', 'planejado'], ic: 'orcamento' },
+    { id: 'contas', titulo: 'Faturas e contas em dia', blocos: ['faturas', 'proximos', 'fixas'], ic: 'fatura' },
+    { id: 'meta', titulo: 'Juntar pra uma meta', blocos: ['metas', 'reserva'], ic: 'meta' },
+    { id: 'relatorio', titulo: 'Ter tudo num relatório', blocos: ['comparativo', 'indicadores'], ic: 'pizza-financeira' }
   ];
+  const REGISTRO = [
+    { id: 'conversa', titulo: 'Falando ou escrevendo pra OAZE', sub: '“Gastei 42 no mercado” e pronto', ic: 'conversa' },
+    { id: 'extrato', titulo: 'Mandando extrato ou recibo', sub: 'o Tico lê e pergunta o que não souber', ic: 'recibo' },
+    { id: 'manual', titulo: 'Digitando eu mesmo', sub: 'gosto de conferir cada lançamento', ic: 'calculadora' },
+    { id: 'aviso', titulo: 'Pelos avisos do banco', sub: 'lançar a partir da notificação', ic: 'celular' }
+  ];
+  const RENDA = [
+    { id: 'fixa', titulo: 'Salário fixo, todo mês', ic: 'calendario' },
+    { id: 'variavel', titulo: 'Varia de um mês pro outro', ic: 'crescimento' },
+    { id: 'varias', titulo: 'Mais de uma fonte', ic: 'moedas' },
+    { id: 'sem', titulo: 'Ainda sem renda certa', ic: 'duvida' }
+  ];
+  const MOMENTO = [
+    { id: 'aperto', amigo: 'lume', titulo: 'Quero sair do aperto', sub: 'entender fatura, parcela e juros', ic: 'fatura' },
+    { id: 'impulso', amigo: 'tico', titulo: 'Quero gastar com mais calma', sub: 'organizar sem levar bronca', ic: 'compras' },
+    { id: 'objetivo', amigo: 'bia', titulo: 'Quero juntar pra um objetivo', sub: 'meta com data e plano do mês', ic: 'meta' },
+    { id: 'investir', amigo: 'nilo', titulo: 'Quero começar a investir', sub: 'reserva e rendimento, sem economês', ic: 'investimento' }
+  ];
+  const AMIGOS = {
+    nilo: ['Nilo', 'investimento e tempo'], bia: ['Bia', 'propósito e metas'],
+    tico: ['Tico', 'impulso e organização'], lume: ['Lume', 'matemática e clareza']
+  };
   const BANCOS = [['nubank', 'Nubank'], ['inter', 'Inter'], ['c6', 'C6 Bank'], ['itau', 'Itaú'], ['bradesco', 'Bradesco'], ['caixa', 'Caixa'],
     ['bancodobrasil', 'Banco do Brasil'], ['santander', 'Santander'], ['picpay', 'PicPay'], ['mercadopago', 'Mercado Pago'], ['btg', 'BTG Pactual'],
     ['xp', 'XP'], ['neon', 'Neon'], ['pagbank', 'PagBank'], ['sicoob', 'Sicoob'], ['sicredi', 'Sicredi'], ['next', 'Next'], ['pan', 'Banco PAN'],
     ['digio', 'Digio'], ['wise', 'Wise'], ['nomad', 'Nomad'], ['revolut', 'Revolut'], ['safra', 'Safra'], ['original', 'Original']];
 
-  const estado = { passo: 0, objetivos: new Set(), banco: null };
-  const svg = (d) => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg>';
+  const ULTIMO = 6;
+  const estado = { passo: 0, objetivos: new Set(), registro: new Set(), renda: null, momento: null, banco: null };
+  const ic = (nome) => '<span class="bv-ic"><img src="' + T + 'icones/' + nome + '.webp" alt="" width="34" height="34"></span>';
 
   function logoBanco(chave) {
     const BR = global.BancosBR || { ICONES: {}, PRESETS: {} };
@@ -46,45 +82,73 @@
   }
 
   function topo(podePular) {
-    const pct = estado.passo === 1 ? 33 : estado.passo === 2 ? 66 : 100;
+    const pct = Math.round(estado.passo / ULTIMO * 100);
     return '<div class="bv-topo"><button type="button" class="bv-voltar" data-bv="voltar" aria-label="Voltar">‹</button>'
       + '<div class="bv-progresso" role="progressbar" aria-label="Progresso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>'
       + (podePular ? '<button type="button" class="bv-pular" data-bv="pular">Pular</button>' : '<span class="bv-pular"></span>') + '</div>';
   }
+  /* quem pergunta: o personagem e a fala dele */
+  function quem(pasta, pose, fala) {
+    return '<div class="bv-quem"><img src="' + T + pasta + '/corpo-' + pose + '.webp" alt=""><span>' + esc(fala) + '</span></div>';
+  }
+  function opcoes(lista, atributo, marcado) {
+    return '<div class="bv-opcoes">' + lista.map((o) => '<button type="button" class="bv-opcao" ' + atributo + '="' + o.id + '" aria-pressed="' + marcado(o.id) + '">'
+      + ic(o.ic) + '<strong>' + esc(o.titulo) + (o.sub ? '<small>' + esc(o.sub) + '</small>' : '') + '</strong><span class="bv-marca-sel" aria-hidden="true"></span></button>').join('') + '</div>';
+  }
+  function rodape(ativo, rotulo) {
+    return '<div class="bv-rodape"><button type="button" class="bv-principal" data-bv="avancar"' + (ativo ? '' : ' disabled') + '>' + (rotulo || 'Continuar') + '</button></div>';
+  }
 
   function tela() {
-    if (estado.passo === 0) {
-      return '<div class="bv-hero"><img class="bv-marca" src="/assets/brand/oaze-logo-mono-milk.svg" alt="OAZE" width="132" height="52"></div>'
-        + '<div class="bv-folha"><h1 id="bv-titulo">Seu dinheiro, claro.<br>Sem planilha.</h1>'
-        + '<p>Responda 2 perguntas e o OAZE se monta do seu jeito.</p>'
-        + '<button type="button" class="bv-principal" data-bv="avancar">Montar meu OAZE</button>'
-        + '<p class="bv-nota">Leva menos de 1 minuto</p>'
-        + '<button type="button" class="bv-link" data-bv="fechar">Já uso o OAZE · Entrar</button></div>';
+    const p = estado.passo;
+    if (p === 0) {
+      return '<div class="bv-hero"><img class="bv-oaze" src="' + T + 'oaze/corpo-neutra-acolhedora.webp" alt="OAZE, um axolote verde e laranja" width="640" height="420"></div>'
+        + '<div class="bv-folha"><h1 id="bv-titulo">Oi! Eu sou a OAZE.</h1>'
+        + '<p>Responde cinco perguntas rápidas e a turma se organiza do seu jeito.</p>'
+        + '<button type="button" class="bv-principal" data-bv="avancar">Bora começar</button>'
+        + '<p class="bv-nota">Leva menos de 2 minutos</p>'
+        + '<button type="button" class="bv-link" data-bv="fechar">Já uso a OAZE · Entrar</button></div>';
     }
-    if (estado.passo === 1) {
-      return topo(false) + '<div class="bv-corpo"><h1 id="bv-titulo">O que você quer resolver primeiro?</h1>'
-        + '<p>Escolha quantos quiser. O Início do painel começa por isso.</p><div class="bv-opcoes">'
-        + OBJETIVOS.map((o) => '<button type="button" class="bv-opcao" data-bv-obj="' + o.id + '" aria-pressed="' + estado.objetivos.has(o.id) + '">'
-          + '<span class="bv-ic">' + svg(o.ic) + '</span><strong>' + esc(o.titulo) + '</strong><span class="bv-marca-sel" aria-hidden="true"></span></button>').join('')
-        + '</div></div><div class="bv-rodape"><button type="button" class="bv-principal" data-bv="avancar"' + (estado.objetivos.size ? '' : ' disabled') + '>Continuar</button></div>';
+    if (p === 1) {
+      return topo(false) + '<div class="bv-corpo">' + quem('oaze', 'curiosa', 'Me conta: o que mais te incomoda hoje?')
+        + '<h1 id="bv-titulo">O que você quer resolver primeiro?</h1><p>Escolha quantos quiser. O Início do app começa por isso.</p>'
+        + opcoes(OBJETIVOS, 'data-bv-obj', (id) => estado.objetivos.has(id)) + '</div>' + rodape(estado.objetivos.size);
     }
-    if (estado.passo === 2) {
-      return topo(true) + '<div class="bv-corpo"><h1 id="bv-titulo">De onde sai seu dinheiro?</h1>'
+    if (p === 2) {
+      return topo(true) + '<div class="bv-corpo">' + quem('tico', 'mostra', 'Eu sou o Tico! Cada um anota do seu jeito. Qual é o seu?')
+        + '<h1 id="bv-titulo">Como você prefere registrar seus gastos?</h1><p>Pode marcar mais de um. Dá para mudar depois.</p>'
+        + opcoes(REGISTRO, 'data-bv-reg', (id) => estado.registro.has(id)) + '</div>' + rodape(estado.registro.size);
+    }
+    if (p === 3) {
+      return topo(true) + '<div class="bv-corpo">' + quem('lume', 'tema', 'Lume aqui. Pra fazer conta boa, preciso saber como o dinheiro chega.')
+        + '<h1 id="bv-titulo">Como o dinheiro entra?</h1><p>Isso ajusta o plano do mês e os avisos.</p>'
+        + opcoes(RENDA, 'data-bv-renda', (id) => estado.renda === id) + '</div>' + rodape(!!estado.renda);
+    }
+    if (p === 4) {
+      return topo(true) + '<div class="bv-corpo">' + quem('bia', 'tema', 'Sou a Bia. Todo dinheiro precisa de um porquê. Qual é o seu agora?')
+        + '<h1 id="bv-titulo">O que mais combina com o seu momento?</h1><p>Quem entende do assunto recebe você no app.</p>'
+        + opcoes(MOMENTO, 'data-bv-mom', (id) => estado.momento === id) + '</div>' + rodape(!!estado.momento);
+    }
+    if (p === 5) {
+      return topo(true) + '<div class="bv-corpo">' + quem('nilo', 'acolhe', 'Nilo. Última pergunta, e é das fáceis.')
+        + '<h1 id="bv-titulo">De onde sai seu dinheiro?</h1>'
         + '<p>É só para identificar sua primeira conta. Nada é conectado ao banco.</p>'
         + '<input type="search" class="bv-busca" id="bv-busca" placeholder="Buscar banco" aria-label="Buscar banco" autocomplete="off">'
         + '<div class="bv-bancos" id="bv-bancos">' + BANCOS.map(([k, n]) => '<button type="button" class="bv-banco" data-bv-banco="' + k + '" data-nome="' + esc(norm(n)) + '" aria-pressed="' + (estado.banco === k) + '">' + logoBanco(k) + '<span>' + esc(n) + '</span></button>').join('')
-        + '</div><p class="bv-vazio" id="bv-vazio" hidden>Não achou? Pule e escolha "Outro" ao cadastrar a conta.</p></div>'
-        + '<div class="bv-rodape"><button type="button" class="bv-principal" data-bv="avancar"' + (estado.banco ? '' : ' disabled') + '>Continuar</button></div>';
+        + '</div><p class="bv-vazio" id="bv-vazio" hidden>Não achou? Pule e escolha "Outro" ao cadastrar a conta.</p></div>' + rodape(!!estado.banco);
     }
     const escolhidos = OBJETIVOS.filter((o) => estado.objetivos.has(o.id)).map((o) => o.titulo);
     const banco = (BANCOS.find(([k]) => k === estado.banco) || [])[1];
-    return topo(false) + '<div class="bv-corpo"><h1 id="bv-titulo">Pronto. Seu OAZE está montado.</h1>'
+    const amigo = (MOMENTO.find((m) => m.id === estado.momento) || {}).amigo;
+    const registros = REGISTRO.filter((r) => estado.registro.has(r.id)).map((r) => r.titulo.charAt(0).toLowerCase() + r.titulo.slice(1));
+    return topo(false) + '<div class="bv-corpo"><h1 id="bv-titulo">Pronto. A turma já sabe por onde começar.</h1>'
+      + (amigo ? '<div class="bv-amigo"><img src="' + T + amigo + '/corpo-comemora.webp" alt=""><div><strong>' + esc(AMIGOS[amigo][0]) + ' recebe você</strong><small>' + esc(AMIGOS[amigo][1]) + '. A OAZE continua no centro e chama os outros quando precisar.</small></div></div>' : '')
       + '<ul class="bv-pronto">'
       + (escolhidos.length ? '<li><strong>Início pensado para</strong><small>' + esc(escolhidos.join(' · ')) + '</small></li>' : '')
+      + (registros.length ? '<li><strong>Seu jeito de registrar</strong><small>' + esc(registros.join(' · ')) + '</small></li>' : '')
       + (banco ? '<li><strong>Primeira conta</strong><small>' + esc(banco) + ', é só confirmar o saldo</small></li>' : '')
-      + '<li><strong>Grátis para começar</strong><small>Lançamentos sem limite: a cada 20, um anúncio curto. OAZE com cota diária. O Pro libera tudo, sem anúncios.</small></li>'
-      + '</ul></div><div class="bv-rodape"><a class="bv-principal" href="/cadastro" data-bv="concluir">Criar conta grátis</a>'
-      + '<button type="button" class="bv-link" data-bv="concluir-entrar">Já tenho conta · Entrar</button></div>';
+      + '<li><strong>Grátis para começar</strong><small>O plano Semente não pede cartão. O Oásis amplia os limites e tira os anúncios.</small></li>'
+      + '</ul></div><div class="bv-rodape"><button type="button" class="bv-principal" data-bv="concluir-entrar">Entrar e criar meu PIN</button></div>';
   }
 
   let raiz = null;
@@ -96,7 +160,8 @@
 
   function salvar() {
     const objetivos = [...estado.objetivos];
-    gravar(CHAVE, { objetivos, banco: estado.banco, em: new Date().toISOString() });
+    const amigo = (MOMENTO.find((m) => m.id === estado.momento) || {}).amigo || null;
+    gravar(CHAVE, { objetivos, banco: estado.banco, registro: [...estado.registro], renda: estado.renda, momento: estado.momento, amigo, versao: 2, em: new Date().toISOString() });
     /* Só mexe nos blocos do Início se a pessoa ainda não escolheu nada. */
     if (objetivos.length && !ler(CHAVE_INICIO)) {
       const blocos = {};
@@ -105,11 +170,20 @@
     }
   }
   function fechar(guardar) {
-    if (guardar) salvar(); else gravar(CHAVE, { objetivos: [], banco: null, pulou: true, em: new Date().toISOString() });
+    if (guardar) salvar(); else gravar(CHAVE, { objetivos: [], banco: null, pulou: true, versao: 2, em: new Date().toISOString() });
     document.documentElement.classList.remove('bv-aberto');
     raiz.remove();
-    const email = document.getElementById('email');
-    if (email) email.focus({ preventScroll: true });
+    const alvo = document.getElementById('btn-google') || document.getElementById('email');
+    if (alvo && !alvo.hidden) alvo.focus({ preventScroll: true });
+  }
+  function alterna(conjunto, id, botao) {
+    conjunto.has(id) ? conjunto.delete(id) : conjunto.add(id);
+    botao.setAttribute('aria-pressed', conjunto.has(id));
+    raiz.querySelector('[data-bv="avancar"]').disabled = !conjunto.size;
+  }
+  function unica(seletor, botao) {
+    raiz.querySelectorAll(seletor).forEach((x) => x.setAttribute('aria-pressed', x === botao));
+    raiz.querySelector('[data-bv="avancar"]').disabled = false;
   }
 
   function iniciar() {
@@ -125,27 +199,37 @@
 
     raiz.addEventListener('click', (ev) => {
       const obj = ev.target.closest('[data-bv-obj]');
-      if (obj) { const id = obj.dataset.bvObj; estado.objetivos.has(id) ? estado.objetivos.delete(id) : estado.objetivos.add(id); obj.setAttribute('aria-pressed', estado.objetivos.has(id)); raiz.querySelector('[data-bv="avancar"]').disabled = !estado.objetivos.size; return; }
+      if (obj) { alterna(estado.objetivos, obj.dataset.bvObj, obj); return; }
+      const reg = ev.target.closest('[data-bv-reg]');
+      if (reg) { alterna(estado.registro, reg.dataset.bvReg, reg); return; }
+      const renda = ev.target.closest('[data-bv-renda]');
+      if (renda) { estado.renda = renda.dataset.bvRenda; unica('[data-bv-renda]', renda); return; }
+      const mom = ev.target.closest('[data-bv-mom]');
+      if (mom) { estado.momento = mom.dataset.bvMom; unica('[data-bv-mom]', mom); return; }
       const b = ev.target.closest('[data-bv-banco]');
-      if (b) { estado.banco = b.dataset.bvBanco; raiz.querySelectorAll('[data-bv-banco]').forEach((x) => x.setAttribute('aria-pressed', x === b)); raiz.querySelector('[data-bv="avancar"]').disabled = false; return; }
+      if (b) { estado.banco = b.dataset.bvBanco; unica('[data-bv-banco]', b); return; }
       const acao = ev.target.closest('[data-bv]');
       if (!acao) return;
       const a = acao.dataset.bv;
-      if (a === 'avancar') { estado.passo++; desenhar(); }
+      if (a === 'avancar') { estado.passo = Math.min(ULTIMO, estado.passo + 1); desenhar(); }
       else if (a === 'voltar') { estado.passo = Math.max(0, estado.passo - 1); desenhar(); }
-      else if (a === 'pular') { estado.banco = null; estado.passo = 3; desenhar(); }
+      else if (a === 'pular') {
+        if (estado.passo === 2) estado.registro.clear();
+        else if (estado.passo === 3) estado.renda = null;
+        else if (estado.passo === 4) estado.momento = null;
+        else if (estado.passo === 5) estado.banco = null;
+        estado.passo = Math.min(ULTIMO, estado.passo + 1); desenhar();
+      }
       else if (a === 'fechar') fechar(false);
-      else if (a === 'concluir') salvar();           // segue o link para /cadastro
       else if (a === 'concluir-entrar') fechar(true);
     });
     raiz.addEventListener('input', (ev) => {
       if (ev.target.id !== 'bv-busca') return;
       const q = norm(ev.target.value);
-      let n = 0;
-      raiz.querySelectorAll('[data-bv-banco]').forEach((x) => { const ok = !q || x.dataset.nome.includes(q); x.hidden = !ok; if (ok) n++; });
-      raiz.querySelector('#bv-vazio').hidden = n > 0;
+      let visiveis = 0;
+      raiz.querySelectorAll('[data-bv-banco]').forEach((b) => { const ok = !q || b.dataset.nome.includes(q); b.hidden = !ok; if (ok) visiveis++; });
+      const vazio = raiz.querySelector('#bv-vazio'); if (vazio) vazio.hidden = visiveis > 0;
     });
-    raiz.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && estado.passo > 0) { estado.passo--; desenhar(); } });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();

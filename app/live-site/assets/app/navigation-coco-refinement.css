@@ -257,7 +257,7 @@ body.v3-sidebar-collapsed .v3-shell {
   padding: 6px;
   border: 2px solid transparent;
   border-radius: 999px;
-  background: linear-gradient(110deg, rgba(16, 39, 53, .95), rgba(13, 24, 33, .96)) padding-box,
+  background: linear-gradient(110deg, rgba(16, 39, 53, .95), rgba(28,51,64, .96)) padding-box,
     conic-gradient(from var(--v3-coco-rotation), rgba(95, 169, 155, .56), rgba(53, 85, 101, .7), rgba(240, 229, 207, .72), rgba(233, 135, 94, .55), rgba(95, 169, 155, .56)) border-box;
   box-shadow: 0 7px 24px rgba(1, 10, 15, .25), 0 0 16px rgba(95, 169, 155, .08);
   animation: v3-coco-border-turn 9s linear infinite;

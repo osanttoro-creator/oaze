@@ -1,0 +1,73 @@
+/* Travas estáticas da cobrança Stripe. */
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const raiz = path.join(__dirname, '..', '..');
+const ler = (a) => fs.readFileSync(path.join(raiz, a), 'utf8');
+const falhas = [];
+const exige = (ok, msg) => { if (!ok) falhas.push(msg); };
+
+const pagamento = ler('supabase/functions/oaze-pagamento/index.ts');
+const webhook = ler('supabase/functions/oaze-stripe-webhook/index.ts');
+const stripe = ler('supabase/functions/_shared/stripe.ts');
+const conta = ler('supabase/functions/oaze-conta/index.ts');
+const migration = ler('supabase/migrations/20260913180000_stripe_e_rate_limits.sql');
+const config = ler('supabase/config.toml');
+/* A tela de compra mudou de arquivo com o painel: o que importa
+   é que ALGUÉM do lado do navegador confira o host antes de
+   redirecionar — uma URL de checkout vinda do servidor ainda é uma
+   URL que leva a pessoa para fora do site. */
+const precos = ler('assets/app/app.js');
+
+exige(/from\('plan_prices'\)/.test(pagamento), 'oaze-pagamento não lê o preço de plan_prices');
+exige(!/corpo\.(centavos|valor|preco)\b/.test(pagamento), 'oaze-pagamento aceita valor do navegador');
+/* A MOEDA o navegador escolhe; o VALOR, nunca. A diferença é que a
+   moeda só serve para achar a linha de plan_prices, e o que ela
+   aceita é uma lista fechada de três — corpo.moeda nunca vira número.
+   Se um dia alguém usar corpo.moeda para calcular, a linha acima
+   continua barrando valor vindo do navegador, e esta exige que a
+   escolha passe pelo filtro. */
+exige(/moedaEscolhida\(corpo\.moeda\)/.test(pagamento), 'a moeda do navegador não passa por uma lista fechada');
+exige(/\.eq\('moeda', moeda\)/.test(pagamento), 'o preço não é buscado pela moeda escolhida');
+/* A lista de campos aceitos continua explícita; cupom e moeda
+   entraram nela (código e sigla, nunca valor). Qualquer outro campo
+   continua recusado. */
+exige(/new Set\(\['acao', 'plano', 'ciclo'(, 'moeda')?(, 'cupom')?(, 'canal')?(, 'teste')?\]\)/.test(pagamento), 'oaze-pagamento não bloqueia campos extras');
+/* Teste grátis: só com true literal, só Pro anual, sem cupom, uma vez,
+   e cancela (não cobra) se faltar cartão no fim. */
+exige(/const teste = corpo\.teste === true/.test(pagamento)
+  && /plano !== 'pro' \|\| ciclo !== 'annual' \|\| corpo\.cupom \|\| !\(await elegivelTeste\(\)\)/.test(pagamento)
+  && /trial_period_days\]', '7'/.test(pagamento)
+  && /missing_payment_method\]', 'cancel'/.test(pagamento), 'o teste grátis não está restrito ao Pro anual de quem nunca assinou');
+/* 'canal' só existe para o app instalado (Windows/Android) voltar por oaze://billing: aceita
+   'windows' só da origem do Tauri e 'android' só da origem do Capacitor. */
+exige(/corpo\.canal === 'windows' && \['http:\/\/tauri\.localhost', 'tauri:\/\/localhost'\]/.test(pagamento)
+  && /corpo\.canal === 'android' && origem === 'https:\/\/localhost'/.test(pagamento),
+  'o canal de retorno aceita valor ou origem arbitrária');
+exige(/new Set\(\['acao', 'plano', 'ciclo'(, 'moeda')?, 'codigo'\]\)/.test(pagamento), 'a consulta de cupom aceita campos extras');
+exige(/cupom:minuto/.test(pagamento), 'a consulta de cupom não tem limite próprio contra tentativa e erro');
+exige(/mode', 'subscription'/.test(pagamento), 'Checkout não está em modo de assinatura');
+exige(pagamento.includes('checkout\\.stripe\\.com') && precos.includes('checkout\\.stripe\\.com'), 'redirecionamento não restringe o host da Stripe');
+exige(!/from\('subscriptions'\)\.(insert|upsert)/.test(pagamento), 'checkout libera plano sem webhook');
+exige(/Idempotency-Key/.test(stripe) && /checkout-/.test(pagamento), 'requisição Stripe sem idempotência');
+
+exige(/req\.text\(\)/.test(webhook), 'webhook não usa o corpo cru');
+exige(/stripe-signature/.test(webhook), 'webhook não lê Stripe-Signature');
+exige(/crypto\.subtle\.sign/.test(stripe) && /HMAC/.test(stripe), 'assinatura HMAC não é conferida');
+exige(/stripe_eventos/.test(webhook) && /processado/.test(webhook), 'webhook sem idempotência de evento');
+/* A conciliação compara com a INTENÇÃO, não com uma moeda fixa: a
+   intenção guarda em que moeda o checkout foi aberto, e cobrar em
+   outra é divergência do mesmo jeito que cobrar outro valor. */
+exige(/valor !== intencao\.centavos/.test(webhook) && /moeda !== String\(intencao\.moeda/.test(webhook),
+  'webhook não confere preço e moeda contra a intenção');
+exige(/reservarRateLimit/.test(pagamento) && /reservarRateLimit/.test(webhook), 'endpoint sem rate limit');
+
+const cancelaStripe = conta.indexOf("stripe('DELETE'");
+const apagaUsuario = conta.indexOf('deleteUser(');
+exige(cancelaStripe > 0 && cancelaStripe < apagaUsuario, 'exclusão da conta não encerra a Stripe antes');
+exige(/stripe_intencoes[\s\S]*enable row level security/.test(migration), 'stripe_intencoes sem RLS');
+exige(/revoke all on public\.stripe_intencoes/.test(migration), 'tabelas Stripe expostas ao navegador');
+exige(/\[functions\.oaze-stripe-webhook\][\s\S]*verify_jwt = false/.test(config), 'configuração do webhook ausente');
+
+if (falhas.length) { console.error(falhas.join('\n')); process.exit(1); }
+console.log('OK - Stripe preparada com preço de servidor, assinatura, idempotência e RLS');

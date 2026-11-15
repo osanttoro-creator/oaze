@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appId: 'site.oaze.app',
   appName: 'OAZE',
   webDir: 'dist-live',
-  backgroundColor: '#0D1821',
+  backgroundColor: '#1C3340',
   android: { allowMixedContent: false, captureInput: true, webContentsDebuggingEnabled: false },
   ios: { contentInset: 'never', scheme: 'OAZE', limitsNavigationsToAppBoundDomains: true },
   plugins: {

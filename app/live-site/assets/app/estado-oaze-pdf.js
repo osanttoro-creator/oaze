@@ -65,7 +65,7 @@
       doc.addImage(logo, 'PNG', 18, 18, 49, 18);
     } catch { doc.setFont(displayFont, 'normal'); doc.setFontSize(22); doc.setTextColor(...milk); doc.text('OAZE', 18, 32); }
     try {
-      const coco = await png('/assets/brand/oaze-mascote-512.png');
+      const coco = await png('/assets/turma/oaze/icone-512.png');
       doc.addImage(coco, 'PNG', 161, 18, 30, 30);
     } catch { /* A falha de uma imagem não impede o acesso aos dados. */ }
     doc.setFont(displayFont, 'normal'); doc.setFontSize(25); doc.setTextColor(...milk);
@@ -183,7 +183,7 @@
     const doc = new PDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
     const dark = [13, 24, 33], milk = [240, 229, 207], teal = [95, 169, 155];
     const logo = await png('/assets/brand/oaze-logo-mono-milk.svg').catch(() => null);
-    const coco = await png('/assets/brand/oaze-mascote-512.png').catch(() => null);
+    const coco = await png('/assets/turma/oaze/icone-512.png').catch(() => null);
     let page = 0, y = 36;
     const newPage = () => {
       if (page) doc.addPage();

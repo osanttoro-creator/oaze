@@ -52,7 +52,7 @@
     </nav>
     <div class="acoes-topo">
       <a class="btn btn-fantasma" href="/entrar">Entrar</a>
-      <a class="btn btn-principal" href="/cadastro">Criar conta grátis</a>
+      <a class="btn btn-principal" href="/entrar">Entrar</a>
     </div>
   </div>
 </header>
@@ -61,7 +61,7 @@
   <div class="env">
     <div class="texto">
       <h1>Termos de uso</h1>
-      <p class="atualizado">Última atualização: 15 de setembro de 2026</p>
+      <p class="atualizado">Última atualização: 14 de novembro de 2026 (a turma da OAZE, personalização e entrada por PIN)</p>
 
       <!-- ESTE AVISO É PARA VALER, e sai só depois de um advogado
            ler o documento. Publicar um contrato gerado sem revisão
@@ -72,13 +72,12 @@
         redigido a partir do funcionamento real do produto e do Código de Defesa do
         Consumidor, mas <strong>não foi revisado por advogado</strong>.</p>
         <p>Antes do lançamento, um profissional precisa revisar principalmente a
-        responsabilidade (§7), o encerramento de conta (§5) e o foro
-        (§10). Remova este
+        responsabilidade (§7), o encerramento de conta (§5), a personalização por inteligência artificial (§9) e o foro (§11). Remova este
         aviso só depois dessa revisão.</p>
       </div>
 
       <h2 id="objeto">1. O que é o OAZE</h2>
-      <p>O OAZE é um painel de organização financeira pessoal. Ele registra, organiza e
+      <p>O OAZE é um aplicativo de organização financeira pessoal para Android e Windows. O site oaze.site apresenta o aplicativo e cuida da assinatura; ele não é uma versão do aplicativo para navegador. Ele registra, organiza e
       apresenta informações que <strong>você</strong> insere ou importa.</p>
       <p><strong>O OAZE não é instituição financeira, não movimenta dinheiro e não presta
       consultoria de investimentos.</strong> Nada do que ele apresenta é recomendação de
@@ -86,12 +85,9 @@
       de resultado.</p>
 
       <h2 id="conta">2. Sua conta</h2>
-      <p>Para sincronizar dados entre aparelhos é preciso criar uma conta com e-mail e
-      senha. Você é responsável por manter a senha em sigilo e por tudo que acontecer na
-      conta enquanto ela estiver sob seu controle.</p>
-      <p>É possível usar o OAZE <strong>sem conta</strong>. Nesse caso os dados ficam
-      apenas no navegador do aparelho, e nós não temos como recuperá-los se forem
-      perdidos — limpar o navegador ou trocar de aparelho apaga tudo.</p>
+      <p>A conta é criada com a sua conta Google ou com o e-mail informado na assinatura. Na primeira entrada no aplicativo você cria um <strong>PIN de 6 dígitos</strong>. Depois, entra com e-mail e PIN ou com a biometria do aparelho (digital ou rosto).</p>
+      <p>O PIN é guardado apenas como hash. Depois de cinco tentativas erradas ele fica bloqueado por 15 minutos. Se você esquecer o PIN, entre de novo pela conta Google e crie outro.</p>
+      <p>Você é responsável por manter o PIN em sigilo e por tudo que acontecer na conta enquanto ela estiver sob seu controle.</p>
       <p>Você precisa ter 18 anos ou mais, ou autorização de responsável legal.</p>
 
       <h2 id="uso">3. Uso aceitável</h2>
@@ -103,21 +99,18 @@
       conteúdo ilícito ou material criado para comprometer o serviço.</p>
 
       <h2 id="planos">4. Planos e limites</h2>
-      <p>O plano <strong>Semente</strong> é gratuito e não exige cartão. O
-      <strong>Oásis</strong> é a assinatura paga. Preços e limites de cada plano estão
-      publicados em <a href="/precos">Preços</a>.</p>
+      <p>O plano <strong>Semente</strong> é gratuito, permanente e não exige cartão. O
+      <strong>Oásis</strong> é a assinatura paga. Preços e limites de cada plano estão publicados em <a href="/#planos">Planos</a>.</p>
       <p><strong>Cobrança.</strong> As assinaturas são cobradas no cartão de crédito, de forma
-      recorrente (mensal ou anual, conforme a escolha), por meio da <strong>Stripe</strong>, que
-      processa o pagamento. O plano é liberado quando o pagamento é confirmado. O valor de uma
+      recorrente (mensal ou anual, conforme a escolha), por meio da <strong>Stripe</strong>, que processa o pagamento. No aplicativo Android, a assinatura também pode ser feita pela <strong>Google Play</strong>, que cobra e gerencia a renovação pelas regras dela. O plano é liberado quando o pagamento é confirmado. O valor de uma
       assinatura em curso não muda sem aviso prévio.</p>
-      <p><strong>Cancelamento.</strong> Você pode cancelar a qualquer momento em Configurações. A
+      <p><strong>Cancelamento.</strong> Você pode cancelar a qualquer momento em Configurações. Assinaturas feitas pela Google Play são canceladas na própria Google Play. A
       renovação é interrompida na hora e o plano continua disponível até o fim do período já
       pago; depois, a conta volta ao Semente. Excluir a conta também encerra a assinatura.</p>
-      <p><strong>Direito de arrependimento e estorno.</strong> Em contratações à distância,
-      você pode exercer o direito de arrependimento no prazo legal de 7 dias, nos termos
-      do art. 49 do Código de Defesa do Consumidor. Peça pelo <a href="/suporte">suporte</a>.
-      Para compras realizadas em uma loja de aplicativos, os canais de solicitação e
-      processamento da própria loja também se aplicam, sem afastar direitos legais.</p>
+      <p><strong>Direito de arrependimento e estorno.</strong> Na primeira contratação, você pode
+      desistir em até 7 dias (art. 49 do Código de Defesa do Consumidor) e receber o valor de
+      volta, pelo <a href="/suporte">suporte</a>. Pagamento estornado ou contestado encerra o plano
+      pago imediatamente.</p>
       <p>Os limites de cada plano são aplicados no nosso servidor. Ultrapassá-los impede
       criar registros novos, mas <strong>nunca apaga registros existentes</strong>.</p>
 
@@ -129,21 +122,31 @@
       os dados, salvo quando a violação exigir ação imediata.</p>
 
       <h2 id="sla">6. Disponibilidade e suporte</h2>
-      <p>Trabalhamos para manter autenticação, consulta, criação e sincronização disponíveis.
-      Manutenções, falhas de conexão e incidentes de fornecedores podem causar interrupções.
-      Informe problemas pela <a href="/suporte">página de suporte</a>; vamos acompanhar o caso
-      e comunicar atualizações pelos canais disponíveis.</p>
-      <p>Planos pagos não têm uma garantia numérica de disponibilidade ou crédito de serviço
-      nesta versão. Isso não reduz os direitos do consumidor previstos em lei, inclusive
-      quando houver falha na prestação do serviço.</p>
+      <p>Nos planos pagos, a meta mensal de disponibilidade das funções centrais é de
+      <strong>99,5%</strong>. Isso inclui autenticação, consulta, criação e sincronização
+      dos registros financeiros. Em um mês de 30 dias, a meta admite até 3 horas e 36
+      minutos de indisponibilidade contabilizada.</p>
+      <p>Não entram no cálculo manutenções programadas, avisadas com 48 horas de antecedência
+      e limitadas a 4 horas por mês; falhas restritas ao aparelho ou à conexão do usuário; força maior comprovada; e falhas externas fora do controle razoável do OAZE,
+      desde que tenhamos agido com diligência para escolher, acompanhar e cobrar o fornecedor.</p>
+      <p>Se a disponibilidade ficar abaixo de 99,5%, o titular do plano poderá pedir crédito
+      sobre a mensalidade afetada: 10% abaixo de 99,5% e a partir de 99,0%; 25% abaixo de
+      99,0% e a partir de 98,0%; e 50% abaixo de 98,0%. O pedido poderá ser feito em até
+      30 dias. O crédito não substitui
+      reembolso, abatimento, reparação ou outro direito previsto em lei.</p>
+      <p>O plano gratuito funciona por melhor esforço, sem crédito de serviço. Isso não reduz
+      os direitos legais do usuário nem as obrigações de segurança, privacidade e acessibilidade.</p>
+      <p>Em incidente crítico que impeça a maioria dos usuários de entrar, consultar ou salvar
+      dados, nossa meta é confirmar o recebimento em até 2 horas, atualizar a situação a cada
+      4 horas e publicar um relatório em até 10 dias úteis depois da estabilização.</p>
 
       <h2 id="responsabilidade">7. Responsabilidade, segurança e incidentes</h2>
       <p>O OAZE adota medidas técnicas e administrativas proporcionais ao risco. Nenhum
       sistema é imune a falhas, mas essa realidade não afasta as responsabilidades previstas
       na LGPD, no Código de Defesa do Consumidor ou em outra lei aplicável.</p>
-      <p><strong>As decisões financeiras são suas.</strong> Confira dados inseridos ou
-      importados antes de decidir. Essa orientação não afasta nossa responsabilidade por
-      defeitos do serviço ou outras hipóteses previstas em lei.</p>
+      <p><strong>As decisões financeiras são suas.</strong> Não respondemos por prejuízo
+      decorrente de decisão tomada com base no que o OAZE apresenta, nem por dado
+      incorreto que você tenha inserido ou importado.</p>
       <p>O OAZE poderá responder quando der causa ao dano por tratamento ilegal, falha de
       segurança evitável, demora indevida em conter um incidente, instrução ilícita ou
       escolha e fiscalização negligentes de fornecedor. Se um fornecedor causar o incidente,
@@ -160,26 +163,33 @@
       <p>O tratamento de dados pessoais está na
       <a href="/privacidade">Política de privacidade</a>, que faz parte destes termos.</p>
       <p>Os dados financeiros que você insere <strong>são seus</strong>. Não os vendemos,
-      não os cedemos a terceiros para fins comerciais e não os usamos para treinar modelos
-      de inteligência artificial.</p>
+      não os cedemos a terceiros para fins comerciais e não os usamos para treinar modelos de inteligência artificial. O uso deles pela assistente OAZE está descrito no §9.</p>
 
-      <h2 id="acessibilidade">9. Acessibilidade</h2>
+      <h2 id="turma">9. A assistente OAZE, a turma e a personalização</h2>
+      <p>O aplicativo tem uma assistente, a <strong>OAZE</strong>, e quatro personagens que ela chama conforme o assunto: <strong>Nilo</strong> (investimento e tempo), <strong>Bia</strong> (propósito e metas), <strong>Tico</strong> (impulso e organização) e <strong>Lume</strong> (matemática e clareza). Todos são partes da mesma assistente, movida por inteligência artificial.</p>
+      <p><strong>Personalização pela OAZE.</strong> Para adaptar o aplicativo a você, a OAZE e a turma analisam seus lançamentos, receitas, metas, investimentos, as respostas do quiz de entrada e as conversas que você tem com elas. Com isso montam planos, sugerem tetos e explicam seus números do seu jeito. Essa análise é feita por inteligência artificial (Claude, da Anthropic), que recebe só o necessário para cada resposta e não usa seus dados para treinar modelos.</p>
+      <p>Você pode ver o que a OAZE aprendeu, pausar o aprendizado ou apagar tudo em Configurações → OAZE → Memória, a qualquer momento. Sem essa autorização, o aplicativo continua funcionando, sem a personalização.</p>
+      <p><strong>O que a assistente não faz.</strong> Ela não movimenta dinheiro, não paga contas e não contrata nada em seu nome. Lançamentos, metas e tetos de categoria sugeridos por ela só valem depois da sua confirmação. O plano do mês e os desafios são sugestões que você pode aceitar, ajustar ou ignorar.</p>
+      <p><strong>Investimentos.</strong> O Nilo explica conceitos e compara cenários com números que o aplicativo já acompanha. Isso é informação educativa, <strong>não é recomendação de investimento</strong>, e simulações não garantem resultado.</p>
+      <p><strong>Respostas de inteligência artificial podem conter erros.</strong> Confira valores, datas e categorias antes de salvar e antes de tomar decisões com base no que a assistente disser.</p>
+
+      <h2 id="acessibilidade">10. Acessibilidade</h2>
       <p>A acessibilidade faz parte do serviço e não depende de plano pago. O OAZE trabalha
       para atender a WCAG 2.2 no nível AA, incluindo navegação por teclado, foco visível,
       leitores de tela, contraste, zoom, redução de movimento e mensagens de erro acessíveis.</p>
       <p>Se uma barreira impedir cadastro, pagamento, exportação, cancelamento ou exclusão,
-      escreva para <a href="mailto:info@oaze.site">info@oaze.site</a>. Descreva a barreira
-      e o aparelho usado para que possamos buscar um caminho acessível. Uma falha de
-      acessibilidade não elimina seus direitos legais nem seus prazos.</p>
+      escreva para <a href="mailto:info@oaze.site">info@oaze.site</a>. Confirmaremos o
+      recebimento em até 2 dias úteis e buscaremos uma alternativa equivalente, sem custo e
+      sem perda de prazo, em até 5 dias úteis.</p>
 
-      <h2 id="alteracoes">10. Alterações, lei aplicável e foro</h2>
-      <p>Podemos alterar estes termos. Mudanças relevantes serão comunicadas pelos canais
-      disponíveis, com antecedência adequada quando exigida por lei. A nova versão indicará
-      a data de atualização; alterações que exijam consentimento terão uma escolha específica.</p>
+      <h2 id="alteracoes">11. Alterações, lei aplicável e foro</h2>
+      <p>Podemos alterar estes termos. Mudanças relevantes são avisadas por e-mail com
+      <strong>30 dias</strong> de antecedência; continuar usando depois disso significa
+      aceitá-las.</p>
       <p>Aplica-se a <strong>lei brasileira</strong>. Fica eleito o foro do domicílio do
       consumidor, conforme o Código de Defesa do Consumidor.</p>
 
-      <h2 id="contato">11. Contato</h2>
+      <h2 id="contato">12. Contato</h2>
       <p>Dúvidas sobre estes termos: <a href="/suporte">página de suporte</a> ou
       <a href="mailto:info@oaze.site">info@oaze.site</a>.</p>
 
@@ -205,8 +215,8 @@
         <li><a href="/recursos">Recursos</a></li><li><a href="/precos">Preços</a></li>
         <li><a href="/#coco">Coco</a></li><li><a href="/#seguranca">Segurança</a></li></ul></div>
       <div><h3>Conta</h3><ul>
-        <li><a href="/entrar">Entrar</a></li><li><a href="/cadastro">Criar conta</a></li>
-        <li><a href="/recuperar-senha">Recuperar senha</a></li></ul></div>
+        <li><a href="/entrar">Entrar</a></li>
+        </ul></div>
       <div><h3>Legal</h3><ul>
         <li><a href="/termos">Termos de uso</a></li><li><a href="/privacidade">Política de privacidade</a></li>
         <li><a href="/suporte">Suporte</a></li></ul></div>

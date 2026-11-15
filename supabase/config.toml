@@ -1,0 +1,62 @@
+# Configuração do projeto Supabase.
+project_id = "gxwatircdhhetvzzlwwq"
+
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/validar_aceite_privacidade"
+
+[functions.oaze-assistant]
+# Deixado LIGADO de propósito. Com verify_jwt ativo, a plataforma
+# valida o JWT antes de o código rodar: quem chega sem sessão leva
+# 401 sem gastar um ciclo da função nem um token da OpenAI.
+#
+# A função valida de novo por dentro, com getUser(). Não é
+# redundância inútil — é a diferença entre "o token é válido" e
+# "este é o usuário, e é dele que vamos ler o plano".
+verify_jwt = true
+
+[functions.oaze-coco-voz]
+verify_jwt = true
+
+[functions.oaze-coco-realtime]
+verify_jwt = true
+
+[functions.oaze-pagamento]
+verify_jwt = true
+
+[functions.oaze-perfis]
+verify_jwt = true
+
+[functions.oaze-invest-data]
+verify_jwt = true
+
+[functions.oaze-conta]
+verify_jwt = true
+
+[functions.oaze-stripe-webhook]
+# A Stripe não possui sessão do Supabase. A função valida o corpo
+# cru com STRIPE_WEBHOOK_SECRET antes de interpretar o evento.
+verify_jwt = false
+
+[functions.oaze-contato]
+# Pública de propósito: quem escreve para o suporte muitas vezes é
+# justamente quem não consegue entrar. O que protege a rota é a
+# origem (OAZE_ALLOWED_ORIGINS), o limite de 5 envios por hora por
+# origem, o campo-isca e os limites de tamanho — ver o cabeçalho de
+# supabase/functions/oaze-contato/index.ts.
+verify_jwt = false
+
+[functions.oaze-nfce]
+verify_jwt = true
+
+[functions.oaze-play]
+# A Google (Pub/Sub, notificações RTDN) não tem sessão do Supabase.
+# A rota do app confere o JWT dentro da função; a da Google confere
+# OAZE_PLAY_RTDN_SEGREDO na URL. Ver supabase/functions/oaze-play.
+verify_jwt = false
+
+[functions.oaze-entrar]
+# Entrada por e-mail + PIN: quem chama ainda não tem sessão. A função
+# se protege pela origem, por limite de tentativas e pelo bloqueio do
+# próprio PIN (5 erros, 15 minutos). Ver supabase/functions/oaze-entrar.
+verify_jwt = false

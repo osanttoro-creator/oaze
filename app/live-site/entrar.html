@@ -16,18 +16,23 @@
 <!-- Página de sessão: não há nada aqui que faça sentido num
      resultado de busca, e indexá-la só canibaliza a landing. -->
 <meta name="robots" content="noindex, follow">
-<meta name="theme-color" content="#071822">
+<meta name="theme-color" content="#1C3340">
 <link rel="icon" href="/assets/brand/oaze-favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/img/oaze-48.png" sizes="48x48" type="image/png">
 <link rel="apple-touch-icon" href="/assets/img/oaze-180.png">
 <link rel="stylesheet" href="/assets/css/site.css">
 <link rel="stylesheet" href="/assets/app/login-experience.css">
 <link rel="stylesheet" href="/assets/app/boas-vindas.css?v=20261031a">
+<link rel="stylesheet" href="/assets/app/turma.css?v=20261114a">
 </head>
 <body>
+<!-- Abertura da primeira vez (motion da turma). Depois dela, esta
+     cortina some na hora: a entrada não tem o que carregar. -->
+<div class="tm-abertura" id="tm-abertura" role="status" aria-label="Abrindo a OAZE"><img class="tm-abertura-pet" src="/assets/turma/oaze/pet-running.webp" alt="" width="192" height="224"><strong>OAZE</strong><span class="tm-abertura-barra"><i></i></span></div>
+<script src="/assets/app/turma-abertura.js?v=20261114a"></script>
 <div class="oaze-entrance is-loading" id="oaze-entrance" role="dialog" aria-modal="true" aria-labelledby="oaze-entrance-title">
   <span class="oaze-entrance-glow" aria-hidden="true"></span>
-  <img src="/assets/brand/oaze-logo-mono-milk.svg" alt="OAZE" width="132" height="52">
+  <img src="/assets/turma/oaze/corpo-feliz.webp" alt="OAZE" width="200" height="112" style="width:200px;height:auto">
   <span class="oaze-entrance-line" aria-hidden="true"></span>
   <h1 id="oaze-entrance-title">Seu espaço começa aqui.</h1>
   <p id="oaze-entrance-message">Um lugar para cuidar do seu dinheiro com clareza.</p>
@@ -39,12 +44,7 @@
 
 <header class="topo">
   <div class="env">
-    <a class="marca" href="/" aria-label="OAZE, página inicial">
-        <img src="/assets/brand/oaze-logo-escuro.svg" alt="" width="116" height="40" decoding="async">
-    </a>
-    <div class="acoes-topo" style="margin-left:auto">
-      <a class="btn btn-fantasma" href="/cadastro">Criar conta</a>
-    </div>
+    <span class="marca" aria-label="OAZE" style="display:inline-flex;align-items:center;gap:9px;font:500 21px Unbounded,sans-serif;color:#f0e5cf"><img src="/assets/turma/oaze/rosto-feliz.webp" alt="" width="46" height="30" style="width:46px;height:auto">OAZE</span>
   </div>
 </header>
 
@@ -52,7 +52,7 @@
   <div class="env">
     <div class="painel-conta">
       <h1>Entrar</h1>
-      <p>Seus dados sincronizados em qualquer aparelho.</p>
+      <p>Na primeira vez, entre com Google e crie seu PIN. Depois é só e-mail e PIN, ou a digital.</p>
 
       <!-- A região existe desde o carregamento, vazia e escondida.
            Criá-la junto com o texto faria o leitor de tela não
@@ -77,8 +77,8 @@
         <label class="consentimento-caixa" for="aceite">
           <input type="checkbox" id="aceite" name="aceite" required>
           <span>Li e aceito a <a href="/privacidade" target="_blank" rel="noopener noreferrer">Política de privacidade</a>
-          e os <a href="/termos" target="_blank" rel="noopener noreferrer">Termos de uso</a>, e autorizo a Coco a usar
-          meus dados financeiros para me responder. Posso revogar a Coco nas configurações.</span>
+          e os <a href="/termos" target="_blank" rel="noopener noreferrer">Termos de uso</a>, e autorizo a OAZE e a turma (Nilo, Bia, Tico e Lume) a usar
+          meus dados financeiros para me responder e adaptar o app a mim. Posso pausar ou revogar nas configurações.</span>
         </label>
         <p class="erro" id="aceite-erro" hidden></p>
       </div>
@@ -106,7 +106,7 @@
       </div>
       <div class="separa" id="separa-social" hidden>ou</div>
       <button class="btn btn-fantasma btn-largo" type="button" id="abrir-email" hidden>
-        Entrar com e-mail
+        Entrar com e-mail e PIN
       </button>
 
       <div id="via-email">
@@ -118,42 +118,37 @@
           <p class="erro" id="email-erro" hidden></p>
         </div>
 
-      <form id="form-magico" novalidate>
-        <button class="btn btn-principal btn-largo btn-grande" type="submit" id="botao-magico">
-          Receber link para entrar
-        </button>
+      <form id="form-pin" novalidate>
+        <div class="campo">
+          <label for="pin">PIN de 6 dígitos</label>
+          <input type="password" id="pin" name="pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                 autocomplete="off" required placeholder="••••••" aria-describedby="pin-erro">
+          <p class="erro" id="pin-erro" hidden></p>
+        </div>
+        <button class="btn btn-principal btn-largo btn-grande" type="submit" id="botao-pin">Entrar</button>
         <p class="dica" style="text-align:center;margin-top:10px;color:var(--texto-3);font-size:.84rem">
-          Confirme o e-mail para entrar. Seu PIN protege os dados sensíveis da conta.
+          Esqueceu o PIN? Entre com Google e crie outro. Depois de 5 erros ele fica bloqueado por 15 minutos.
         </p>
       </form>
 
       <details style="margin-top:20px">
-        <summary>Tenho uma conta antiga com senha</summary>
-      <form id="form-entrar" novalidate style="margin-top:16px">
-        <div class="campo">
-          <div class="linha-campo">
-            <label for="senha">Senha</label>
-            <a href="/recuperar-senha">Esqueci a senha</a>
-          </div>
-          <input type="password" id="senha" name="senha" autocomplete="current-password"
-                 required placeholder="Sua senha" aria-describedby="senha-erro">
-          <p class="erro" id="senha-erro" hidden></p>
-        </div>
-
-        <button class="btn btn-fantasma btn-largo" type="submit" id="botao-entrar">Entrar com senha</button>
+        <summary>Prefiro receber um link por e-mail</summary>
+      <form id="form-magico" novalidate style="margin-top:16px">
+        <button class="btn btn-fantasma btn-largo" type="submit" id="botao-magico">
+          Receber link para entrar
+        </button>
+        <p class="dica" style="text-align:center;margin-top:10px;color:var(--texto-3);font-size:.84rem">
+          O link chega no e-mail acima e vale uma vez.
+        </p>
       </form>
       </details>
       </div><!-- /via-email -->
 
       <p class="pe-do-painel">
-        Ainda não tem conta? <a href="/cadastro">Criar conta grátis</a>
+        Primeira vez por aqui? Entre com Google. Em seguida você cria seu PIN de 6 dígitos.
       </p>
     </div>
 
-    <p class="legalzinho" style="max-width:27rem;margin-inline:auto">
-      Você pode usar o OAZE sem conta — os dados ficam só neste aparelho.
-      <a href="/#perguntas">Entenda a diferença</a>.
-    </p>
   </div>
 </main>
 
@@ -168,9 +163,9 @@
   var A = window.SiteAuth;
   var recado = document.getElementById('recado');
   var email = document.getElementById('email');
-  var senha = document.getElementById('senha');
-  var form = document.getElementById('form-entrar');
-  var botao = document.getElementById('botao-entrar');
+  var pin = document.getElementById('pin');
+  var form = document.getElementById('form-pin');
+  var botao = document.getElementById('botao-pin');
   var formMagico = document.getElementById('form-magico');
   var botaoMagico = document.getElementById('botao-magico');
   var entrance = document.getElementById('oaze-entrance');
@@ -274,7 +269,7 @@
     }
     if (hasSeenEntrance) hideEntrance();
     else {
-      showEntrance('Seu espaço começa aqui.', 'Seu dinheiro, seus planos e a Coco em um só lugar.', false);
+      showEntrance('Seu espaço começa aqui.', 'Seu dinheiro, seus planos e a turma da OAZE em um só lugar.', false);
       document.getElementById('oaze-entrance-skip').focus();
     }
     return perguntou.then(function (p) {
@@ -346,15 +341,34 @@
   function valida() {
     var ok = true;
     A.erroNoCampo(email, '');
-    A.erroNoCampo(senha, '');
+    A.erroNoCampo(pin, '');
     if (!email.value.trim()) { A.erroNoCampo(email, 'Informe seu e-mail.'); ok = false; }
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value.trim())) { A.erroNoCampo(email, 'Esse e-mail não parece válido.'); ok = false; }
-    if (!senha.value) { A.erroNoCampo(senha, 'Informe sua senha.'); ok = false; }
-    /* O foco vai para o primeiro campo com problema. Sem isso, quem
-       navega por teclado recebe a mensagem e continua no botão, sem
-       saber onde o erro está. */
+    if (!/^\d{6}$/.test(pin.value)) { A.erroNoCampo(pin, 'O PIN tem seis dígitos.'); ok = false; }
     if (!ok) { var ruim = document.querySelector('#via-email [aria-invalid="true"]'); if (ruim) ruim.focus(); }
     return ok;
+  }
+
+  /* E-mail + PIN: a função oaze-entrar confere o PIN e devolve um token
+     de uso único; o Supabase troca esse token pela sessão. O PIN nunca
+     fica guardado no aparelho. */
+  async function entrarComPin(enderecoEmail, codigo) {
+    var cfg = window.SupabaseConfig || {};
+    var base = String(cfg.url || '').replace(/\/+$/, '');
+    var chave = String(cfg.publishableKey || cfg.anonKey || '');
+    if (!/^https:\/\//.test(base) || !chave) throw new Error('Entrada por PIN indisponível agora. Use o Google.');
+    var resposta = await fetch(base + '/functions/v1/oaze-entrar', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'content-type': 'application/json', apikey: chave, authorization: 'Bearer ' + chave },
+      body: JSON.stringify({ email: enderecoEmail, pin: codigo })
+    });
+    var dados = await resposta.json().catch(function () { return {}; });
+    if (resposta.status === 404) throw new Error('A entrada por PIN ainda não está ligada. Use o Google ou o link por e-mail.');
+    if (!resposta.ok || !dados.token_hash) throw new Error(dados.mensagem || 'E-mail ou PIN incorretos.');
+    var auth = A.cliente().auth;
+    var r = await auth.verifyOtp({ token_hash: dados.token_hash, type: 'magiclink' });
+    if (r.error) r = await auth.verifyOtp({ token_hash: dados.token_hash, type: 'email' });
+    if (r.error) throw new Error('Não foi possível abrir a sessão. Tente de novo ou use o Google.');
   }
 
   form.addEventListener('submit', async function (e) {
@@ -364,18 +378,18 @@
     if (!autorizado()) return;
 
     A.ocupado(botao, true, 'Entrando…');
-    showEntrance('Preparando seu OAZE', 'Conferindo sua conta com segurança…', true);
+    showEntrance('Preparando seu OAZE', 'Conferindo seu PIN com segurança…', true);
     try {
-      var r = await A.entrar(email.value.trim(), senha.value);
-      if (r.error) throw r.error;
-      A.diz(recado, 'Tudo certo. Abrindo seu painel…', 'ok');
+      await entrarComPin(email.value.trim(), pin.value);
+      pin.value = '';
+      A.diz(recado, 'Tudo certo. Abrindo seu OAZE…', 'ok');
       location.replace(A.destino());
     } catch (err) {
       hideEntrance();
       A.ocupado(botao, false);
-      A.diz(recado, A.frase(err), 'erro');
-      senha.focus();
-      senha.select();
+      pin.value = '';
+      A.diz(recado, (err && err.message) || A.frase(err), 'erro');
+      pin.focus();
     }
   });
 

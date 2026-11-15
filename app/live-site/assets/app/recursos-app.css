@@ -16,7 +16,7 @@
 .oz-viagem{margin:0;color:#e0b25a;font-size:13px}
 .oz-inicio-coco{margin:0 0 16px;display:grid;gap:12px}
 .oz-inicio-coco form{display:flex;gap:8px}
-.oz-inicio-coco input{flex:1;min-width:0;min-height:48px;padding:10px 16px;border-radius:99px;border:1px solid rgba(95,169,155,.5);background:#172d3a;color:#f0e5cf}
+.oz-inicio-coco input{flex:1;min-width:0;min-height:48px;padding:10px 16px;border-radius:99px;border:1px solid rgba(95,169,155,.5);background:#2f5465;color:#f0e5cf}
 .oz-inicio-coco input:focus-visible{outline:2px solid #5fa99b;outline-offset:2px}
 .oz-inicio-coco form .v3-primary{min-width:48px;min-height:48px;border-radius:50%;font-size:22px}
 .oz-atalhos{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
@@ -80,7 +80,7 @@
 .tg-chips{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .tg-chips li{padding:8px 13px;border-radius:999px;border:1px solid rgba(240,229,207,.12);font-size:14px}
 .tg-chips li::before{content:'✓ ';color:#3ecf8e;font-weight:700}
-.tg-principal{width:100%;padding:17px;border:0;border-radius:20px;background:#5fa99b;color:#0b141b;font-weight:700;font-size:18px;font-family:inherit;cursor:pointer}
+.tg-principal{width:100%;padding:17px;border:0;border-radius:20px;background:#5fa99b;color:#172c37;font-weight:700;font-size:18px;font-family:inherit;cursor:pointer}
 .tg-principal:disabled{opacity:.6;cursor:progress}
 .tg-principal:focus-visible,.tg-fechar:focus-visible,.tg-links button:focus-visible{outline:2px solid #F0E5CF;outline-offset:3px}
 .tg-garantia{text-align:center;color:rgba(240,229,207,.7);font-size:14px;margin:10px 0 4px}
@@ -106,8 +106,8 @@
 html.tg-com-muro body{overflow:hidden}
 
 /* Telas novas do "Mais" (31/10/2026) */
-.oz-tela{border:0;padding:0;margin:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;background:#0d1821;color:#F0E5CF;overflow:hidden}
-.oz-tela::backdrop{background:#0d1821}
+.oz-tela{border:0;padding:0;margin:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;background:#1c3340;color:#F0E5CF;overflow:hidden}
+.oz-tela::backdrop{background:#1c3340}
 @media(min-width:900px){.oz-tela{width:min(720px,100%);margin:0 auto;border-left:1px solid rgba(240,229,207,.08);border-right:1px solid rgba(240,229,207,.08)}.oz-tela::backdrop{background:rgba(3,10,15,.8)}}
 .oz-tela-topo{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px 10px;border-bottom:1px solid rgba(240,229,207,.07)}
 .oz-tela-topo h1{margin:0;text-align:center;font-size:19px}
@@ -163,7 +163,7 @@ html.tg-com-muro body{overflow:hidden}
 .oz-tags-campo legend{font-size:12px;letter-spacing:.06em;color:rgba(240,229,207,.7);margin-bottom:6px}
 .oz-tags-chips{display:flex;flex-wrap:wrap;gap:6px}
 .oz-chip{padding:7px 12px;border-radius:999px;border:1px solid rgba(240,229,207,.15);background:transparent;color:#F0E5CF;font:inherit;font-size:14px;cursor:pointer;min-height:36px}
-.oz-chip[aria-pressed="true"]{background:var(--chip,#5fa99b);border-color:var(--chip,#5fa99b);color:#0b141b;font-weight:600}
+.oz-chip[aria-pressed="true"]{background:var(--chip,#5fa99b);border-color:var(--chip,#5fa99b);color:#172c37;font-weight:600}
 .oz-chip-nova{border-style:dashed;color:#5fa99b}
 @media print{
   html.oz-imprimindo body>*:not(dialog.oz-tela){display:none!important}

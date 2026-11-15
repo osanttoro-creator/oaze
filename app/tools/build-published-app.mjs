@@ -38,15 +38,15 @@ function harden(html, name) {
 
 mkdirSync(join(output, 'native'), { recursive: true });
 
-const routes = ['entrar', 'cadastro', 'recuperar-senha', 'redefinir-senha', 'confirmar-email', 'privacidade', 'termos', 'suporte'];
-const routePattern = 'entrar|cadastro|recuperar-senha|redefinir-senha|confirmar-email|privacidade|termos|suporte';
+const routes = ['entrar', 'confirmar-email', 'privacidade', 'termos', 'suporte'];
+const routePattern = 'entrar|confirmar-email|privacidade|termos|suporte';
 // Páginas de leitura abertas de dentro do painel: no app elas não podem levar
 // ao menu de marketing do site (Recursos, Preços, Criar conta) nem às versões
 // traduzidas, que não estão no pacote. Ganham uma barra de volta ao painel.
 const readingPages = new Set(['privacidade', 'termos', 'suporte']);
 const appBar = '<style>.oaze-app-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;' +
   'min-height:56px;padding:calc(env(safe-area-inset-top,0px) + 6px) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px));' +
-  'background:rgba(13,24,33,.94);border-bottom:1px solid rgba(240,229,207,.12);backdrop-filter:blur(12px)}' +
+  'background:rgba(28,51,64,.94);border-bottom:1px solid rgba(240,229,207,.12);backdrop-filter:blur(12px)}' +
   '.oaze-app-bar a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:99px;' +
   'color:#f0e5cf;font-weight:600;text-decoration:none;border:1px solid rgba(95,169,155,.55)}' +
   '.oaze-app-bar a:focus-visible{outline:2px solid #5fa99b;outline-offset:3px}</style>\n' +
@@ -77,8 +77,14 @@ for (const route of routes) {
 }
 
 let app = readFileSync(join(source, 'app-v3.html'), 'utf8');
-app = replaceRequired(app, '<script src="/assets/js/site-auth.js?v=20261014a"></script>',
-  '<script src="/assets/js/site-auth.js?v=20261014a"></script>\n  <script src="/native/bridge.js"></script>', 'app-v3.html');
+/* 15/11/2026: o marcador não depende mais do carimbo ?v= do script. Ele
+   ficou preso em 20261014a quando a página já usava outro carimbo, e o
+   pacote nativo deixou de montar sem ninguém perceber. */
+{
+  const marcador = /<script src="\/assets\/js\/site-auth\.js(?:\?v=[^"]*)?"><\/script>/;
+  if (!marcador.test(app)) throw new Error('app-v3.html: marcador esperado ausente: site-auth.js');
+  app = app.replace(marcador, (achado) => achado + '\n  <script src="/native/bridge.js"></script>');
+}
 app = app.replace(/href="\/app"/g, 'href="/index.html"');
 writeFileSync(join(output, 'index.html'), harden(app, 'index'));
 

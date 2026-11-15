@@ -1,0 +1,5 @@
+-- Migração histórica preservada apenas para manter a versão local
+-- alinhada ao banco que já recebeu este número. A implementação de
+-- checkout removida não deve ser recriada em instalações novas.
+-- A limpeza do banco existente está em:
+-- 20260912232434_remove_payment_providers.sql

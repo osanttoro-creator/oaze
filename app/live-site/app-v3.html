@@ -5,7 +5,7 @@
   <script src="/assets/app/erros-amigaveis.js?v=20261107a"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0D1821">
+  <meta name="theme-color" content="#1C3340">
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Painel privado do OAZE para organizar contas, cartões, calendário e investimentos em uma conta protegida.">
   <title>OAZE — seu espaço financeiro</title>
@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="/assets/app/recursos-app.css?v=20261111a">
   <link rel="stylesheet" href="/assets/app/telas.css?v=20261112a">
   <link rel="stylesheet" href="/assets/app/gestos.css?v=20261110b">
+  <link rel="stylesheet" href="/assets/app/turma.css?v=20261114a">
 <script>
 /* A língua, também antes da primeira pintura. Nesta ordem:
      1. a escolha feita em Configurações (oaze.idioma);
@@ -75,6 +76,10 @@
   <meta name="oaze-ima-tag" content="">
 </head>
 <body class="v3">
+  <!-- Abertura: motion completo na primeira vez; depois, cortina rápida
+       enquanto o app monta a tela. Ver assets/app/turma-abertura.js. -->
+  <div class="tm-abertura" id="tm-abertura" role="status" aria-label="Abrindo a OAZE"><img class="tm-abertura-pet" src="/assets/turma/oaze/pet-running.webp" alt="" width="192" height="224"><strong>OAZE</strong><span class="tm-abertura-barra"><i></i></span></div>
+  <script src="/assets/app/turma-abertura.js?v=20261114a"></script>
   <a class="v3-skip" href="#v3-content">Pular para o conteúdo</a>
   <div class="v3-liquid-ether" id="v3-liquid-ether" aria-hidden="true"></div>
   <div class="v3-shell">
@@ -94,7 +99,7 @@
     </main>
   </div>
   <nav class="v3-bottom" id="v3-mobile-nav" aria-label="Navegação no celular"></nav>
-  <button class="v3-coco-fab" type="button" data-action="coco" aria-label="Abrir OAZE"><span class="v3-coco-pet" aria-hidden="true"><img src="/assets/brand/oaze-mascote-192.png" width="192" height="192" alt=""></span><span class="v3-coco-count" id="v3-coco-count" hidden></span></button>
+  <button class="v3-coco-fab" type="button" data-action="coco" aria-label="Abrir OAZE"><span class="v3-coco-pet" aria-hidden="true"><img src="/assets/turma/oaze/icone-192.webp" width="192" height="192" alt=""></span><span class="v3-coco-count" id="v3-coco-count" hidden></span></button>
   <button class="v3-voice-global" id="v3-voice-global" type="button" data-action="voice-stop" hidden>● OAZE usando o microfone · encerrar</button>
   <div class="v3-overlay" id="v3-overlay" hidden><div class="v3-scrim" data-action="close"></div><section class="v3-sheet" id="v3-sheet" role="dialog" aria-modal="true" aria-label="Painel do OAZE"></section></div>
   <div class="v3-toast" id="v3-toast" role="status" hidden></div>
@@ -133,7 +138,8 @@
   <script src="/assets/app/mais-telas.js?v=20261110a"></script>
   <script src="/assets/app/funcoes-oaze.js?v=20261112a"></script>
   <script src="/assets/app/gestos.js?v=20261110a"></script>
-  <script src="/assets/app/app.js?v=20261113a"></script>
+  <script src="/assets/app/turma.js?v=20261114a"></script>
+  <script src="/assets/app/app.js?v=20261114a"></script>
   <script src="/assets/js/cookies.js?v=20261014a" defer></script>
 </body>
 </html>

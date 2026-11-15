@@ -15,10 +15,10 @@
 (function (global) {
   'use strict';
 
-  const BASE = '/assets/coco/pets/coco-';
+  const BASE = '/assets/turma/oaze/pet-';
   /* duração de um ciclo (quadros × atraso), para saber quando voltar */
-  const CICLO = { idle: 720, 'running-left': 960, 'running-right': 960, running: 720, waving: 480, jumping: 600,
-    failed: 960, waiting: 720, review: 720, 'look-loop': 2880, 'idle-jump-idle': 1360 };
+  const CICLO = { idle: 1100, 'running-left': 1060, 'running-right': 1060, running: 1060, waving: 700, jumping: 840,
+    failed: 1220, waiting: 1010, review: 1030, 'look-loop': 820, 'idle-jump-idle': 3040 };
   const DANCA = ['look-loop', 'idle-jump-idle', 'idle-jump-idle', 'waving'];
   const reduzido = global.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const mouse = global.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;

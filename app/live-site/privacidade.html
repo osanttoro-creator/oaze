@@ -52,7 +52,7 @@
     </nav>
     <div class="acoes-topo">
       <a class="btn btn-fantasma" href="/entrar">Entrar</a>
-      <a class="btn btn-principal" href="/cadastro">Criar conta grátis</a>
+      <a class="btn btn-principal" href="/entrar">Entrar</a>
     </div>
   </div>
 </header>
@@ -61,15 +61,15 @@
   <div class="env">
     <div class="texto">
       <h1>Política de privacidade</h1>
-      <p class="atualizado">Última atualização: 31 de outubro de 2026 (anúncio premiado, localização opcional e avisos no app)</p>
+      <p class="atualizado">Última atualização: 14 de novembro de 2026 (a turma da OAZE, personalização, PIN, anúncios no Android e Google Play)</p>
 
       <div class="aviso">
         <p><strong>Minuta pendente de revisão jurídica.</strong> O conteúdo descreve o
         funcionamento real do produto, mas <strong>não foi revisado por advogado</strong>
         e faltam dados obrigatórios.</p>
         <p>Antes de publicar em definitivo: preencher a identificação do controlador
-        (§1), confirmar se há obrigação de indicar encarregado (§11) e revisar as bases
-        legais do §3.</p>
+        (§1), nomear o encarregado pelo tratamento de dados (§11, exigido pelo art. 41 da
+        LGPD) e revisar as bases legais do §3.</p>
       </div>
 
       <h2 id="controlador">1. Quem é o responsável</h2>
@@ -81,26 +81,20 @@
       <p><em>A completar: razão social, CNPJ e endereço.</em></p>
 
       <h2 id="coleta">2. O que coletamos</h2>
-      <p><strong>Dados de cadastro.</strong> E-mail, senha (guardada apenas como hash,
-      nunca em texto) e, opcionalmente, o nome pelo qual você quer ser chamado.</p>
+      <p><strong>Dados de cadastro.</strong> E-mail, o nome pelo qual você quer ser chamado e os dados básicos que a conta Google informa quando você entra por ela. O PIN de 6 dígitos do aplicativo é guardado apenas como hash, nunca em texto. A biometria (digital ou rosto) é conferida pelo próprio aparelho e não chega até nós.</p>
+      <p><strong>Respostas do quiz de entrada.</strong> Na primeira vez, o aplicativo pergunta como você usa o dinheiro: o que quer organizar primeiro, como costuma registrar gastos e qual é o seu objetivo. As respostas ficam na sua conta e servem para adaptar o aplicativo a você.</p>
       <p><strong>Dados financeiros que você insere.</strong> Contas, cartões, categorias,
       lançamentos, orçamentos, metas e investimentos. Nós não buscamos isso em lugar
-      nenhum: tudo chega porque você digitou ou importou um arquivo que você mesmo baixou
-      do seu banco.</p>
+      nenhum: tudo chega porque você digitou, contou na conversa ou enviou um extrato ou recibo que você mesmo obteve.</p>
       <p><strong>Dados do plano.</strong> Plano, limites e situação da assinatura associados à
-      conta, com os identificadores da sessão e da assinatura na Stripe.</p>
+      conta, com os identificadores da sessão e da assinatura na Stripe ou, quando a assinatura é feita no aplicativo Android, da compra na Google Play.</p>
       <p><strong>Dados de pagamento.</strong> Ao assinar, o OAZE envia à <strong>Stripe</strong>
       seu e-mail, o plano e o valor escolhidos. Os dados do cartão são digitados na página da
       Stripe e <strong>nunca passam pelo OAZE</strong>.</p>
       <p><strong>Dados técnicos mínimos.</strong> Registros de erro do servidor, com
       identificador de requisição e horário. Eles não incluem conteúdo financeiro.</p>
-      <p><strong>Localização, só quando você pede.</strong> No app, ao tocar em “Usar minha
-      localização” num lançamento, guardamos latitude e longitude arredondadas (cerca de
-      100 metros) junto daquele lançamento, na sua conta. Não há coleta em segundo plano,
-      o local não é enviado à Coco e você pode removê-lo de qualquer lançamento.</p>
-      <p><strong>Não coletamos:</strong> sua localização sem esse pedido, sua lista de contatos, seu
-      histórico de navegação em outros sites, nem dados de terceiros. Não usamos cookies
-      de publicidade nem rastreadores de rede social. Usamos apenas armazenamento essencial
+      <p><strong>Não coletamos:</strong> sua localização, sua lista de contatos, seu
+      histórico de navegação em outros sites, nem dados de terceiros. O site não usa cookies de publicidade nem rastreadores de rede social. No aplicativo Android, o plano Semente pode exibir anúncios do Google AdMob quando você escolhe assistir a um deles para ampliar um limite; veja o §6. Usamos apenas armazenamento essencial
       para sessão, preferências e funcionamento local. Se você escolher entrar com Google,
       o Google pode usar os próprios cookies durante essa autenticação.</p>
 
@@ -113,9 +107,7 @@
         legais aplicáveis ao serviço.</li>
         <li><strong>Legítimo interesse</strong> (art. 7º, IX) — segurança, prevenção a
         fraude e correção de defeitos, sempre com o mínimo de dado necessário.</li>
-        <li><strong>Consentimento</strong> (art. 7º, I) — apenas para o envio de dados à
-        Coco, descrita no §5. Você pode não usar a Coco e o restante do produto continua
-        funcionando igual.</li>
+        <li><strong>Consentimento</strong> (art. 7º, I) — para o envio de dados à assistente OAZE e para a personalização, descritas no §5. Você pode não usar a assistente e o restante do produto continua funcionando igual.</li>
       </ul>
 
       <h2 id="onde">4. Onde os dados ficam</h2>
@@ -130,12 +122,15 @@
       Resolução CD/ANPD nº 19/2024. <em>A confirmar: região do projeto Supabase e países
       usados por cada fornecedor.</em></p>
 
-      <h2 id="ia">5. A Coco e o uso de inteligência artificial</h2>
-      <p>Boa parte do que a Coco mostra é <strong>cálculo feito no seu próprio
-      navegador</strong>. Para isso, <strong>nenhum dado sai do aparelho</strong>.</p>
-      <p>A Coco exige consentimento separado, que você pode revogar. Na conversa, seu pedido,
+      <h2 id="ia">5. A OAZE, a turma e o uso de inteligência artificial</h2>
+      <p>A assistente do aplicativo se chama <strong>OAZE</strong> (antes, Coco). Nilo, Bia, Tico e Lume são personagens da mesma assistente. Quando a OAZE chama um deles, o pedido continua passando pelo mesmo servidor e pelo mesmo provedor, com as mesmas regras desta política.</p>
+      <p>Boa parte do que a OAZE mostra é <strong>cálculo feito no seu próprio aparelho</strong>. Para isso, <strong>nenhum dado sai dele</strong>.</p>
+      <p><strong>Personalização.</strong> Para adaptar o aplicativo a você, a OAZE e a turma analisam seus lançamentos, receitas, metas, investimentos, as respostas do quiz de entrada e as conversas que você tem com elas. Com isso montam planos, sugerem tetos e explicam seus números do seu jeito. Essa análise é feita por inteligência artificial (Claude, da Anthropic), que recebe só o necessário para cada resposta e não usa seus dados para treinar modelos. Você pode ver o que a OAZE aprendeu, pausar o aprendizado ou apagar tudo em Configurações → OAZE → Memória, a qualquer momento. Sem essa autorização, o aplicativo continua funcionando, sem a personalização.</p>
+      <p><strong>Extratos e recibos.</strong> Quando você envia um extrato ou recibo, o conteúdo é lido para sugerir a marca e a categoria de cada linha. As sugestões aparecem para sua revisão e nada é lançado sem a sua confirmação. O que não for reconhecido fica como “Outros”.</p>
+      <p><strong>Logos de marcas.</strong> Para mostrar o logo de um estabelecimento reconhecido, o aplicativo carrega a imagem direto da Brandfetch, informando apenas o endereço do site da marca (por exemplo, netflix.com). Nenhum valor ou descrição do seu lançamento é enviado.</p>
+      <p>A OAZE exige consentimento separado, que você pode revogar. Na conversa, seu pedido,
       até três trocas recentes, resumos financeiros necessários e preferências que você confirmou
-      passam pelo servidor OAZE e pela API da OpenAI. O que você escrever no pedido pode incluir
+      passam pelo servidor OAZE e pela API do provedor de inteligência artificial: Claude, da Anthropic, na conversa por texto, na leitura de extratos e nas explicações de investimento. O que você escrever no pedido pode incluir
       nomes e descrições; por isso, não prometemos que esses dados nunca serão enviados.
       O OAZE não acrescenta por padrão seu e-mail, identificadores internos ou números completos
       de conta e cartão ao contexto financeiro.</p>
@@ -144,32 +139,29 @@
       pode conter dados pessoais visíveis ou falados: confira antes de enviar. Não guardamos o
       original no banco ou no armazenamento do OAZE. O texto resultante aparece para sua revisão;
       só vai à conversa se você decidir enviá-lo. Nenhum lançamento ou regra é salvo só porque
-      a Coco interpretou a mídia.</p>
+      a OAZE interpretou a mídia.</p>
       <p>Se você pedir para <strong>ouvir uma resposta</strong>, o texto dessa resposta é enviado
-      à OpenAI para gerar uma voz sintética. O áudio volta ao seu navegador para reprodução; o OAZE
+      à OpenAI para gerar uma voz sintética. O áudio volta ao seu aparelho para reprodução; o OAZE
       não o guarda no banco nem no armazenamento. A voz é gerada por inteligência artificial.</p>
       <p>Na <strong>conversa por voz em tempo real</strong>, você autoriza o microfone ao iniciar a sessão.
-      O áudio vai do navegador à OpenAI por uma conexão WebRTC; o servidor OAZE fornece apenas uma
+      O áudio vai do aplicativo à OpenAI por uma conexão WebRTC; o servidor OAZE fornece apenas uma
       credencial temporária, sem expor a chave principal. A transcrição da fala, a resposta em texto
       e até seis mensagens recentes entram no contexto da conversa. O microfone fica sinalizado na
       tela e pode ser pausado ou encerrado. O OAZE não guarda o áudio original dessa sessão. Consultas
-      aos seus dados financeiros continuam passando pela função autenticada da Coco; ações financeiras
+      aos seus dados financeiros continuam passando pela função autenticada da OAZE; ações financeiras
       não são executadas sem revisão e confirmação.</p>
       <p>A memória guarda preferências e regras que você confirmar. Se você autorizar também as
       análises automáticas, o OAZE guarda no Supabase um resumo mensal calculado a partir dos dados
       incluídos nos totais: receitas, despesas, valores previstos e principal categoria de gasto.
-      A Coco pode usar até seis desses resumos como contexto em conversas futuras. Eles podem ficar
+      A OAZE pode usar até seis desses resumos como contexto em conversas futuras. Eles podem ficar
       desatualizados quando os lançamentos mudam; não autorizam pagamentos nem alterações.</p>
       <p>Regras e análises ficam separadas dos lançamentos financeiros. Você pode pausar o aprendizado,
-      apagar cada item ou revogar o acesso da Coco. Apagar uma análise remove seu texto; ela só é
-      recalculada se os dados daquele mês mudarem. A revogação interrompe o uso da memória pela Coco,
+      apagar cada item ou revogar o acesso da OAZE. Apagar uma análise remove seu texto; ela só é
+      recalculada se os dados daquele mês mudarem. A revogação interrompe o uso da memória pela OAZE,
       mas mantém os itens para que você ainda possa revisá-los e apagá-los.</p>
-      <p><strong>Os dados enviados pela API não são usados para treinar modelos por padrão.</strong>
-      As chamadas à Responses API usam <code>store: false</code>. O processamento e a retenção
-      técnica pela OpenAI seguem os controles de dados do fornecedor; não confundimos isso com
+      <p><strong>Os dados enviados pelas APIs não são usados para treinar modelos por padrão.</strong> O processamento e a retenção técnica pela Anthropic e pela OpenAI seguem os controles de dados de cada fornecedor; não confundimos isso com
       armazenamento de memória no OAZE.</p>
-      <p>A chave de acesso ao provedor fica no servidor. <strong>Ela nunca chega ao seu
-      navegador</strong>, e o navegador nunca fala direto com nenhum provedor de IA.</p>
+      <p>A chave de acesso ao provedor fica no servidor. <strong>Ela nunca chega ao seu aparelho</strong>. A única conexão direta do aplicativo com um provedor é a da conversa por voz em tempo real, feita com uma credencial temporária.</p>
 
       <h2 id="compartilha">6. Com quem compartilhamos</h2>
       <p><strong>Perfis compartilhados entre usuários.</strong> Se você criar um convite
@@ -179,7 +171,7 @@
       por você a qualquer momento. Você escolhe entre somente leitura e edição;
       quem recebe edição pode criar, alterar e excluir dados financeiros do perfil.
       Você pode mudar essa permissão depois. Nenhum dos modos inclui os dados do
-      cofre protegido por PIN nem autoriza usar a Coco em seu nome.
+      cofre protegido por PIN nem autoriza usar a OAZE em seu nome.
       Antes de compartilhar, confira se o perfil contém
       dados de outras pessoas. A revogação impede novas consultas, mas não apaga
       anotações ou capturas que o convidado já tenha feito.</p>
@@ -192,8 +184,12 @@
         técnicos necessários à entrega e à segurança do site.</li>
         <li><strong>Stripe:</strong> Checkout, assinatura, fatura, cancelamento, estorno,
         disputa e prevenção a fraude.</li>
-        <li><strong>OpenAI:</strong> conversa com a Coco e, quando você confirmar o envio,
-        leitura de foto, transcrição de áudio ou geração da resposta falada, nos limites descritos no §5.</li>
+        <li><strong>Anthropic (Claude):</strong> conversa por texto com a OAZE e a turma, leitura de extratos, explicações de investimento e personalização, nos limites descritos no §5.</li>
+        <li><strong>OpenAI:</strong> voz da OAZE (transcrição de áudio, resposta falada e conversa em tempo real) e, quando você confirmar o envio, leitura de foto, nos limites descritos no §5.</li>
+        <li><strong>Google Play:</strong> cobrança, renovação e cancelamento da assinatura feita dentro do aplicativo Android.</li>
+        <li><strong>Google AdMob:</strong> anúncios exibidos no plano Semente do aplicativo Android, somente quando você escolhe assistir a um deles. O AdMob pode usar o identificador de publicidade do aparelho, conforme as configurações do seu Android. O OAZE não envia seus dados financeiros ao AdMob.</li>
+        <li><strong>Brandfetch:</strong> imagens dos logos de marcas, carregadas pelo aplicativo. Recebe o endereço do site da marca e os dados técnicos da conexão, como o endereço IP.</li>
+        <li><strong>Firebase Cloud Messaging (Google):</strong> entrega das notificações que você ativar no aplicativo Android.</li>
         <li><strong>Google e Apple:</strong> autenticação, somente quando o método estiver
         habilitado e você o escolher.</li>
         <li><strong>jsDelivr:</strong> fallback técnico para carregar a biblioteca pública
@@ -202,44 +198,28 @@
       <p>Cloudflare Turnstile, hCaptcha, analytics, SMTP externo e monitoramento de erros
       só serão acrescentados a esta lista antes de sua ativação e depois da avaliação de
       finalidade, dados, retenção, segurança e transferência internacional.</p>
-      <p><strong>Anúncio premiado no app Android (plano Semente).</strong> Você pode escolher
-      assistir a um anúncio do Google AdMob para liberar lançamentos no mês. Ao exibir o
-      anúncio, o SDK do Google pode tratar o identificador de publicidade do aparelho, o
-      endereço IP e dados técnicos do dispositivo, conforme a política de privacidade do
-      Google. Para confirmar a recompensa, o OAZE informa ao Google apenas um identificador
-      interno da sua conta — nunca dados financeiros. Onde a lei exige, o Google pede seu
-      consentimento antes. Você pode redefinir ou excluir o ID de publicidade nas
-      configurações do Android. O plano Oásis, o site e o app para Windows não exibem anúncios.</p>
-      <p><strong>Não vendemos seus dados. Não cedemos dados financeiros para publicidade. Não os cruzamos
+      <p><strong>Não vendemos seus dados. Não os cedemos para publicidade. Não os cruzamos
       com outras bases.</strong></p>
       <p>Podemos fornecer dados por ordem judicial. Nesse caso avisamos você, salvo quando
       a lei proibir o aviso.</p>
 
       <h2 id="local">7. O que fica só no seu aparelho</h2>
-      <p>O painel autenticado guarda no aparelho preferências de exibição e a sessão necessária
-      para manter a conta conectada. Seus registros financeiros são consultados na conta e
-      não são gravados no cache antigo compartilhado entre usuários.</p>
-      <p>Limpar os dados do navegador remove essas preferências e a sessão neste aparelho,
-      sem apagar os registros financeiros já salvos na conta.</p>
-      <p>Os avisos do app (vencimentos, orçamento, metas, score e cotação do dólar) são
-      criados no próprio aparelho, a partir dos seus dados, e você escolhe quais receber.
-      Por padrão eles não mostram nomes nem valores na tela bloqueada.</p>
-      <p>Se você usa o OAZE <strong>sem conta</strong>, seus registros financeiros ficam no
-      aparelho, e nós não temos cópia nem como recuperá-los. A hospedagem ainda pode gerar
-      os registros técnicos e de acesso descritos nesta política.</p>
+      <p>O aplicativo guarda no próprio aparelho: preferências de exibição (tema, mês selecionado), um cache dos seus dados para a tela abrir rápido e uma fila do que ainda não subiu quando você está sem internet.</p>
+      <p>Isso é por aparelho e não chega até nós. Limpar os dados do aplicativo apaga essa parte, sem afetar o que está na sua conta.</p>
 
       <h2 id="cookies">8. Cookies e escolhas de privacidade</h2>
       <p>O OAZE usa cookies ou tecnologias equivalentes estritamente necessários para
       sessão, segurança, preferências solicitadas e funcionamento local. Eles não são
       usados para publicidade.</p>
-      <p>O site e o app para Windows não usam analytics, publicidade ou outras tecnologias
-      opcionais. No app Android, a única tecnologia opcional é o anúncio premiado do plano
-      Semente, exibido só quando você escolhe assistir. Não pedimos consentimento antecipado para usos futuros. Se uma tecnologia
-      opcional for ativada, sua finalidade e seus fornecedores serão informados antes
-      da escolha, que poderá ser recusada.</p>
+      <p>O banner permite <strong>aceitar ou recusar tecnologias opcionais</strong>. Elas
+      ficam desligadas até a escolha e, se forem recusadas, analytics, marketing,
+      personalização não necessária e SDKs opcionais não poderão ser iniciados. Hoje o
+      OAZE não tem nenhuma dessas categorias ativa.</p>
+      <p>A decisão fica em <code>oaze.cookies.v2</code>, no seu navegador, para que o banner
+      respeite a escolha. Você pode apagar essa preferência nos dados do navegador e
+      escolher novamente.</p>
       <p>Recusar opcionais não encerra a sessão nem desliga recursos necessários ao serviço
-      que você pediu. Se você não quiser o tratamento necessário para uma conta, use o
-      modo local sem conta; nesse modo, o OAZE não recebe seus registros financeiros.</p>
+      que você pediu. Estas escolhas valem para o site; o aplicativo não usa cookies.</p>
 
       <h2 id="prazo">9. Por quanto tempo guardamos e como excluímos</h2>
       <p>Os registros financeiros permanecem enquanto sua conta existir. Ao excluir a
@@ -266,19 +246,11 @@
         <li><strong>Eliminação</strong> — Configurações → Excluir conta. Pedimos que você
         digite o próprio e-mail para confirmar, porque a operação não tem volta.</li>
       </ul>
-      <p>Para os demais pedidos, escreva para <a href="mailto:info@oaze.site">info@oaze.site</a>
-      ou use <a href="/suporte">o suporte</a>. Confirmaremos a solicitação e responderemos
-      no prazo aplicável ao direito exercido, depois de verificar sua identidade.</p>
+      <p>Para os demais, escreva para <a href="/suporte">o suporte</a>. Respondemos em até
+      <strong>15 dias</strong>.</p>
 
-      <h2 id="encarregado">11. Canal de privacidade e encarregado</h2>
-      <p>Para exercer direitos sobre seus dados, escreva para
-      <a href="mailto:info@oaze.site">info@oaze.site</a> ou use a
-      <a href="/suporte">página de suporte</a>.</p>
-      <p><em>A confirmar antes da publicação definitiva:</em> se o responsável pelo OAZE
-      se enquadra como agente de pequeno porte nos termos da Resolução CD/ANPD nº 2/2022.
-      Nessa hipótese pode haver dispensa de indicar encarregado, mas o canal com titulares
-      continua obrigatório. Fora dela, o nome e o contato do encarregado precisam ser
-      publicados.</p>
+      <h2 id="encarregado">11. Encarregado (DPO)</h2>
+      <p><em>A completar: nome e contato do encarregado, conforme o art. 41 da LGPD.</em></p>
 
       <h2 id="menores">12. Crianças e adolescentes</h2>
       <p>O OAZE não se destina a menores de 18 anos sem autorização de responsável legal, e
@@ -296,7 +268,7 @@
       credenciais ou culpa exclusiva comprovada. Erro comum ou phishing não transferem toda
       a responsabilidade automaticamente.</p>
       <p>Incidente que possa causar risco ou dano relevante será comunicado à ANPD e aos
-      titulares afetados no prazo regulamentar aplicável. O aviso informará
+      titulares afetados em até 3 dias úteis, salvo prazo legal específico. O aviso informará
       natureza dos dados, riscos, medidas adotadas e canal de contato.</p>
 
       <h2 id="acessibilidade">14. Acessibilidade e privacidade</h2>
@@ -308,8 +280,8 @@
       equivalente sem custo e sem perda de prazo.</p>
 
       <h2 id="mudancas">15. Mudanças nesta política</h2>
-      <p>Se algo relevante mudar, atualizaremos a data no topo desta página e
-      comunicaremos a alteração por meio adequado antes de aplicá-la quando exigido.</p>
+      <p>Se algo relevante mudar, avisamos por e-mail com <strong>30 dias</strong> de
+      antecedência e atualizamos a data no topo desta página.</p>
 
       <h2 id="contato">16. Contato</h2>
       <p><a href="/suporte">Página de suporte</a> ou
@@ -331,8 +303,8 @@
         <li><a href="/recursos">Recursos</a></li><li><a href="/precos">Preços</a></li>
         <li><a href="/#coco">Coco</a></li><li><a href="/#seguranca">Segurança</a></li></ul></div>
       <div><h3>Conta</h3><ul>
-        <li><a href="/entrar">Entrar</a></li><li><a href="/cadastro">Criar conta</a></li>
-        <li><a href="/recuperar-senha">Recuperar senha</a></li></ul></div>
+        <li><a href="/entrar">Entrar</a></li>
+        </ul></div>
       <div><h3>Legal</h3><ul>
         <li><a href="/termos">Termos de uso</a></li><li><a href="/privacidade">Política de privacidade</a></li>
         <li><a href="/suporte">Suporte</a></li></ul></div>
