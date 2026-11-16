@@ -6,7 +6,9 @@ const config: CapacitorConfig = {
   appName: 'OAZE',
   webDir: 'dist-live',
   backgroundColor: '#1C3340',
-  android: { allowMixedContent: false, captureInput: true, webContentsDebuggingEnabled: false },
+  /* 16/11/2026: o projeto Android mora em "app android", na raiz, ao lado
+     do núcleo comum (app) e do Windows (app desktop). */
+  android: { path: '../app android', allowMixedContent: false, captureInput: true, webContentsDebuggingEnabled: false },
   ios: { contentInset: 'never', scheme: 'OAZE', limitsNavigationsToAppBoundDomains: true },
   plugins: {
     LocalNotifications: { iconColor: '#5FA99B' },

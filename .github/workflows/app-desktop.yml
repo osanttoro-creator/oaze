@@ -44,7 +44,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: app/src-tauri
+          workspaces: app desktop
       - name: Verifica configuração da conta
         shell: bash
         run: |
@@ -53,15 +53,15 @@ jobs:
             exit 1
           fi
       - run: npm ci
-      - run: npx tauri build
+      - run: npm run tauri -- build
       - uses: actions/upload-artifact@v4
         if: github.head_ref != 'codex/oaze-multiplatform-foundation'
         with:
           name: oaze-windows-teste-${{ github.run_number }}
           path: |
-            app/src-tauri/target/release/app.exe
-            app/src-tauri/target/release/bundle/msi/*.msi
-            app/src-tauri/target/release/bundle/nsis/*.exe
+            app desktop/target/release/app.exe
+            app desktop/target/release/bundle/msi/*.msi
+            app desktop/target/release/bundle/nsis/*.exe
       - name: Disponibiliza instaladores em release de teste
         if: github.head_ref == 'codex/oaze-multiplatform-foundation'
         env:
@@ -73,8 +73,8 @@ jobs:
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
           $tag = "app-v${version}-windows-rc"
           $assets = @(
-            Get-ChildItem 'src-tauri/target/release/bundle/nsis' -Filter '*.exe' -File -ErrorAction SilentlyContinue
-            Get-ChildItem 'src-tauri/target/release/bundle/msi' -Filter '*.msi' -File -ErrorAction SilentlyContinue
+            Get-ChildItem '../app desktop/target/release/bundle/nsis' -Filter '*.exe' -File -ErrorAction SilentlyContinue
+            Get-ChildItem '../app desktop/target/release/bundle/msi' -Filter '*.msi' -File -ErrorAction SilentlyContinue
           ) | ForEach-Object FullName
           if (-not $assets -or $assets.Count -eq 0) { throw 'Instaladores Windows não encontrados.' }
           gh release view $tag *> $null

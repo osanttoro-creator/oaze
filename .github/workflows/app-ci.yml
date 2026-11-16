@@ -5,9 +5,9 @@ name: App · verificação
 on:
   push:
     branches: [main]
-    paths: ['app/**', '.github/workflows/app-ci.yml']
+    paths: ['app/**', 'app android/**', 'app desktop/**', '.github/workflows/app-ci.yml']
   pull_request:
-    paths: ['app/**', '.github/workflows/app-ci.yml']
+    paths: ['app/**', 'app android/**', 'app desktop/**', '.github/workflows/app-ci.yml']
   workflow_call:
 
 jobs:

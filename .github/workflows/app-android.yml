@@ -81,7 +81,7 @@ jobs:
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
 
       - name: Gera o AAB
-        working-directory: app/android
+        working-directory: app android
         env:
           STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -103,5 +103,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: oaze-android-aab-${{ github.run_number }}
-          path: app/android/app/build/outputs/bundle/release/*.aab
+          path: app android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error

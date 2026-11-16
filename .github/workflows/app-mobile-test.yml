@@ -10,6 +10,7 @@ on:
     branches: [main]
     paths:
       - "app/**"
+      - "app android/**"
       - ".github/workflows/app-mobile-test.yml"
       - ".github/workflows/app-ci.yml"
 
@@ -62,7 +63,7 @@ jobs:
       - run: npm run verificar:seguranca
       - run: npx cap sync android
       - name: Gera APK de teste
-        working-directory: app/android
+        working-directory: app android
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug -PoazeVersionCode=${{ github.run_number }}
@@ -70,7 +71,7 @@ jobs:
         if: github.head_ref != 'codex/oaze-multiplatform-foundation'
         with:
           name: oaze-android-teste-${{ github.run_number }}
-          path: app/android/app/build/outputs/apk/debug/app-debug.apk
+          path: app android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
       - name: Disponibiliza APK em release de teste
@@ -83,7 +84,7 @@ jobs:
           set -euo pipefail
           version=$(node -p "require('./package.json').version")
           tag="app-v${version}-android-test"
-          apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          apk="../app android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$apk"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" "$apk" --clobber
@@ -93,5 +94,5 @@ jobs:
           gh release edit "$tag" --draft=false
           echo "Prévia publicada: $tag"
       - name: Verifica AAB sem assinatura de loja
-        working-directory: app/android
+        working-directory: app android
         run: ./gradlew --no-daemon bundleRelease -PoazeVersionCode=${{ github.run_number }}

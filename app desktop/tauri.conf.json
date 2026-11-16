@@ -1,10 +1,10 @@
 {
-  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "$schema": "../app/node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "OAZE",
   "version": "2.5.0",
   "identifier": "site.oaze.app",
   "build": {
-    "frontendDist": "../dist-live",
+    "frontendDist": "../app/dist-live",
     "devUrl": "http://localhost:5188",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build:published"

@@ -60,7 +60,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: app/src-tauri
+          workspaces: app desktop
 
       # Um pacote de loja sem conta configurada seria um app que não deixa
       # ninguém entrar. Já a sincronização pode ficar desligada no canal de
@@ -83,7 +83,7 @@ jobs:
       - run: npm ci
       # --no-bundle: o MSIX não usa instalador. O MSI/EXE do Tauri é o outro
       # caminho de distribuição e sai do workflow "App · Windows".
-      - run: npx tauri build --no-bundle
+      - run: npm run tauri -- build --no-bundle
 
       - name: Empacota MSIX
         env:
@@ -103,7 +103,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
           $tag = "app-v${version}-windows-store-rc"
-          $assets = @(Get-ChildItem 'src-tauri/target/msix' -Filter '*.msix' -File) | ForEach-Object FullName
+          $assets = @(Get-ChildItem '../app desktop/target/msix' -Filter '*.msix' -File) | ForEach-Object FullName
           if (-not $assets -or $assets.Count -eq 0) { throw 'Pacote MSIX não encontrado.' }
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {

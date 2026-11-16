@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",
     "verificar:seguranca": "node tools/verificar-seguranca.mjs",
-    "check": "npm run typecheck && npm test && npm run build && npm run build:published && npm run verificar:seguranca"
+    "check": "npm run typecheck && npm test && npm run build && npm run build:published && npm run verificar:seguranca",
+    "tauri": "node tools/tauri.mjs"
   },
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "^10.0.0",

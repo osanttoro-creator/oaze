@@ -15,7 +15,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const tauri = join(raiz, 'src-tauri');
+// 16/11/2026: o projeto Windows mora em "app desktop", na raiz.
+const tauri = join(raiz, '..', 'app desktop');
 const saida = join(tauri, 'target', 'msix');
 
 function parar(mensagem) {
@@ -79,7 +80,7 @@ for (const arquivo of readdirSync(release)) {
 const icones = ['StoreLogo.png', 'Square44x44Logo.png', 'Square71x71Logo.png', 'Square150x150Logo.png', 'Square310x310Logo.png'];
 for (const icone of icones) {
   const origem = join(tauri, 'icons', icone);
-  if (!existsSync(origem)) parar(`ícone ${icone} não existe em src-tauri/icons — rode "npx tauri icon"`);
+  if (!existsSync(origem)) parar(`ícone ${icone} não existe em app desktop/icons — rode "npm run tauri -- icon"`);
   copyFileSync(origem, join(pasta, 'Assets', icone));
 }
 

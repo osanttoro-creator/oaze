@@ -50,10 +50,22 @@ está em [Fichas de loja](docs/17-FICHAS-DE-LOJA.md).
 | `npm run build` | `dist/` — o mesmo pacote vai para web, Capacitor e Tauri |
 | `npm run verificar:seguranca` | varre segredo e confere a CSP |
 | `npm run check` | os quatro acima, na ordem |
-| `npx cap sync` | copia `dist/` para `android/` e `ios/` |
-| `npx tauri build` | instaladores de desktop (precisa de Rust) |
+| `npx cap sync` | copia o pacote para `app android/` e `app/ios/` |
+| `npm run tauri -- build` | instaladores do Windows a partir de `app desktop/` (precisa de Rust) |
 
 ## Onde as coisas estão
+
+Na raiz (16/11/2026):
+
+```
+site institucional/   o site oaze.site (repositório próprio)
+app/                  o núcleo comum: interface, regras e o pacote web
+app android/          o projeto Android (Capacitor), sem cópia do núcleo
+app desktop/          o projeto Windows (Tauri), sem cópia do núcleo
+supabase/             funções e migrações do servidor
+```
+
+Dentro do núcleo:
 
 ```
 app/src/
@@ -74,7 +86,7 @@ app/src/
   ui/              componentes compostos e o mapa de navegação
   screens/         as telas
   shell/           cascas: ilha inferior, barra lateral, paleta de comandos
-app/android · app/ios · app/src-tauri     projetos nativos
+app/ios                                    projeto iOS (futuro)
 docs/                                      auditoria, arquitetura, publicação
 ```
 
