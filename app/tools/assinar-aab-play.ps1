@@ -30,19 +30,44 @@ $alias = 'oaze-upload'
 
 if (-not (Test-Path $Aab)) { throw "AAB não encontrado: $Aab" }
 
+Add-Type -AssemblyName System.Windows.Forms
+function Pedir-Senha([string]$titulo, [string]$texto) {
+  # 16/11/2026: o terminal do app não aceitava digitação escondida;
+  # a senha passa a ser pedida numa janela do Windows.
+  $f = New-Object System.Windows.Forms.Form
+  $f.Text = $titulo; $f.Width = 460; $f.Height = 190; $f.StartPosition = 'CenterScreen'; $f.TopMost = $true
+  $f.FormBorderStyle = 'FixedDialog'; $f.MaximizeBox = $false; $f.MinimizeBox = $false
+  $l = New-Object System.Windows.Forms.Label; $l.Text = $texto; $l.Left = 14; $l.Top = 14; $l.Width = 420; $l.Height = 36
+  $c = New-Object System.Windows.Forms.TextBox; $c.UseSystemPasswordChar = $true; $c.Left = 14; $c.Top = 56; $c.Width = 416
+  $ok = New-Object System.Windows.Forms.Button; $ok.Text = 'OK'; $ok.Left = 274; $ok.Top = 96; $ok.DialogResult = 'OK'
+  $no = New-Object System.Windows.Forms.Button; $no.Text = 'Cancelar'; $no.Left = 356; $no.Top = 96; $no.DialogResult = 'Cancel'
+  $f.Controls.AddRange(@($l, $c, $ok, $no)); $f.AcceptButton = $ok; $f.CancelButton = $no
+  $f.Add_Shown({ $f.Activate(); $c.Focus() })
+  if ($f.ShowDialog() -ne 'OK') { throw 'Cancelado.' }
+  return $c.Text
+}
+
 if (-not (Test-Path $chave)) {
   Write-Host ''
   Write-Host 'Criando a chave de envio da Play (primeira vez).' -ForegroundColor Cyan
-  Write-Host 'Escolha uma senha forte e guarde-a. Ela será pedida duas vezes.' -ForegroundColor Cyan
+  $s1 = Pedir-Senha 'OAZE - nova chave da Play' 'Crie a senha da chave de envio (mínimo 6 caracteres). Guarde essa senha.'
+  $s2 = Pedir-Senha 'OAZE - nova chave da Play' 'Digite a mesma senha de novo para confirmar.'
+  if ($s1 -ne $s2) { throw 'As duas senhas não são iguais. Rode o script de novo.' }
+  if ($s1.Length -lt 6) { throw 'A senha precisa ter pelo menos 6 caracteres.' }
+  $env:OAZE_KS_PASS = $s1
   New-Item -ItemType Directory -Force $pasta | Out-Null
-  & $keytool -genkeypair -v -keystore $chave -alias $alias -keyalg RSA -keysize 4096 -validity 10000 -dname 'CN=OAZE, O=OAZE, C=BR'
-  if ($LASTEXITCODE -ne 0) { throw 'A chave não foi criada.' }
+  & $keytool -genkeypair -keystore $chave -alias $alias -keyalg RSA -keysize 4096 -validity 10000 -dname 'CN=OAZE, O=OAZE, C=BR' -storepass:env OAZE_KS_PASS -keypass:env OAZE_KS_PASS
+  if ($LASTEXITCODE -ne 0) { Remove-Item Env:OAZE_KS_PASS; throw 'A chave não foi criada.' }
+} else {
+  $env:OAZE_KS_PASS = Pedir-Senha 'OAZE - assinar para a Play' 'Digite a senha da chave de envio da Play.'
 }
 
 Write-Host ''
-Write-Host 'Assinando o AAB. Digite a senha da chave de envio quando pedir.' -ForegroundColor Cyan
-& $jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore $chave -signedjar $Saida $Aab $alias
-if ($LASTEXITCODE -ne 0) { throw 'A assinatura falhou.' }
+Write-Host 'Assinando o AAB...' -ForegroundColor Cyan
+& $jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore $chave -storepass:env OAZE_KS_PASS -keypass:env OAZE_KS_PASS -signedjar $Saida $Aab $alias
+$falhou = $LASTEXITCODE -ne 0
+Remove-Item Env:OAZE_KS_PASS
+if ($falhou) { throw 'A assinatura falhou (senha errada?).' }
 
 & $jarsigner -verify $Saida | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'A verificação da assinatura falhou.' }
