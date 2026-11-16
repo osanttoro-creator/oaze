@@ -260,7 +260,7 @@ if (android && nativeWindow.OAZE_BILLING_READONLY) {
       return valida ? verificar(valida.produto, valida.token) : null;
     },
     async gerenciar(produto) {
-      const url = 'https://play.google.com/store/account/subscriptions?package=site.oaze.app'
+      const url = 'https://play.google.com/store/account/subscriptions?package=oaze.site'
         + (produto ? '&sku=' + encodeURIComponent(produto) : '');
       await Browser.open({ url });
     },

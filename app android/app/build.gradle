@@ -4,7 +4,9 @@ android {
     namespace = "site.oaze.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "site.oaze.app"
+        /* 16/11/2026: o app da Play Console ficou preso ao pacote oaze.site
+           (um envio antigo usou esse nome e a Google nao deixa trocar). */
+        applicationId "oaze.site"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // O CI passa um número crescente: a Play Store recusa códigos repetidos.
@@ -57,8 +59,13 @@ apply from: 'capacitor.build.gradle'
 
 try {
     def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
+    /* So liga o Firebase quando o google-services.json tem o pacote
+       oaze.site; sem isso o build para. Enquanto o oaze.site nao for
+       cadastrado no projeto Firebase, o push fica desligado. */
+    if (servicesJSON.text =~ /"package_name"s*:s*"oaze.site"/) {
         apply plugin: 'com.google.gms.google-services'
+    } else {
+        logger.warn('google-services.json sem o pacote oaze.site: push desligado neste build')
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")

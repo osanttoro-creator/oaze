@@ -22,13 +22,13 @@
      GOOGLE_PLAY_SERVICE_ACCOUNT  JSON da conta de serviço com acesso
                                    "Ver dados financeiros" no Play Console
      OAZE_PLAY_RTDN_SEGREDO        texto aleatório; vai na URL do push
-     OAZE_PLAY_PACOTE              opcional, padrão site.oaze.app
+     OAZE_PLAY_PACOTE              opcional, padrão oaze.site (pacote da Play desde 16/11/2026)
    ============================================================= */
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { reservarRateLimit, corpoCabeNoLimite, sha256 } from '../_shared/security.ts';
 
-const PACOTE = () => Deno.env.get('OAZE_PLAY_PACOTE') || 'site.oaze.app';
+const PACOTE = () => Deno.env.get('OAZE_PLAY_PACOTE') || 'oaze.site';
 /* Produtos criados no Play Console (Monetizar › Assinaturas). */
 const PRODUTOS: Record<string, { plano: string; ciclo: 'monthly' | 'annual' }> = {
   oaze_oasis_mensal: { plano: 'pro', ciclo: 'monthly' },
