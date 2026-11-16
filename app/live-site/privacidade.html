@@ -125,12 +125,12 @@
       <h2 id="ia">5. A OAZE, a turma e o uso de inteligência artificial</h2>
       <p>A assistente do aplicativo se chama <strong>OAZE</strong> (antes, Coco). Nilo, Bia, Tico e Lume são personagens da mesma assistente. Quando a OAZE chama um deles, o pedido continua passando pelo mesmo servidor e pelo mesmo provedor, com as mesmas regras desta política.</p>
       <p>Boa parte do que a OAZE mostra é <strong>cálculo feito no seu próprio aparelho</strong>. Para isso, <strong>nenhum dado sai dele</strong>.</p>
-      <p><strong>Personalização.</strong> Para adaptar o aplicativo a você, a OAZE e a turma analisam seus lançamentos, receitas, metas, investimentos, as respostas do quiz de entrada e as conversas que você tem com elas. Com isso montam planos, sugerem tetos e explicam seus números do seu jeito. Essa análise é feita por inteligência artificial (Claude, da Anthropic), que recebe só o necessário para cada resposta e não usa seus dados para treinar modelos. Você pode ver o que a OAZE aprendeu, pausar o aprendizado ou apagar tudo em Configurações → OAZE → Memória, a qualquer momento. Sem essa autorização, o aplicativo continua funcionando, sem a personalização.</p>
+      <p><strong>Personalização.</strong> Para adaptar o aplicativo a você, a OAZE e a turma analisam seus lançamentos, receitas, metas, investimentos, as respostas do quiz de entrada e as conversas que você tem com elas. Com isso montam planos, sugerem tetos e explicam seus números do seu jeito. Essa análise é feita por inteligência artificial (da OpenAI), que recebe só o necessário para cada resposta e não usa seus dados para treinar modelos. Você pode ver o que a OAZE aprendeu, pausar o aprendizado ou apagar tudo em Configurações → OAZE → Memória, a qualquer momento. Sem essa autorização, o aplicativo continua funcionando, sem a personalização.</p>
       <p><strong>Extratos e recibos.</strong> Quando você envia um extrato ou recibo, o conteúdo é lido para sugerir a marca e a categoria de cada linha. As sugestões aparecem para sua revisão e nada é lançado sem a sua confirmação. O que não for reconhecido fica como “Outros”.</p>
       <p><strong>Logos de marcas.</strong> Para mostrar o logo de um estabelecimento reconhecido, o aplicativo carrega a imagem direto da Brandfetch, informando apenas o endereço do site da marca (por exemplo, netflix.com). Nenhum valor ou descrição do seu lançamento é enviado.</p>
       <p>A OAZE exige consentimento separado, que você pode revogar. Na conversa, seu pedido,
       até três trocas recentes, resumos financeiros necessários e preferências que você confirmou
-      passam pelo servidor OAZE e pela API do provedor de inteligência artificial: Claude, da Anthropic, na conversa por texto, na leitura de extratos e nas explicações de investimento. O que você escrever no pedido pode incluir
+      passam pelo servidor OAZE e pela API do provedor de inteligência artificial: OpenAI, na conversa por texto, na leitura de extratos e nas explicações de investimento. O que você escrever no pedido pode incluir
       nomes e descrições; por isso, não prometemos que esses dados nunca serão enviados.
       O OAZE não acrescenta por padrão seu e-mail, identificadores internos ou números completos
       de conta e cartão ao contexto financeiro.</p>
@@ -159,7 +159,7 @@
       apagar cada item ou revogar o acesso da OAZE. Apagar uma análise remove seu texto; ela só é
       recalculada se os dados daquele mês mudarem. A revogação interrompe o uso da memória pela OAZE,
       mas mantém os itens para que você ainda possa revisá-los e apagá-los.</p>
-      <p><strong>Os dados enviados pelas APIs não são usados para treinar modelos por padrão.</strong> O processamento e a retenção técnica pela Anthropic e pela OpenAI seguem os controles de dados de cada fornecedor; não confundimos isso com
+      <p><strong>Os dados enviados pelas APIs não são usados para treinar modelos por padrão.</strong> O processamento e a retenção técnica pela OpenAI seguem os controles de dados do fornecedor; não confundimos isso com
       armazenamento de memória no OAZE.</p>
       <p>A chave de acesso ao provedor fica no servidor. <strong>Ela nunca chega ao seu aparelho</strong>. A única conexão direta do aplicativo com um provedor é a da conversa por voz em tempo real, feita com uma credencial temporária.</p>
 
@@ -184,8 +184,7 @@
         técnicos necessários à entrega e à segurança do site.</li>
         <li><strong>Stripe:</strong> Checkout, assinatura, fatura, cancelamento, estorno,
         disputa e prevenção a fraude.</li>
-        <li><strong>Anthropic (Claude):</strong> conversa por texto com a OAZE e a turma, leitura de extratos, explicações de investimento e personalização, nos limites descritos no §5.</li>
-        <li><strong>OpenAI:</strong> voz da OAZE (transcrição de áudio, resposta falada e conversa em tempo real) e, quando você confirmar o envio, leitura de foto, nos limites descritos no §5.</li>
+        <li><strong>OpenAI:</strong> conversa por texto com a OAZE e a turma, leitura de extratos, explicações de investimento, personalização e a voz da OAZE (transcrição de áudio, resposta falada e conversa em tempo real) e, quando você confirmar o envio, leitura de foto, nos limites descritos no §5.</li>
         <li><strong>Google Play:</strong> cobrança, renovação e cancelamento da assinatura feita dentro do aplicativo Android.</li>
         <li><strong>Google AdMob:</strong> anúncios exibidos no plano Semente do aplicativo Android, somente quando você escolhe assistir a um deles. O AdMob pode usar o identificador de publicidade do aparelho, conforme as configurações do seu Android. O OAZE não envia seus dados financeiros ao AdMob.</li>
         <li><strong>Brandfetch:</strong> imagens dos logos de marcas, carregadas pelo aplicativo. Recebe o endereço do site da marca e os dados técnicos da conexão, como o endereço IP.</li>
