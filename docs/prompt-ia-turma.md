@@ -1,6 +1,8 @@
 # Prompt da IA do app OAZE (versão da turma, 15/11/2026)
 
-Instrução de sistema para a conversa escrita do app. Junta as regras financeiras que já existiam (`BACKEND_INSTRUCTIONS`) com a turma do site novo (`turma.ts`).
+Instrução de sistema para a conversa escrita do app. A rota `supabase/functions/oaze-assistant/index.ts` usa somente a OpenAI Responses API, combina as regras financeiras com `turma.ts` e devolve `agente` separado do texto. Decisão atual de Jonatham em 15/11/2026: Claude não será usado.
+
+O prompt não é a única proteção. O servidor valida as propostas, só devolve lançamento ou meta quando a pessoa pediu para criar, só oferece memória quando ela pediu explicitamente e o aprendizado está ativo, e nunca grava essas propostas. O app abre formulários de revisão. Quando o aprendizado está pausado, quiz, memórias e análises anteriores não entram no contexto. A função precisa de `OPENAI_API_KEY` no Supabase; sem ela, responde indisponível.
 
 ---
 

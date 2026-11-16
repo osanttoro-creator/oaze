@@ -6,7 +6,7 @@
      app → esta função (autenticada) → OpenAI Responses API
 
    A conversa escrita usa a OpenAI e as cinco vozes da turma (ver
-   turma.ts). 16/11/2026: decisão de Jonatham, o Claude não será
+   turma.ts). 15/11/2026: decisão de Jonatham, o Claude não será
    usado; a OpenAI segue como único provedor. Sem OPENAI_API_KEY,
    falha fechada com 503.
 
