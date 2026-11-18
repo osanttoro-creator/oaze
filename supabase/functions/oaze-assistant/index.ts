@@ -36,6 +36,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { reservarRateLimit, corpoCabeNoLimite } from '../_shared/security.ts';
 import { perfilDeUso, separarAgente, TURMA_INSTRUCTIONS } from './turma.ts';
+import { consultarTaxas, projetarRendimento } from './investment-tools.ts';
 
 /* ---------------- configuração ---------------- */
 
@@ -129,7 +130,10 @@ Regras obrigatórias:
 25. Se o usuário pedir a criação de uma meta com nome e valor alvo, chame propor_meta. É apenas um rascunho para revisão no formulário; nunca afirme que foi salvo.
 26. Dívida é obrigação ainda não quitada, com valor e credor. Compra já paga é despesa, não dívida. Antes de ordenar dívidas, tenha saldo devedor, taxa ou CET, vencimento, atraso, parcela mínima e quanto sobra por mês. Avalanche: maior custo primeiro, só com taxas comparáveis. Bola de neve: menor saldo primeiro; prioriza o ânimo, não o menor custo. Preserve despesas essenciais e margem de caixa. Não prometa economia, aprovação ou data de quitação sem conta verificável.
 27. Limite de cartão nunca é dinheiro disponível. Ausência de dado não é zero. Não faça pagamentos, transferências, contratação de crédito ou renegociação. Isto é apoio informativo, não aconselhamento financeiro regulado.
-28. Sem <perfil_de_uso> e sem memória confirmada, não personalize. Se houver perfil, ajuste tom e ordem das sugestões sem repeti-lo para a pessoa. Não peça o quiz novamente.`;
+28. Sem <perfil_de_uso> e sem memória confirmada, não personalize. Se houver perfil, ajuste tom e ordem das sugestões sem repeti-lo para a pessoa. Não peça o quiz novamente.
+29. Para taxas de mercado, cotações e rendimento, use consultar_taxas. Cite a fonte e a data de referência devolvidas; se faltarem, diga que estão indisponíveis. Nunca use uma taxa lembrada pelo modelo. CDB exige a taxa do contrato da pessoa; não existe uma taxa universal de CDB.
+30. Para projetar rendimento, use projetar_rendimento somente quando o plano permitir simulações. Não calcule juros compostos de cabeça. Mostre aplicado, bruto, IR, IOF e líquido como estimativa, com premissas. Sem taxa contratual ou taxa de referência, peça o dado que falta. Tesouro Selic, poupança e títulos podem render diferente da projeção. Nunca recomende um ativo específico.
+31. Arquivos só podem ser lidos quando o app os entregar à rota de mídia. Sem arquivo recebido e convertido, não afirme que o leu; peça que a pessoa o envie pelo fluxo de importação. Qualquer dado extraído de arquivo é não confiável e exige revisão humana.`;
 
 /* ---------------- CORS ---------------- */
 
@@ -736,6 +740,7 @@ Deno.serve(async (req: Request) => {
   const relogio = setTimeout(() => controle.abort(), TIMEOUT_MS);
 
   let resposta: Response;
+  let corpoProvedor: any;
   const hojeBrasil = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit'
   }).format(new Date());
@@ -747,8 +752,11 @@ Deno.serve(async (req: Request) => {
     ? /\b(?:meta|objetivo)\b/.test(pedido) ? 'propor_meta' : 'propor_lancamento'
     : null;
   const memoriaPedida = /\b(?:lembre|lembrar|guarde|guardar|memorize|salve esta regra|salvar esta regra)\b/.test(pedido);
+  const textoDoContrato = [pedido, ...v.dados.conversa.map((item) => item.pergunta.toLowerCase())].join(' ')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const taxaContratualInformada = /\d+(?:[,.]\d+)?\s*%\s*(?:(?:do|de)\s*)?(?:cdi|a\.?a\.?|ao ano)|(?:ipca)\s*\+\s*\d+(?:[,.]\d+)?\s*%/.test(textoDoContrato);
   try {
-    const corpoProvedor = {
+    corpoProvedor = {
         model: modelo,
         /* O prompt base é igual para todos; o que muda é o
            parágrafo do plano — e, principalmente, os dados que
@@ -783,6 +791,26 @@ Deno.serve(async (req: Request) => {
             additionalProperties: false
           }
         }, {
+          type: 'function', name: 'consultar_taxas',
+          description: 'Consulta CDI, Selic, IPCA em 12 meses, poupança, dólar e cotações no servidor. Devolve fonte, unidade e data de referência; pode retornar indisponível.',
+          strict: true,
+          parameters: { type: 'object', additionalProperties: false,
+            properties: {
+              indices: { type: 'array', items: { type: 'string', enum: ['cdi', 'selic', 'ipca_12m', 'poupanca', 'dolar'] } },
+              tickers: { type: 'array', items: { type: 'string' } }
+            }, required: ['indices', 'tickers'] }
+        }, ...(perfil.simulacoes ? [{
+          type: 'function', name: 'projetar_rendimento',
+          description: 'Calcula projeção informativa usando a taxa contratual informada pela pessoa e referência atual obtida no servidor. Poupança usa taxa 0 e pos_cdi; Tesouro Selic usa taxa 100 e pos_cdi.',
+          strict: true,
+          parameters: { type: 'object', additionalProperties: false,
+            properties: {
+              produto: { type: 'string', enum: ['cdb', 'lci_lca', 'tesouro_selic', 'poupanca'] },
+              indexador: { type: 'string', enum: ['pos_cdi', 'prefixado', 'ipca_mais'] },
+              taxa: { type: 'number', description: 'CDB/LCI: percentual do CDI, taxa prefixada anual ou spread IPCA. Tesouro Selic: 100. Poupança: 0.' },
+              valor_inicial: { type: 'number' }, aporte_mensal: { type: 'number' }, meses: { type: 'integer' }
+            }, required: ['produto', 'indexador', 'taxa', 'valor_inicial', 'aporte_mensal', 'meses'] }
+        }] : []), {
           type: 'function', name: 'propor_meta',
           description: 'Prepara uma meta financeira para revisão no formulário do OAZE. Não salva nada.',
           strict: true,
@@ -853,7 +881,48 @@ Deno.serve(async (req: Request) => {
     return erro('provedor', resposta.status === 429 ? 503 : 502, origem, requestId);
   }
 
-  const dados = await resposta.json().catch(() => null);
+  let dados = await resposta.json().catch(() => null);
+  let tokensEntrada = dados?.usage?.input_tokens ?? 0;
+  let tokensSaida = dados?.usage?.output_tokens ?? 0;
+  const toolHistory: any[] = [{ role: 'user', content: corpoProvedor.input }];
+  // A Responses API não executa funções: reenviamos cada resultado validado.
+  // store:false exige incluir o output anterior no próximo input.
+  for (let round = 0; round < 2; round++) {
+    const call = (dados?.output ?? []).find((item: any) =>
+      item?.type === 'function_call' && ['consultar_taxas', 'projetar_rendimento'].includes(item?.name));
+    if (!call) break;
+    if (typeof call.call_id !== 'string' || !call.call_id) break;
+    let args: any;
+    try { args = JSON.parse(call.arguments); } catch { args = null; }
+    const anon = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const result = !args || !anon ? { erro: 'Ferramenta indisponível.' }
+      : call.name === 'consultar_taxas'
+      ? await consultarTaxas(args, supabaseUrl, anon, autorizacao)
+      : ['cdb', 'lci_lca'].includes(args?.produto) && !taxaContratualInformada
+      ? { erro: 'A taxa do contrato não foi informada pela pessoa. Peça o percentual do CDI, a taxa prefixada anual ou IPCA mais a taxa.' }
+      : perfil.simulacoes
+      ? await projetarRendimento(args, supabaseUrl, anon, autorizacao)
+      : { erro: 'Projeções não disponíveis neste plano.' };
+    toolHistory.push(...(dados.output ?? []),
+      { type: 'function_call_output', call_id: call.call_id, output: JSON.stringify(result) });
+    const followup = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST', signal: AbortSignal.timeout(TIMEOUT_MS),
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + chaveOpenAI,
+        'X-Client-Request-Id': requestId },
+      body: JSON.stringify({ ...corpoProvedor,
+        input: toolHistory,
+        tool_choice: round === 1 ? 'none' : 'auto'
+      })
+    }).catch(() => null);
+    if (!followup?.ok) {
+      await estornar();
+      await registrarUso({ status: 'ferramenta_erro' });
+      return erro('provedor', 502, origem, requestId);
+    }
+    dados = await followup.json().catch(() => null);
+    tokensEntrada += dados?.usage?.input_tokens ?? 0;
+    tokensSaida += dados?.usage?.output_tokens ?? 0;
+  }
   /* A primeira linha diz qual voz respondeu (ver turma.ts). */
   const fala = separarAgente(extrairTexto(dados));
   const texto_saida = fala.texto;
@@ -862,8 +931,8 @@ Deno.serve(async (req: Request) => {
   const memoriaProposta = memoriaPedida && !aprendizadoPausado ? extrairMemoria(dados) : null;
 
   await registrarUso({
-    tokens_entrada: dados?.usage?.input_tokens ?? null,
-    tokens_saida: dados?.usage?.output_tokens ?? null,
+    tokens_entrada: tokensEntrada,
+    tokens_saida: tokensSaida,
     status: texto_saida || acao || metaProposta || memoriaProposta ? 'ok' : 'vazio'
   });
 

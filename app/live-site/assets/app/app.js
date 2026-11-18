@@ -111,7 +111,7 @@
   const ymOf = (d) => String(d || '').slice(0, 7);
   const periodLabel = (ym) => `${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][+ym.slice(5, 7) - 1]} ${ym.slice(0, 4)}`;
   const niceMonth = (ym) => `${['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][+ym.slice(5, 7) - 1]} de ${ym.slice(0, 4)}`;
-  const state = { page: 'home', ym: demo ? '2026-09' : U.todayYM(), filter: 'Todos', filtros: { situacao: 'todas', fonte: 'todas', categoria: 'todas', busca: '' }, catKind: 'expense', investTab: 'overview', market: { indices: null, error: '', historyError: '', quoteError: '', loading: false, loadedAt: 0, retryAt: 0, cdiStart: '', quoteKey: '' }, calDay: null, calView: 'month', selected: null, walletKind: 'debit', walletOpen: true, walletHidden: false, voiceDraft: false, voiceState: 'IDLE', voiceMode: 'continuous', voiceMuted: false, voiceReplyMuted: false, voicePlaybackBlocked: false, voiceDraftText: '', voiceAnswerDraft: '', voiceDevice: '', cocoTab: 'Conversa', cocoView: 'conversation', cocoAsking: false, cocoSpeaking: false, cocoAudioLoading: false, hideMoney: false, sim: { aporte: 500, taxa: 10, meses: 24 }, billing: 'monthly', subscription: null, billingError: '', paymentBusy: false, chat: [], cocoSettings: null, cocoMemories: [], cocoAnalyses: [], cocoLoading: false, cocoError: '', mediaDraft: '', importPreview: null, importSaving: false, importLimit: 30, importAccountId: '', importFilter: 'Todas', importEdits: {}, importSelection: {}, importRemoved: {}, sharedProfile: null, sharedId: null, sharedPermission: 'read', sharedRights: null, shares: { owned: [], received: [] } };
+  const state = { page: 'home', ym: demo ? '2026-09' : U.todayYM(), filter: 'Todos', filtros: { situacao: 'todas', fonte: 'todas', categoria: 'todas', busca: '' }, catKind: 'expense', investTab: 'overview', market: { indices: null, error: '', historyError: '', quoteError: '', loading: false, loadedAt: 0, retryAt: 0, cdiStart: '', quoteKey: '' }, calDay: null, calView: 'month', selected: null, walletKind: 'debit', walletOpen: true, walletHidden: false, voiceDraft: false, voiceState: 'IDLE', voiceMode: 'continuous', voiceMuted: false, voiceReplyMuted: false, voicePlaybackBlocked: false, voiceDraftText: '', voiceAnswerDraft: '', voiceDevice: '', cocoTab: 'Conversa', cocoView: 'conversation', cocoAsking: false, cocoSpeaking: false, cocoAudioLoading: false, hideMoney: false, sim: { aporte: 500, taxa: 10, meses: 24 }, billing: 'monthly', subscription: null, billingError: '', paymentBusy: false, chat: [], cocoSettings: null, cocoMemories: [], cocoAnalyses: [], cocoLoading: false, cocoError: '', mediaDraft: '', importPreview: null, recordPreview: null, importSaving: false, importLimit: 30, importAccountId: '', importFilter: 'Todas', importEdits: {}, importSelection: {}, importRemoved: {}, sharedProfile: null, sharedId: null, sharedPermission: 'read', sharedRights: null, shares: { owned: [], received: [] } };
   let statusMenu = null;
   let statusBusy = false;
   let recorder = null;
@@ -2340,7 +2340,7 @@
   function renderCoco() {
     if (state.sharedId) return `<section class="v3-panel"><h2>OAZE indisponível neste perfil</h2><p class="v3-muted">A conta convidada pode consultar os dados, mas não enviá-los à IA. Volte a um perfil seu para conversar com a OAZE.</p><button type="button" class="v3-secondary" data-action="profiles">Trocar perfil</button></section>`;
     const consent=!demo&&!cocoAllowed();
-    const content=!demo&&!state.cocoSettings ? `<div class="v3-coco-loading" role="status">${state.cocoError?esc(state.cocoError):'Preparando a OAZE…'} ${state.cocoError?'<button type="button" class="v3-secondary" data-action="retry-coco">Tentar novamente</button>':''}</div>` : consent ? `<div class="v3-coco-consent"><h2>Antes de conversar</h2><p>O OAZE envia ao provedor de inteligência artificial sua pergunta e os resumos financeiros necessários. Nilo, Bia, Tico e Lume são partes da mesma assistente. Foto ou áudio só são enviados após sua confirmação. Não envie senhas ou números completos de conta.</p><form id="v3-coco-consent-form" class="v3-form"><label class="v3-check"><input type="checkbox" name="accept" required> Autorizo esse uso dos meus dados pela OAZE.</label><button type="submit" class="v3-primary">Autorizar OAZE</button></form></div>` : `<div class="v3-coco-conversation">${cocoMode==='voice'?voiceControls():`${state.cocoView==='analysis'?renderCocoAnalysis():`<div class="v3-coco-stream" id="v3-chat" role="log" aria-live="polite">${cocoMessages()}${state.cocoAsking?'<p class="v3-coco-thinking" role="status">A turma está pensando…</p>':''}</div>`}<div class="v3-coco-composer">${cocoTools()}${cocoMediaControls()}</div>`}</div>`;
+    const content=!demo&&!state.cocoSettings ? `<div class="v3-coco-loading" role="status">${state.cocoError?esc(state.cocoError):'Preparando a OAZE…'} ${state.cocoError?'<button type="button" class="v3-secondary" data-action="retry-coco">Tentar novamente</button>':''}</div>` : consent ? `<div class="v3-coco-consent"><h2>Antes de conversar</h2><p>O OAZE envia ao provedor de inteligência artificial sua pergunta e os resumos financeiros necessários. Nilo, Bia, Tico e Lume são partes da mesma assistente. Foto, áudio e documentos só são enviados após sua confirmação. Não envie senhas ou números completos de conta.</p><form id="v3-coco-consent-form" class="v3-form"><label class="v3-check"><input type="checkbox" name="accept" required> Autorizo esse uso dos meus dados pela OAZE.</label><button type="submit" class="v3-primary">Autorizar OAZE</button></form></div>` : `<div class="v3-coco-conversation">${cocoMode==='voice'?voiceControls():`${state.cocoView==='analysis'?renderCocoAnalysis():`<div class="v3-coco-stream" id="v3-chat" role="log" aria-live="polite">${cocoMessages()}${state.cocoAsking?'<p class="v3-coco-thinking" role="status">A turma está pensando…</p>':''}</div>`}<div class="v3-coco-composer">${cocoTools()}${cocoMediaControls()}</div>`}</div>`;
     return `<div class="v3-coco-page"><header class="v3-coco-header"><div class="v3-coco-title"><h1>oaze</h1></div><button type="button" class="v3-coco-home" data-go="home" aria-label="Voltar ao painel">${icon('home')}</button></header>${content}</div>`;
   }
   function render() {
@@ -2616,7 +2616,7 @@
     const label=root.querySelector('[data-import-count]');
     if (label) label.textContent=count+' selecionados';
     const save=root.querySelector('[data-action="import-all"]');
-    if (save) { save.textContent='Salvar selecionados · '+count; save.disabled=!count || !state.importAccountId || state.importSaving; }
+    if (save) { save.textContent='Confirmar e salvar · '+count; save.disabled=!count || !state.importAccountId || state.importSaving; }
     const remove=root.querySelector('[data-action="import-remove-selected"]');
     if (remove) remove.disabled=!count;
     root.querySelectorAll('[data-action="import-select"]').forEach((button)=>{
@@ -2629,12 +2629,16 @@
     });
   }
   function renderCocoImport() {
+    if (state.recordPreview) {
+      const items=state.recordPreview.itens_propostos||[];
+      return `<div class="v3-import"><div class="v3-row"><h2>Registros para conferir</h2><strong>${items.length} encontrados</strong></div><p class="v3-muted">O arquivo foi processado pela OpenAI. Confira cada item antes de abrir o formulário. Nada foi salvo.</p>${state.recordPreview.possivelmente_incompleto?'<p class="v3-import-warning">O arquivo pode ter mais registros. Divida o arquivo e confira o restante antes de concluir.</p>':''}${items.map((item,index)=>`<article class="v3-import-row"><div class="v3-import-row-head"><span class="v3-import-meta"><strong>${esc(item.descricao)}</strong><small>${item.data?esc(shortDate(item.data)):'Data ilegível'} · ${item.tipo==='income'?'Receita':item.tipo==='expense'?'Despesa':'Tipo incerto'} · ${item.forma_pagamento==='card'?'Cartão':item.forma_pagamento==='account'?'Conta':'Forma incerta'}</small>${item.conferir?'<small class="v3-import-badge is-concern">Conferir no arquivo</small>':''}</span><strong class="v3-sensitive">${item.valor?money(item.valor):'Valor ilegível'}</strong></div><button type="button" class="v3-secondary" data-action="review-record-item" data-record-index="${index}" ${!item.data||!item.valor||!item.tipo||!item.forma_pagamento?'disabled':''}>Revisar no formulário</button></article>`).join('')}<button type="button" class="v3-link" data-action="clear-record-preview">Fechar prévia</button></div>`;
+    }
     const report = state.importPreview;
 
     const accounts = profile().accounts.filter((account) => !account.archived && (!account.moeda || account.moeda === 'BRL'));
-    const picker = '<input id="v3-coco-import-file" type="file" accept="application/pdf,text/csv,.pdf,.csv,.ofx,.qfx" hidden>';
+    const picker = '<input id="v3-coco-import-file" type="file" accept="application/pdf,text/csv,.pdf,.csv,.ofx,.qfx,.xlsx,.xls,.xml" hidden>';
     const accountPicker = importAccountPicker(accounts);
-    if (!report) return `<div class="v3-import-empty"><h2>Importar extrato</h2>${accountPicker}<button type="button" class="v3-primary" data-action="choose-coco-file" ${state.importAccountId ? '' : 'disabled'}>Escolher extrato e salvar</button>${picker}</div>`;
+    if (!report) return `<div class="v3-import-empty"><h2>Importar extrato</h2>${accountPicker}<button type="button" class="v3-primary" data-action="choose-coco-file">Escolher extrato para revisar</button><label>Planilha pública do Google<input id="v3-google-sheet-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/…"></label><button type="button" class="v3-secondary" data-action="read-google-sheet">Ler planilha para revisar</button>${picker}</div>`;
     const entries = report.rows.map((item, index) => ({ item, index }))
       .filter(({ index }) => !state.importRemoved[index]);
     const filtered = entries.filter(({ item }) => state.importFilter === 'Todas'
@@ -2668,7 +2672,7 @@
       ${ignored ? `<p class="v3-muted">${ignored} movimento(s) de cartão de crédito ficam fora do salvamento.</p>` : ''}
       <div class="v3-import-bulk"><button type="button" class="v3-secondary" data-action="import-select-all">Selecionar tudo</button><button type="button" class="v3-secondary" data-action="import-clear-selection">Limpar seleção</button><button type="button" class="v3-secondary v3-import-trash" data-action="import-remove-selected" ${selected.length ? '' : 'disabled'} aria-label="Remover selecionados da prévia">${icon('trash')} Remover da prévia</button></div>
       <div class="v3-import-list">${rows || '<p class="v3-muted">Nenhum movimento neste filtro.</p>'}</div>${state.importLimit < filtered.length ? '<button type="button" class="v3-secondary" data-action="import-more">Ver mais movimentos</button>' : ''}
-      <div class="v3-import-footer"><button type="button" class="v3-primary" data-action="import-all" ${!selected.length || !state.importAccountId ? 'disabled' : ''}>Salvar selecionados · ${selected.length}</button><button type="button" class="v3-link" data-action="choose-coco-file">Ler e salvar outro arquivo</button></div>${picker}</div>`;
+      <div class="v3-import-footer"><button type="button" class="v3-primary" data-action="import-all" ${!selected.length || !state.importAccountId ? 'disabled' : ''}>Confirmar e salvar · ${selected.length}</button><button type="button" class="v3-link" data-action="choose-coco-file">Revisar outro arquivo</button></div>${picker}</div>`;
   }
   function openCoco() {
     if (state.cocoTab==='Conversa' || state.cocoTab==='Agora') { closeSheet();state.cocoView='conversation';go('coco');return; }
@@ -2677,7 +2681,7 @@
       return;
     }
     if (!cocoAllowed() && !['Memória','Extratos'].includes(state.cocoTab)) {
-      openSheet(`${sheetTop('oaze','seus dados, suas regras','/assets/turma/oaze/icone-512.webp')}<div class="v3-coco-consent"><p>Para conversar, o OAZE envia ao provedor de inteligência artificial seu pedido, as últimas trocas e resumos financeiros necessários. A voz da OAZE é gerada por IA. Fotos e áudios só são enviados quando você escolher um arquivo ou iniciar uma gravação e confirmar o envio. Extratos PDF/CSV reconhecidos são lidos localmente, sem envio do arquivo à OpenAI. A OAZE guarda regras que você aprovar e resumos mensais calculados automaticamente; você pode apagar ou pausar ambos depois.</p><p>Não mande senhas, documentos de identidade ou números completos de conta. Revogue o acesso aqui quando quiser.</p><form id="v3-coco-consent-form" class="v3-form"><label class="v3-check"><input type="checkbox" name="accept" required> Autorizo esse uso dos meus dados pela OAZE.</label><button class="v3-primary" type="submit">Autorizar OAZE</button></form><button type="button" class="v3-secondary" data-coco-tab="Extratos">Ler extrato local sem autorizar IA</button><button type="button" class="v3-secondary" data-action="coco-memory">Ver ou apagar memórias</button></div>`,'Consentimento da OAZE');
+      openSheet(`${sheetTop('oaze','seus dados, suas regras','/assets/turma/oaze/icone-512.webp')}<div class="v3-coco-consent"><p>Para conversar, o OAZE envia ao provedor de inteligência artificial seu pedido, as últimas trocas e resumos financeiros necessários. A voz da OAZE é gerada por IA. Fotos, áudios e documentos só são enviados após sua confirmação. Na aba Extratos, PDF/CSV reconhecidos são lidos localmente, sem envio do arquivo à OpenAI. A OAZE guarda regras que você aprovar e resumos mensais calculados automaticamente; você pode apagar ou pausar ambos depois.</p><p>Não mande senhas, documentos de identidade ou números completos de conta. Revogue o acesso aqui quando quiser.</p><form id="v3-coco-consent-form" class="v3-form"><label class="v3-check"><input type="checkbox" name="accept" required> Autorizo esse uso dos meus dados pela OAZE.</label><button class="v3-primary" type="submit">Autorizar OAZE</button></form><button type="button" class="v3-secondary" data-coco-tab="Extratos">Ler extrato local sem autorizar IA</button><button type="button" class="v3-secondary" data-action="coco-memory">Ver ou apagar memórias</button></div>`,'Consentimento da OAZE');
       return;
     }
     let body='';
@@ -4466,18 +4470,17 @@
     try { await V3Backend.cocoRemember(profile().id,{kind,label,value}); await refreshCoco(); toast('Regra guardada. Você pode esquecê-la quando quiser.'); return true; }
     catch (error) { toast(error.message || 'Não consegui guardar a regra.'); return false; }
   }
-  async function saveCocoImport(automatic=false) {
+  async function saveCocoImport() {
     if (demo) { toast('Demonstração: nenhum dado foi salvo.'); return; }
     const report=state.importPreview;
     const account=profile().accounts.find((entry)=>entry.id===state.importAccountId && !entry.archived && (!entry.moeda || entry.moeda==='BRL'));
-    if (!report || !account) { if (!automatic) toast('Escolha uma conta em reais para este extrato.'); return; }
+    if (!report || !account) { toast('Escolha uma conta em reais para este extrato.'); return; }
     if (state.importSaving) return;
     const chosen=report.rows.map((item,index)=>({item,index}))
       .filter(({item,index})=>!item.creditCard && !state.importRemoved[index]
-        && (automatic ? importEligible(item,report) : importIsSelected(item,index,report)));
+        && importIsSelected(item,index,report));
     if (!chosen.length) {
-      if (automatic) { openCoco(); toast('Nenhum movimento pôde ser salvo automaticamente. Confira os itens pendentes.'); }
-      else toast('Selecione ao menos um movimento.');
+      toast('Selecione ao menos um movimento.');
       return;
     }
     const usados={},lista=[],completed=[],seen=new Set();
@@ -4533,21 +4536,23 @@
   }
   async function readCocoMedia(file, sendRecording=false) {
     if (!file) return;
-    const statement=/\.(pdf|csv|ofx|qfx)$/i.test(file.name) || ['application/pdf','text/csv','application/vnd.ms-excel'].includes(file.type);
+    const statement=/\.(ofx|qfx)$/i.test(file.name)
+      || (state.cocoTab==='Extratos' && (/\.(pdf|csv)$/i.test(file.name) || ['application/pdf','text/csv'].includes(file.type)));
     if (statement) {
       toast('Lendo o extrato neste aparelho…');
       try {
         if (!global.CocoImport) throw new Error('Leitor de extratos indisponível. Atualize a página.');
         const report=await global.CocoImport.parseFile(file);
-        state.importPreview=report;state.importLimit=30;state.importFilter='Todas';state.importEdits={};state.importSelection={};state.importRemoved={};state.cocoTab='Extratos';
-        if (!state.importAccountId) { openCoco(); toast('Escolha a conta do extrato para salvar automaticamente.'); }
-        else { toast('Salvando movimentos legíveis…'); await saveCocoImport(true); }
+        state.recordPreview=null;state.importPreview=report;state.importLimit=30;state.importFilter='Todas';state.importEdits={};state.importSelection={};state.importRemoved={};state.cocoTab='Extratos';
+        openCoco();
+        toast('Revise os movimentos e confirme os que deseja salvar.');
       } catch (error) { toast(error.message || 'Não consegui ler este extrato. Nada foi salvo.'); }
       return;
     }
     if (demo || !cocoAllowed()) { toast('Autorize a OAZE antes de enviar arquivos.'); return; }
     const image=['image/jpeg','image/png','image/webp'].includes(file.type);
     const audio=['audio/webm','audio/mpeg','audio/mp4','audio/x-m4a','audio/wav','audio/wave'].includes(file.type);
+    const document=/\.(pdf|csv|xlsx|xls|xml)$/i.test(file.name);
     const localText=/\.(txt|md|json|log)$/i.test(file.name) || ['text/plain','text/markdown','application/json'].includes(file.type);
     if(localText){
       if(file.size>1_000_000){toast('Texto acima de 1 MB. Envie um arquivo menor.');return;}
@@ -4557,19 +4562,24 @@
       state.cocoView='conversation';go('coco');$('#v3-chat-form [name="question"]')?.focus();
       toast('Confira o trecho antes de enviar à OAZE.');return;
     }
-    if (!image && !audio) { toast('Arquivo escolhido, mas este formato ainda não pode ser lido. Use foto, áudio, extrato PDF/CSV ou texto.'); return; }
-    const max=image?4_000_000:8_000_000;
-    if (file.size>max || file.size<100) { toast('Arquivo fora do limite: foto até 4 MB, áudio até 8 MB.'); return; }
-    if (!await ask('coco-midia',`Enviar ${image?'esta foto':'este áudio'} à OAZE? O conteúdo pode incluir dados sensíveis e será processado pela OpenAI. O arquivo não ficará guardado no OAZE.`,'Enviar')) return;
+    if (!image && !audio && !document) { toast('Formato ainda não aceito. Use foto, áudio, extrato PDF/CSV/OFX, Excel ou XML.'); return; }
+    const max=audio?8_000_000:4_000_000;
+    if (file.size>max || file.size<10) { toast('Arquivo fora do limite: foto e documento até 4 MB, áudio até 8 MB.'); return; }
+    if (!await ask('coco-midia',`Enviar ${document?'este documento':image?'esta foto':'este áudio'} à OAZE? O conteúdo pode incluir dados sensíveis e será processado pela OpenAI. O arquivo não ficará guardado no OAZE.`,'Enviar')) return;
     toast('Lendo arquivo…');
     try {
-      const result=await V3Backend.cocoReadMedia(file,profile().id);
+      const captura=image && global.__ozCapturaRecibo;global.__ozCapturaRecibo=false;
+      const registros=document||captura;
+      const result=await V3Backend.cocoReadMedia(file,profile().id,registros?'registros':'resumo');
+      if(registros){
+        state.importPreview=null;state.recordPreview=result;state.cocoTab='Extratos';openCoco();
+        toast(`${result.quantidade||0} item(ns) encontrado(s). Confira antes de registrar.`);return;
+      }
       /* Captura rápida (Início ou atalho do ícone): a leitura da foto já
          segue como pedido de registro e volta como proposta para revisar. */
-      const captura=image && global.__ozCapturaRecibo; global.__ozCapturaRecibo=false;
-      state.cocoTab='Conversa';state.cocoView='conversation';state.mediaDraft=(captura?'Registre este gasto já pago: ':'')+String(result.texto||'').slice(0,captura?470:500);state.voiceDraft=audio;
+      state.cocoTab='Conversa';state.cocoView='conversation';state.mediaDraft=String(result.texto||'').slice(0,500);state.voiceDraft=audio;
       closeSheet();go('coco');$('#v3-chat-form [name="question"]')?.focus();
-      if((sendRecording||captura) && state.mediaDraft){await askCoco($('#v3-chat-form'));}
+      if(sendRecording && state.mediaDraft){await askCoco($('#v3-chat-form'));}
       else toast('Revise o texto antes de enviar à OAZE.');
     } catch (error) { toast(error.message || 'Não consegui ler o arquivo.'); }
   }
@@ -4682,7 +4692,7 @@
     }
     if (target.dataset.paymentKind) { updateComposerPayment(target.closest('#v3-form-tx'), target.dataset.paymentKind); return; }
     if (target.dataset.accountType) { const f=$('#v3-form-account');f.elements.type.value=target.dataset.accountType;$('#v3-card-dates').hidden=target.dataset.accountType!=='card';$('#v3-account-fields').hidden=target.dataset.accountType!=='account';const links=f.querySelector('.v3-card-profile-links');if(links)links.hidden=target.dataset.accountType!=='card';document.querySelectorAll('[data-account-type]').forEach((b)=>b.classList.toggle('is-active',b===target));return; }
-    if (target.dataset.profile) { if(!demo){stopVoice();stopCocoAudio();state.sharedId=null;state.sharedProfile=null;state.sharedPermission='read';state.sharedRights=null;state.chat=[];state.cocoMemories=[];state.cocoAnalyses=[];state.mediaDraft='';state.voiceDraft=false;state.importPreview=null;state.importAccountId='';closeSheet();V3Backend.setActiveShare(null);Store.setActiveProfile(target.dataset.profile);refreshCoco();}return; }
+    if (target.dataset.profile) { if(!demo){stopVoice();stopCocoAudio();state.sharedId=null;state.sharedProfile=null;state.sharedPermission='read';state.sharedRights=null;state.chat=[];state.cocoMemories=[];state.cocoAnalyses=[];state.mediaDraft='';state.voiceDraft=false;state.importPreview=null;state.recordPreview=null;state.importAccountId='';closeSheet();V3Backend.setActiveShare(null);Store.setActiveProfile(target.dataset.profile);refreshCoco();}return; }
     if (target.dataset.billing) { state.billing=target.dataset.billing;render();return; }
     if (target.dataset.calDay) { state.calDay=Number(target.dataset.calDay);render();return; }
     /* No ano, a seta anda doze meses: ela muda o ANO, que é o que
@@ -4859,7 +4869,7 @@
     if (action==='revoke-coco') {
       if (!global.confirm('Revogar o acesso da OAZE? As memórias ficam guardadas para você apagar, mas não serão usadas enquanto o acesso estiver revogado.')) return;
       clearTimeout(analysisTimer);
-      V3Backend.cocoConsent(false).then(()=>{stopVoice();stopCocoAudio();state.chat=[];state.mediaDraft='';state.voiceDraft=false;state.importPreview=null;state.importAccountId='';refreshCoco();})
+      V3Backend.cocoConsent(false).then(()=>{stopVoice();stopCocoAudio();state.chat=[];state.mediaDraft='';state.voiceDraft=false;state.importPreview=null;state.recordPreview=null;state.importAccountId='';refreshCoco();})
         .catch((e)=>toast(e.message||'Não consegui revogar o acesso.'));
       return;
     }
@@ -4885,7 +4895,26 @@
       openCoco();return;
     }
     if (action==='import-more') { state.importLimit=Math.min(state.importLimit+30,state.importPreview?.rows.length||30);openCoco();return; }
-    if (action==='import-all') { void saveCocoImport(false); return; }
+    if (action==='import-all') { void saveCocoImport(); return; }
+    if (action==='clear-record-preview') { state.recordPreview=null;openCoco();return; }
+    if (action==='read-google-sheet') {
+      const url=String($('#v3-google-sheet-url')?.value||'').trim();
+      if(!url||!cocoAllowed()){toast('Informe o link público e autorize a OAZE antes da leitura.');return;}
+      void (async()=>{
+        if(!await ask('coco-midia','Enviar esta planilha pública à OpenAI para extrair propostas? Nenhum lançamento será salvo.','Enviar'))return;
+        try{const result=await V3Backend.cocoReadMedia(url,profile().id,'registros');
+          state.importPreview=null;state.recordPreview=result;state.cocoTab='Extratos';openCoco();
+          toast(`${result.quantidade||0} item(ns) encontrado(s). Confira antes de registrar.`);
+        }catch(error){toast(error.message||'Não consegui ler a planilha.');}
+      })();return;
+    }
+    if (action==='review-record-item') {
+      const item=state.recordPreview?.itens_propostos?.[Number(target.dataset.recordIndex)];
+      if(!item?.data||!item?.valor||!item?.tipo||!item?.forma_pagamento){toast('Confira a data, o valor e o tipo no arquivo antes de registrar.');return;}
+      global.OazeCompor({tipo:item.tipo,descricao:item.descricao,valor:item.valor,data:item.data,
+        forma_pagamento:item.forma_pagamento,categoria:item.categoria,confirmado:false},'arquivo');
+      return;
+    }
     if (action==='review-import-row') {
       const index=Number(target.dataset.importIndex), item=state.importPreview?.rows[index];
       const account=profile().accounts.find((entry)=>entry.id===state.importAccountId && !entry.archived && (!entry.moeda || entry.moeda==='BRL'));
@@ -5368,7 +5397,7 @@
       state.importEdits[index]={...(state.importEdits[index]||{}),[field]:event.target.value};
     });
     document.addEventListener('change',(event)=>{
-      if (event.target?.id==='v3-import-account') { state.importAccountId=event.target.value; if (state.importPreview && state.importAccountId) void saveCocoImport(true); else openCoco(); return; }
+      if (event.target?.id==='v3-import-account') { state.importAccountId=event.target.value; openCoco(); return; }
       if (!['v3-coco-file','v3-coco-import-file'].includes(event.target?.id)) return;
       const file=event.target.files?.[0];
       event.target.value='';

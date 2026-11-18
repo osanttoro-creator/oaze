@@ -131,8 +131,8 @@ Deno.serve(async (req: Request) => {
         /* Série 1 do SGS: dólar comercial (venda). Usada pelo aviso
            "dólar hoje" do app; o dia anterior vai junto para a variação. */
         const entries = await Promise.allSettled([sgs(12), sgs(4389), sgs(432, monthAgo.toISOString().slice(0, 10), today),
-          sgs(1, tenDaysAgo.toISOString().slice(0, 10), today)]);
-        const names = ['cdiDaily', 'cdiAnnual', 'selicTarget', 'usdBrl'];
+          sgs(1, tenDaysAgo.toISOString().slice(0, 10), today), sgs(13522), sgs(195)]);
+        const names = ['cdiDaily', 'cdiAnnual', 'selicTarget', 'usdBrl', 'ipca12m', 'poupancaMensal'];
         const indices: Record<string, unknown> = Object.fromEntries(entries.map((entry, i) => [names[i],
           entry.status === 'fulfilled' ? entry.value.filter((row) => row.date <= today).at(-1) || null : null]));
         const dolar = entries[3];

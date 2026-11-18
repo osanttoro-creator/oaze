@@ -355,7 +355,7 @@
       .eq('user_id', user.id).eq('profile_id', profileId).eq('period', period));
     if (error) throw error;
   };
-  V3Backend.cocoReadMedia = async function (file, profileId) {
+  V3Backend.cocoReadMedia = async function (file, profileId, mode) {
     if (!client || !user) throw new Error('Entre na sua conta para enviar mídia.');
     const config = global.SupabaseConfig || {};
     const base = String(config.url || '').replace(/\/+$/, '');
@@ -363,9 +363,11 @@
     const { data, error } = await bounded(client.auth.getSession());
     if (error || !data?.session?.access_token || !/^https:\/\//.test(base) || !publicKey) throw new Error('Sessão ou conexão indisponível.');
     const body = new FormData();
-    body.append('file', file, file.name || 'captura');
+    if (typeof file === 'string') body.append('sheet_url', file);
+    else body.append('file', file, file.name || 'captura');
     body.append('profile_id', profileId);
     body.append('media_consent', 'true');
+    if (mode === 'registros') body.append('modo', 'registros');
     const controller = new AbortController();
     const timer = global.setTimeout(() => controller.abort(), 45000);
     try {
