@@ -140,11 +140,7 @@ h1,h2,h3{font-weight:700}
 /* ---------------- 6. barra lateral ---------------- */
 .v3-sidebar{border-right:0;border-radius:0 26px 26px 0;margin:12px 0;padding:18px 12px}
 .v3-logo{gap:10px}
-.v3-logo .v3-logo-simbolo{width:42px;height:42px;border-radius:13px;flex:none;
-  background:linear-gradient(145deg,#6CC1B1,#2F6E62);display:grid;place-items:center;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-.v3-logo .v3-logo-simbolo img{width:37px;height:37px}
-.v3-logo .v3-logo-nome{font-family:var(--marca);font-weight:700;font-size:29px;color:var(--milk);letter-spacing:-.02em}
+.v3-logo .v3-logo-marca{height:34px;width:auto;object-fit:contain;object-position:left center}
 .v3-new{background:rgba(255,253,248,.93);color:var(--night);font-weight:800}
 .v3-nav{color:var(--muted);transition:background .2s ease,color .2s ease}
 .v3-nav:hover{background:rgba(255,255,255,.07);color:var(--milk)}
@@ -261,16 +257,14 @@ h1,h2,h3{font-weight:700}
 }
 .v3-wallet-item .v3-bankmark{border-radius:12px;border:1px solid rgba(255,255,255,.28);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 4px 10px -6px #000}
-/* o selo: símbolo 3D + a palavra, como no cartão da proposta */
+/* o selo do cartão: o logo oficial, solto no canto */
 .v3-card-oaze{
-  position:absolute;right:13px;bottom:11px;z-index:3;
-  display:flex;align-items:center;gap:5px;width:auto;height:auto;max-height:none;padding:3px 10px 3px 3px;
-  border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);filter:none
+  position:absolute;right:15px;bottom:12px;z-index:3;
+  width:76px;height:auto;max-height:26px;padding:0;
+  background:none;border:0;border-radius:0;object-fit:contain;object-position:right center;
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))
 }
-.v3-card-oaze img{width:23px;height:23px;object-fit:contain}
-.v3-card-oaze .v3-card-oaze-palavra{width:auto;height:11px}
-html.vidro-leve .v3-card-oaze{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(255,255,255,.18)}
 
 /* bolso: vidro, como os outros painéis */
 .v3-wallet-pocket{
@@ -350,3 +344,59 @@ html.vidro-leve .v3-wallet-pocket{background:var(--vidro-solido);-webkit-backdro
 .v3-coco-page .v3-amigo-bia{--amigo-bg:var(--bia-bg);--amigo-ink:var(--bia-ink)}
 .v3-coco-page .v3-amigo-tico{--amigo-bg:var(--tico-bg);--amigo-ink:var(--tico-ink)}
 .v3-coco-page .v3-amigo-lume{--amigo-bg:var(--lume-bg);--amigo-ink:var(--lume-ink)}
+
+/* ---------------- 14. carteira em 3D (como na proposta) ----------
+   O cartão do meio fica de frente e os vizinhos giram para dentro,
+   atrás dele. Quem calcula a posição continua sendo carteira.js:
+   aqui só entram a perspectiva, o giro e a ordem de quem fica na
+   frente. --d é a distância até o centro (negativa à esquerda), e
+   --ad é essa distância sem sinal. */
+.v3-wallet.is-open .v3-wallet-list{perspective:1100px;perspective-origin:50% 45%}
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item,
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item:not(.is-selected),
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item.is-selected{
+  width:min(400px,80%);
+  transform:
+    translateX(calc(-50% + var(--d) * var(--carta-salto,220px)))
+    rotateY(calc(var(--d) * -32deg))
+    scale(calc(1 - .18 * min(var(--ad),1)));
+  opacity:calc(1 - .45 * min(var(--ad),1));
+  transform-origin:50% 50%;
+  box-shadow:0 26px 40px -18px rgba(5,10,25,.75),inset 0 1px 0 rgba(255,255,255,.22);
+  z-index:1
+}
+/* O do meio na frente, e sem o giro que o CSS dá aos vizinhos. */
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item.esta-no-centro{z-index:5}
+/* Os vizinhos são cenário: escurecem um pouco para o olho ir ao meio. */
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item:not(.esta-no-centro):after{
+  content:'';position:absolute;inset:0;left:0;width:100%;z-index:4;
+  border-radius:inherit;background:rgba(10,16,30,calc(.42 * min(var(--ad),1)));
+  box-shadow:none
+}
+/* A faixa do banco volta por cima desse véu, no cartão do meio. */
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item.esta-no-centro:after{
+  width:7px;background:var(--card-plastic);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)
+}
+@media(prefers-reduced-motion:reduce){
+  .v3-wallet.is-open .v3-wallet-list{perspective:none}
+  .v3-wallet.is-open .v3-wallet-list .v3-wallet-item{transform:translateX(calc(-50% + var(--d) * var(--carta-salto,220px))) scale(calc(1 - .18 * min(var(--ad),1)))}
+}
+
+/* ---------------- 15. marca oficial (01_MARCA) ---------------- */
+/* O logo da OAZE é uma peça só: o "o" com as antenas e a palavra.
+   Ele entra inteiro na barra aberta e no cartão; recolhida e no
+   bolso fica só o símbolo. */
+.v3-wallet-pocket .v3-pocket-logo{width:46px;height:46px;opacity:.9}
+.v3-sidebar.is-collapsed .v3-logo::before{
+  background-image:url('/assets/brand/v3/oaze-v3-simbolo.svg');
+  background-color:transparent;width:38px;height:38px;border-radius:0
+}
+.v3-sidebar.is-collapsed .v3-logo-marca{display:none}
+
+/* ---------------- 16. a OAZE em movimento ---------------- */
+/* O GIF dos estados só na conversa vazia, que é onde ela se
+   apresenta. Com movimento reduzido, volta a pose parada. */
+.v3-coco-gif{width:clamp(150px,34vw,230px);height:auto;image-rendering:auto}
+@media(prefers-reduced-motion:reduce){
+  .v3-coco-gif{content:url('/assets/turma/oaze/corpo-neutra-acolhedora.webp')}
+}

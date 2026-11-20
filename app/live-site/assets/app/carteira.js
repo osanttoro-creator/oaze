@@ -198,9 +198,13 @@
       /* O cartão vizinho deve espiar sempre uma faixa discreta, seja
          no celular ou no tablet. Só usar a largura do cartão deixava
          quase nada à vista no telefone e um grande corte no tablet. */
+      /* 20/11/2026, interface C2b: o vizinho deixa de ser uma fresta
+         e passa a aparecer de verdade, inclinado atrás do cartão do
+         meio, como na proposta. O passo é uma fração da largura do
+         cartão — assim a inclinação, a escala e a distância andam
+         juntas em qualquer tela. */
       const larguraPalco = palco.clientWidth || r.width;
-      const espiar = Math.min(32, Math.max(16, larguraPalco * 0.06));
-      passo = Math.max(1, r.width + 14, (larguraPalco + r.width) / 2 - espiar);
+      passo = Math.max(1, Math.round(Math.min(r.width * 0.62, larguraPalco * 0.56)));
       raiz.style.setProperty('--carta-salto', passo + 'px');
       /* A altura do palco também é medida: o cartão tem proporção
          fixa sobre uma largura em porcentagem, então só ele sabe
