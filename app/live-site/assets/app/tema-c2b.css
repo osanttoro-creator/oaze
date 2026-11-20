@@ -150,12 +150,13 @@ h1,h2,h3{font-weight:700}
 /* recolhida: só os ícones. O app já guarda a escolha (NAV_KEY
    'oaze.v3.sidebar') e já põe .is-collapsed na barra; aqui entra só
    o visual do C2b por cima do que navigation-coco-refinement.css faz. */
-.v3-sidebar.is-collapsed .v3-logo::before{
-  background-image:url('/assets/brand/c2b/simbolo-oaze-3d-1024.png');
-  width:40px;height:40px;border-radius:12px
-}
 .v3-sidebar.is-collapsed .v3-logo-simbolo,
 .v3-sidebar.is-collapsed .v3-logo-nome{display:none}
+/* O ícone da OAZE no menu não é um .v3-fi, é o selo da Coco: a
+   regra que esconde o texto quando a barra recolhe levava ele
+   junto, e a linha "oaze" ficava vazia. */
+.v3-sidebar.is-collapsed .v3-nav>.v3-coco-pet:not(.v3-fi){display:inline-flex}
+.v3-sidebar.is-collapsed .v3-nav{justify-content:center;padding:0}
 .v3-sidebar.is-collapsed .v3-new{height:48px;border-radius:50%;font-size:0}
 .v3-sidebar.is-collapsed .v3-new:before{content:'+';font-size:24px;font-weight:700}
 .v3-sidebar.is-collapsed .v3-nav{height:46px;border-radius:16px}
@@ -179,7 +180,10 @@ h1,h2,h3{font-weight:700}
   --vidro-sombra:inset 0 1px 0 #fff,0 22px 40px -28px rgba(31,45,77,.45);
   --vidro-solido:#FFFDF8;--milk:#1F2D4D;--muted:#6B7590;--line:rgba(31,45,77,.1);
   color:#1F2D4D}
-.v3-coco-page{position:relative;border-radius:var(--r);padding:4px}
+.v3-coco-page{position:relative;border-radius:var(--r)}
+/* O respiro de baixo é o do coco.css (safe-area do aparelho): se o
+   tema mexer no padding daqui, a barra de escrever encosta na borda
+   e some atrás do gesto do celular. */
 .v3-coco-page:before{
   content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;
   background:
@@ -191,6 +195,15 @@ h1,h2,h3{font-weight:700}
 .v3-coco-page .v3-chat p{background:var(--creme);color:#1F2D4D;border-radius:20px 20px 20px 6px}
 .v3-coco-page .v3-chat p.user{background:var(--teal-esc);color:#fff;border-radius:20px 20px 6px 20px}
 .v3-coco-page .v3-muted,.v3-coco-page small{color:#6B7590}
+
+/* A tela da OAZE ocupa a janela inteira e nada escapa por baixo: a
+   linha do grid precisa poder encolher (minmax(0,1fr)), senão ela
+   cresce até o tamanho do conteúdo e a barra de escrever fica para
+   fora da janela. Quem rola é a conversa, no meio. */
+.v3-coco-screen .v3-shell{grid-template-rows:minmax(0,1fr)}
+.v3-coco-screen .v3-main{min-height:0;max-height:100%}
+.v3-coco-page>*{min-height:0}
+.v3-coco-conversation,.v3-coco-stream{min-height:0}
 
 /* ---------------- 8. barra de baixo (celular) ---------------- */
 @media(max-width:900px){
@@ -239,12 +252,15 @@ h1,h2,h3{font-weight:700}
 /* O funcionamento é o de sempre: carteira.js continua mandando no
    giro, no arrasto e em quem está no centro. Aqui muda o material
    do cartão, o bolso e os controles. */
-.v3-wallet-item,.v3-wallet-item:not(.is-selected){
+html .v3-wallet-item,html .v3-wallet-item:not(.is-selected){
   color:#FFFDF8;
+  /* Cartão é plástico, não vidro: nada de desfoque nem de fundo
+     translúcido aqui, senão o céu aparece através dele. */
+  -webkit-backdrop-filter:none;backdrop-filter:none;
   border:1px solid color-mix(in srgb,var(--card-plastic) 46%,#FFFDF8 18%);
   background:
-    radial-gradient(ellipse 80% 70% at 86% 6%,color-mix(in srgb,var(--card-plastic) 82%,transparent),transparent 78%),
-    radial-gradient(ellipse 70% 82% at 102% 64%,color-mix(in srgb,var(--card-plastic) 34%,transparent),transparent 80%),
+    radial-gradient(ellipse 80% 70% at 86% 6%,color-mix(in srgb,var(--card-plastic) 40%,transparent),transparent 78%),
+    radial-gradient(ellipse 70% 82% at 102% 64%,color-mix(in srgb,var(--card-plastic) 20%,transparent),transparent 80%),
     linear-gradient(145deg,#1B2944 6%,#141F36 58%,#0E1627);
   box-shadow:0 24px 38px -16px rgba(5,10,25,.72),inset 0 1px 0 rgba(255,255,255,.22);
 }
@@ -360,8 +376,10 @@ html.vidro-leve .v3-wallet-pocket{background:var(--vidro-solido);-webkit-backdro
     translateX(calc(-50% + var(--d) * var(--carta-salto,220px)))
     rotateY(calc(var(--d) * -32deg))
     scale(calc(1 - .18 * min(var(--ad),1)));
-  opacity:calc(1 - .45 * min(var(--ad),1));
   transform-origin:50% 50%;
+  /* Os vizinhos escurecem pelo véu do :after, nunca por opacidade:
+     cartão transparente deixa ver o fundo e perde o corpo. */
+  opacity:1;
   box-shadow:0 26px 40px -18px rgba(5,10,25,.75),inset 0 1px 0 rgba(255,255,255,.22);
   z-index:1
 }
@@ -370,7 +388,7 @@ html.vidro-leve .v3-wallet-pocket{background:var(--vidro-solido);-webkit-backdro
 /* Os vizinhos são cenário: escurecem um pouco para o olho ir ao meio. */
 .v3-wallet.is-open .v3-wallet-list .v3-wallet-item:not(.esta-no-centro):after{
   content:'';position:absolute;inset:0;left:0;width:100%;z-index:4;
-  border-radius:inherit;background:rgba(10,16,30,calc(.42 * min(var(--ad),1)));
+  border-radius:inherit;background:rgba(10,16,30,calc(.5 * min(var(--ad),1)));
   box-shadow:none
 }
 /* A faixa do banco volta por cima desse véu, no cartão do meio. */
@@ -387,9 +405,16 @@ html.vidro-leve .v3-wallet-pocket{background:var(--vidro-solido);-webkit-backdro
    Ele entra inteiro na barra aberta e no cartão; recolhida e no
    bolso fica só o símbolo. */
 .v3-wallet-pocket .v3-pocket-logo{width:46px;height:46px;opacity:.9}
+/* Recolhida, a marca é só o símbolo. A caixa precisa ser quadrada e
+   um pouco maior que o desenho: o símbolo tem antenas que saem por
+   cima, e numa caixa de 36px de altura elas ficavam cortadas. */
+.v3-sidebar.is-collapsed .v3-logo{
+  width:48px;height:48px;margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center;overflow:visible
+}
 .v3-sidebar.is-collapsed .v3-logo::before{
-  background-image:url('/assets/brand/v3/oaze-v3-simbolo.svg');
-  background-color:transparent;width:38px;height:38px;border-radius:0
+  background:url('/assets/brand/v3/oaze-v3-simbolo.svg') center/contain no-repeat;
+  width:38px;height:38px;border-radius:0;flex:none
 }
 .v3-sidebar.is-collapsed .v3-logo-marca{display:none}
 
