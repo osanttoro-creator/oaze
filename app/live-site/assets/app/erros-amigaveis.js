@@ -15,9 +15,17 @@
   'use strict';
 
   var TECNICO = /TypeError|ReferenceError|SyntaxError|RangeError|is not a function|is not defined|Cannot read prop|undefined|null\b|Unexpected token|JSON|violates|row-level|row level|PGRST|duplicate key|constraint|relation "|permission denied|\bstack\b|at [\w.$]+ \(|\b(HTTP|status|c[oó]digo)\s*[45]\d\d\b|ECONN|AbortError|Script error/i;
+  /* Barulho do próprio navegador, não falha do app. "ResizeObserver
+     loop" acontece quando uma medição muda o layout no mesmo quadro:
+     o navegador avisa, adia o resto para o quadro seguinte e segue.
+     Assustar a pessoa com isso gasta a confiança dela no aviso que
+     importa. (20/11/2026) */
+  var BENIGNO = /ResizeObserver loop|Non-Error promise rejection captured/i;
   var REDE = /Failed to fetch|NetworkError|Load failed|network|ERR_INTERNET|ERR_NETWORK|offline/i;
   var FRASE_REDE = 'Sem conexão com a internet agora. Confira a rede e tente de novo — seus dados estão salvos.';
   var FRASE_GERAL = 'Não foi possível concluir agora. Seus dados estão salvos — tente de novo em instantes.';
+
+  function benigno(texto) { return BENIGNO.test(String(texto || '')); }
 
   function amigavel(texto) {
     var t = String(texto || '');
@@ -42,10 +50,11 @@
 
   /* 1. erros que escaparam */
   function capturou(detalhe) {
+    var texto = detalhe && (detalhe.message || detalhe.reason && detalhe.reason.message || detalhe.reason) || '';
+    if (benigno(texto)) return;   /* barulho do navegador: nem avisa, nem conta */
     houveErro = true;
     try { console.error('[OAZE] erro capturado:', detalhe); } catch (e) { /* sem console */ }
-    var msg = detalhe && (detalhe.message || detalhe.reason && detalhe.reason.message || detalhe.reason) || '';
-    avisar(REDE.test(String(msg)) ? FRASE_REDE : 'Algo não funcionou nesta tela. Seus dados estão salvos — se continuar, recarregue o app.');
+    avisar(REDE.test(String(texto)) ? FRASE_REDE : 'Algo não funcionou nesta tela. Seus dados estão salvos — se continuar, recarregue o app.');
     setTimeout(telaDeErroSePreciso, 0);
   }
   global.addEventListener('error', function (ev) {

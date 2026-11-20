@@ -33,6 +33,12 @@
   const categoryIconHtml = (cat) => {
     const L = global.IconData?.lucide || {};
     const nome = cat?.icon && L[cat.icon] ? cat.icon : (global.Icons && cat ? global.Icons.forCategory(cat) : "");
+    /* 20/11/2026: o ícone da categoria é o de massinha quando existe
+       um. É a lista de lançamentos que mais aparece no app, então é
+       onde o 3D muda mais a cara da tela. Sem irmão 3D, segue o
+       traço de sempre — misturar um 3D parecido seria pior. */
+    const tridi = nome && global.Icons?.tridiHtml ? global.Icons.tridiHtml(nome) : "";
+    if (tridi) return tridi;
     if (nome && L[nome]) return `<svg class="v3-category-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${L[nome]}</svg>`;
     return categoryIconMarkup(categoryIcon(cat?.icon) || "categories");
   };
@@ -723,7 +729,7 @@
       ? `<strong class="v3-money v3-sensitive">${money(r.total)}</strong><small class="v3-muted">aportado ${money(r.contributed)} · rendimento <span class="${r.gain < 0 ? 'v3-negative' : 'v3-positive'}">${r.gain < 0 ? '−' : '+'} ${money(Math.abs(r.gain))}</span></small>` +
         (r.mix.length ? `<div class="v3-invest-trilho" aria-hidden="true">${r.mix.map((m) => `<i style="width:${pct(100 * m.value / r.total)}%;background:${safeColor(m.color)}"></i>`).join('')}</div><div class="v3-invest-legenda">${r.mix.map((m) => `<span><i style="background:${safeColor(m.color)}"></i>${esc(m.name)}</span>`).join('')}</div>` : '')
       : '<p class="v3-muted">Nenhum aporte registrado até aqui. Registre o que você já guardou para acompanhar o rendimento.</p>';
-    return `<section class="v3-panel"><div class="v3-row"><h2>investimentos</h2><button type="button" class="v3-link" data-go="investments">ver tudo</button></div>${corpo}</section>`;
+    return `<section class="v3-panel"><div class="v3-row"><h2>investimentos</h2>${seloAmigo('investimentos')}<button type="button" class="v3-link" data-go="investments">ver tudo</button></div>${corpo}</section>`;
   }
   function painelFaturasInicio() {
     const cards = profile().cards.filter((card) => !card.hidden);
@@ -751,8 +757,28 @@
     return `<section class="v3-panel"><div class="v3-row"><h2>porquinhos</h2><button type="button" class="v3-link" data-go="goals">ver todos</button></div>`
       + (goals.length ? goals.slice(0,3).map((goal) => `<div class="v3-home-bill"><span><strong>${esc(goal.name)}</strong><small>${pct(100*Number(goal.saved||0)/Number(goal.target))}% concluído</small></span><strong class="v3-sensitive">${money(goal.saved || 0)} / ${money(goal.target)}</strong></div>`).join('') : '<p class="v3-muted">Nenhuma meta em andamento.</p>') + '</section>';
   }
+  /* =============================================================
+     QUEM CUIDA DESTE WIDGET (20/11/2026, interface C2b)
+     -------------------------------------------------------------
+     Cada painel da tela inicial ganha o rosto de quem responde por
+     ele na conversa. Não é enfeite: é o que liga o widget ao amigo
+     que a pessoa vai chamar quando quiser falar daquele assunto.
+     O vínculo é pelo título, para cada widget não precisar passar
+     mais um parâmetro.
+     ============================================================= */
+  const DONO_DO_WIDGET = {
+    'próximos 7 dias': 'tico', 'onde foi o mês': 'lume', 'investimentos': 'nilo',
+    'metas': 'bia', 'orçamento': 'bia', 'plano do mês': 'bia'
+  };
+  function seloAmigo(titulo) {
+    const quem = DONO_DO_WIDGET[String(titulo || '').toLowerCase()];
+    if (!quem) return '';
+    const nome = quem.charAt(0).toUpperCase() + quem.slice(1);
+    return `<span class="v3-widget-amigo v3-amigo-${quem}" title="${nome} cuida disto"><img src="/assets/turma/${quem}/rosto-feliz.webp" alt="" width="24" height="24" loading="lazy" decoding="async"><b>${nome}</b></span>`;
+  }
+
   function widgetPanel(title, body, page, label) {
-    return `<section class="v3-panel v3-home-widget"><div class="v3-row"><h2>${esc(title)}</h2>${page ? `<button type="button" class="v3-link" data-go="${esc(page)}">${esc(label || 'ver tudo')}</button>` : ''}</div>${body}</section>`;
+    return `<section class="v3-panel v3-home-widget"><div class="v3-row"><h2>${esc(title)}</h2>${seloAmigo(title)}${page ? `<button type="button" class="v3-link" data-go="${esc(page)}">${esc(label || 'ver tudo')}</button>` : ''}</div>${body}</section>`;
   }
   function widgetRows(rows, empty) {
     return rows.length ? rows.map((r) => `<div class="v3-home-bill"><span><strong>${esc(r.name)}</strong>${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</span><strong class="v3-sensitive">${money(r.value)}</strong></div>`).join('') : `<p class="v3-muted">${esc(empty)}</p>`;
@@ -804,13 +830,13 @@
     const dia = (iso) => iso.slice(8, 10);
     const mes = (iso) => U.monthLabel(iso.slice(0, 7), true).slice(0, 3);
     if (!lista.length) {
-      return `<section class="v3-panel v3-vence"><div class="v3-row"><h2>próximos 7 dias</h2><button type="button" class="v3-link" data-go="calendar">ver agenda</button></div>`
+      return `<section class="v3-panel v3-vence"><div class="v3-row"><h2>próximos 7 dias</h2>${seloAmigo('próximos 7 dias')}<button type="button" class="v3-link" data-go="calendar">ver agenda</button></div>`
         + `<p class="v3-muted">Nada vence nesta semana. O mês inteiro está na agenda.</p></section>`;
     }
     const soma = U.round2(lista.reduce((n, r) => n + Number(r.amount || 0), 0));
     const disponivel = demo ? sample.accountsBalance : Calc.available(U.monthEnd(state.ym), profile());
     const cabe = soma <= disponivel;
-    return `<section class="v3-panel v3-vence"><div class="v3-row"><h2>próximos 7 dias</h2><button type="button" class="v3-link" data-go="calendar">ver agenda</button></div>`
+    return `<section class="v3-panel v3-vence"><div class="v3-row"><h2>próximos 7 dias</h2>${seloAmigo('próximos 7 dias')}<button type="button" class="v3-link" data-go="calendar">ver agenda</button></div>`
       + lista.map((r) => `<div class="v3-vence-linha"><span class="v3-vence-dia">${esc(dia(r.date))}<small>${esc(mes(r.date))}</small></span>`
         + `<span><strong>${esc(r.title)}</strong><small>${esc(r.sub || 'previsto')}</small></span>`
         + `<strong class="v3-mono v3-negative v3-sensitive">− ${money(r.amount)}</strong></div>`).join('')
@@ -840,7 +866,7 @@
       if (id === 'coco') return '<div data-oz-inicio-slot></div>';
       if (id === 'sobra') return wave();
       if (id === 'proximos') return painelVence7();
-      if (id === 'categorias') return `<section class="v3-panel v3-widget-spending"><div class="v3-row"><h2>onde foi o mês</h2><button type="button" class="v3-link" data-go="categories">ver tudo</button></div>${categoryBars(5)}</section>`;
+      if (id === 'categorias') return `<section class="v3-panel v3-widget-spending"><div class="v3-row"><h2>onde foi o mês</h2>${seloAmigo('onde foi o mês')}<button type="button" class="v3-link" data-go="categories">ver tudo</button></div>${categoryBars(5)}</section>`;
       if (id === 'receitas') return `<section class="v3-panel v3-widget-spending v3-widget-income"><div class="v3-row"><h2>de onde veio o mês</h2><button type="button" class="v3-link" data-go="categories" data-category-kind="income">ver tudo</button></div>${categoryBars(5, 'income')}</section>`;
       if (id === 'investimentos') return painelInvestimentos();
       if (id === 'faturas') return painelFaturasInicio();

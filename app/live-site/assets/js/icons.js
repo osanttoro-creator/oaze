@@ -233,6 +233,43 @@
     [/seguro/, 'shield']
   ];
 
+  /* =============================================================
+     DE LINHA PARA MASSINHA (20/11/2026, interface C2b)
+     -------------------------------------------------------------
+     Cada ícone de linha (Lucide) que tem um irmão em 3D aponta para
+     o arquivo dele em /assets/turma/icones. Quem não está aqui
+     continua de linha: é melhor um traço coerente do que um 3D
+     parecido demais com outro.
+     ============================================================= */
+  const TRIDI = {
+    house:'casa',building:'aluguel','building-2':'condominio',key:'chave',sofa:'moveis',zap:'energia',
+    droplet:'agua',flame:'gas',wifi:'internet',receipt:'recibo',wrench:'manutencao',hammer:'manutencao',
+    utensils:'alimentacao','shopping-cart':'mercado','shopping-bag':'compras',coffee:'cafe',cake:'festa',
+    shirt:'roupas',scissors:'beleza',package:'encomenda',tag:'etiqueta',
+    car:'carro',fuel:'combustivel',bus:'transporte',plane:'aviao',truck:'frete','map-pin':'bussola',
+    'heart-pulse':'saude',pill:'remedio',stethoscope:'consulta',dumbbell:'exercicio',glasses:'otica',
+    'gamepad-2':'jogos',film:'cinema',music:'fones',ticket:'ingresso','book-open':'livros',
+    'graduation-cap':'formatura',gift:'presente',dog:'cachorro',baby:'bebe',sparkles:'estrela',star:'estrela',
+    church:'doacao',tv:'streaming',
+    banknote:'dinheiro',wallet:'carteira',coins:'moedas','piggy-bank':'cofrinho','hand-coins':'saco-dinheiro',
+    'credit-card':'cartao','circle-dollar-sign':'dinheiro','badge-dollar-sign':'salario',
+    'trending-up':'crescimento','chart-line':'progresso',percent:'juros',landmark:'banco',
+    'arrow-left-right':'transferencias',
+    briefcase:'trabalho',laptop:'computador',smartphone:'celular',users:'parceria',
+    'heart-handshake':'coracao',shield:'protecao',umbrella:'seguro',repeat:'recorrencia',
+    calendar:'calendario',clock:'tempo',folder:'pasta',list:'lista','circle-help':'duvida',
+    'circle-ellipsis':'outros'
+  };
+  /** Nome do arquivo 3D de um ícone de linha, ou '' se não houver. */
+  Icons.tridi = function (nome) { return TRIDI[nome] || ''; };
+  /** <img> do ícone 3D pronto para a lista. */
+  Icons.tridiHtml = function (nome, classe) {
+    const arquivo = TRIDI[nome];
+    if (!arquivo) return '';
+    return '<img class="' + (classe || 'v3-cat-3d') + '" src="/assets/turma/icones/' + arquivo +
+      '.webp" alt="" loading="lazy" decoding="async" width="40" height="40">';
+  };
+
   /** Ícone efetivo de uma categoria: o escolhido, ou o palpite, ou o padrão. */
   Icons.forCategory = function (cat) {
     if (!cat) return 'circle-ellipsis';

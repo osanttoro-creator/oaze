@@ -151,23 +151,28 @@ h1,h2,h3{font-weight:700}
 .v3-nav.is-active,.v3-nav[aria-current]{background:var(--vidro-fundo);border:var(--vidro-borda);color:var(--milk);font-weight:800}
 .v3-profile{border-radius:18px;background:rgba(255,255,255,.07);border:1px solid var(--line)}
 
-/* recolhida: só os ícones */
-.v3-shell.is-collapsed{grid-template-columns:92px minmax(0,1fr)}
-.is-collapsed .v3-sidebar{padding:18px 8px;align-items:center}
-.is-collapsed .v3-logo{justify-content:center;margin-inline:0}
-.is-collapsed .v3-logo-nome,.is-collapsed .v3-nav>span:not(.v3-nav-ico),
-.is-collapsed .v3-new span,.is-collapsed .v3-new kbd{display:none}
-.is-collapsed .v3-new{justify-content:center;width:48px;height:48px;padding:0;margin-inline:auto;font-size:22px}
-.is-collapsed .v3-nav{justify-content:center;width:52px;padding:0;margin-inline:auto}
-.is-collapsed .v3-profile{justify-content:center;padding:8px}
-/* O nome do item vira dica ao passar o mouse. Quem usa leitor de
-   tela continua ouvindo o texto, que só está escondido no visual. */
-.is-collapsed .v3-nav{position:relative}
-.is-collapsed .v3-nav:hover:after{
-  content:attr(data-nome);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+/* recolhida: só os ícones. O app já guarda a escolha (NAV_KEY
+   'oaze.v3.sidebar') e já põe .is-collapsed na barra; aqui entra só
+   o visual do C2b por cima do que navigation-coco-refinement.css faz. */
+.v3-sidebar.is-collapsed .v3-logo::before{
+  background-image:url('/assets/brand/c2b/simbolo-oaze-3d-1024.png');
+  width:40px;height:40px;border-radius:12px
+}
+.v3-sidebar.is-collapsed .v3-logo-simbolo,
+.v3-sidebar.is-collapsed .v3-logo-nome{display:none}
+.v3-sidebar.is-collapsed .v3-new{height:48px;border-radius:50%;font-size:0}
+.v3-sidebar.is-collapsed .v3-new:before{content:'+';font-size:24px;font-weight:700}
+.v3-sidebar.is-collapsed .v3-nav{height:46px;border-radius:16px}
+.v3-sidebar.is-collapsed .v3-nav.is-active,.v3-sidebar.is-collapsed .v3-nav[aria-current]{
+  background:var(--vidro-fundo);border:var(--vidro-borda)}
+/* O nome vira dica ao passar o mouse. Quem usa leitor de tela
+   continua ouvindo o texto; ele só saiu do visual. */
+.v3-sidebar.is-collapsed .v3-nav{position:relative}
+.v3-sidebar.is-collapsed .v3-nav:hover:after{
+  content:attr(aria-label);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
   z-index:40;padding:6px 11px;border-radius:999px;white-space:nowrap;
-  background:var(--vidro-solido);border:var(--vidro-borda);color:var(--milk);font-size:12.5px;font-weight:700;
-  box-shadow:0 10px 24px -14px #000
+  background:var(--vidro-solido);border:var(--vidro-borda);color:var(--milk);
+  font-size:12.5px;font-weight:700;box-shadow:0 10px 24px -14px #000
 }
 
 /* ---------------- 7. telas claras ---------------- */
@@ -290,3 +295,58 @@ html.vidro-leve .v3-wallet-pocket{background:var(--vidro-solido);-webkit-backdro
 .v3-carteira-seta{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);color:var(--milk)}
 .v3-carteira-pontos i{background:rgba(255,255,255,.3)}
 .v3-carteira-pontos i.e-agora{width:20px;border-radius:9px;background:var(--milk);transform:none}
+
+/* ---------------- 12. ícones 3D ---------------- */
+/* O 3D entra onde o ícone identifica alguma coisa (categoria,
+   atalho, estado). Onde ele só aponta direção ou ação (setas,
+   fechar, voltar) o traço continua: 3D ali vira ruído. */
+.v3-cat-3d{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(5,10,25,.45))}
+/* O quadradinho colorido da categoria some quando há massinha: a
+   cor passa a ser a do próprio ícone, e o fundo só atrapalharia. */
+.v3-cat-icon:has(.v3-cat-3d),.v3-cat-tile .v3-cat-icon:has(.v3-cat-3d){background:transparent;padding:0}
+.v3-cat-icon:has(.v3-cat-3d){width:40px;height:40px}
+.v3-cat-tile .v3-cat-icon:has(.v3-cat-3d){width:48px;height:48px}
+.v3-tx .v3-cat-icon:has(.v3-cat-3d),.v3-detail-row .v3-cat-icon:has(.v3-cat-3d){width:34px;height:34px}
+.v3-spend-row .v3-cat-icon:has(.v3-cat-3d){width:38px;height:38px}
+/* Sem :has (navegador antigo), o fundo colorido fica — e o ícone
+   continua legível por cima dele. */
+
+/* O selo do lançamento: com massinha dentro, o quadrado colorido
+   sai de cena e fica só o ícone. O logo do banco continua no canto. */
+.v3-tx-selo:has(.v3-cat-3d){background:transparent!important;box-shadow:none!important;border:0!important}
+.v3-tx-selo .v3-cat-3d{width:100%;height:100%}
+.v3-cat-icon .v3-cat-3d,.v3-tx-selo .v3-cat-3d{border-radius:0}
+
+/* ---------------- 13. selo do amigo nos widgets ---------------- */
+.v3-widget-amigo{
+  display:inline-flex;align-items:center;gap:6px;margin-left:auto;
+  padding:3px 11px 3px 3px;border-radius:999px;
+  font-size:11.5px;font-weight:800;letter-spacing:.01em;
+  background:var(--amigo-bg,rgba(255,255,255,.08));color:var(--amigo-ink,var(--muted))
+}
+.v3-widget-amigo img{width:24px;height:24px;border-radius:50%;object-fit:contain;background:rgba(255,255,255,.12)}
+/* Em painel estreito o título já ocupa a linha: fica só o rosto, e o
+   nome continua no title e no leitor de tela. Com espaço, o nome
+   aparece, como na proposta. */
+.v3-panel{container-type:inline-size}
+.v3-widget-amigo{padding:3px}
+.v3-widget-amigo b{display:none;font-weight:800}
+@container (min-width:420px){
+  .v3-widget-amigo{padding:3px 11px 3px 3px}
+  .v3-widget-amigo b{display:inline}
+}
+.v3-amigo-nilo{--amigo-bg:rgba(143,183,204,.16);--amigo-ink:#AECBDC}
+.v3-amigo-bia{--amigo-bg:rgba(227,185,90,.16);--amigo-ink:#EBCB81}
+.v3-amigo-tico{--amigo-bg:rgba(243,162,126,.16);--amigo-ink:#F7BC9F}
+.v3-amigo-lume{--amigo-bg:rgba(170,184,236,.16);--amigo-ink:#C2CCF2}
+/* Com três filhos na linha, o título empurra os outros dois para a
+   direita e eles ficam lado a lado, sem quebrar. */
+.v3-row:has(.v3-widget-amigo){gap:10px;flex-wrap:nowrap}
+.v3-row:has(.v3-widget-amigo) h2{margin-right:auto;min-width:0}
+.v3-row:has(.v3-widget-amigo) .v3-widget-amigo{margin-left:0;flex:none}
+.v3-row:has(.v3-widget-amigo) .v3-link{flex:none;white-space:nowrap}
+/* na tela clara, as cores de texto dos amigos são as escuras */
+.v3-coco-page .v3-amigo-nilo{--amigo-bg:var(--nilo-bg);--amigo-ink:var(--nilo-ink)}
+.v3-coco-page .v3-amigo-bia{--amigo-bg:var(--bia-bg);--amigo-ink:var(--bia-ink)}
+.v3-coco-page .v3-amigo-tico{--amigo-bg:var(--tico-bg);--amigo-ink:var(--tico-ink)}
+.v3-coco-page .v3-amigo-lume{--amigo-bg:var(--lume-bg);--amigo-ink:var(--lume-ink)}
