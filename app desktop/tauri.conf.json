@@ -1,7 +1,7 @@
 {
   "$schema": "../app/node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "OAZE",
-  "version": "2.5.1",
+  "version": "2.6.0",
   "identifier": "site.oaze.app",
   "build": {
     "frontendDist": "../app/dist-live",
