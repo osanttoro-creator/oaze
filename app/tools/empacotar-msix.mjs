@@ -77,7 +77,9 @@ for (const arquivo of readdirSync(release)) {
   if (arquivo.toLowerCase().endsWith('.dll')) copyFileSync(join(release, arquivo), join(pasta, arquivo));
 }
 
-const icones = ['StoreLogo.png', 'Square44x44Logo.png', 'Square71x71Logo.png', 'Square150x150Logo.png', 'Square310x310Logo.png'];
+const icones = ['StoreLogo.png', 'Square44x44Logo.png', 'Square71x71Logo.png', 'Square150x150Logo.png',
+  /* 20/11/2026: a Microsoft so aceita o bloco grande com o largo junto. */
+  'Square310x310Logo.png', 'Wide310x150Logo.png'];
 for (const icone of icones) {
   const origem = join(tauri, 'icons', icone);
   if (!existsSync(origem)) parar(`ícone ${icone} não existe em app desktop/icons — rode "npm run tauri -- icon"`);
