@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "466027963850",
+    "project_id": "oaze-finance",
+    "storage_bucket": "oaze-finance.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466027963850:android:94d0f6af5f42509646db33",
+        "android_client_info": {
+          "package_name": "site.oaze.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1-AgyB5brnJbbsTmMTabkuuxP98B3Qyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466027963850:android:9dc8ad6dc57bd2f946db33",
+        "android_client_info": {
+          "package_name": "site.oaze.app.teste"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1-AgyB5brnJbbsTmMTabkuuxP98B3Qyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

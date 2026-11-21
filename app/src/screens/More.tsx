@@ -18,6 +18,7 @@ export function More() {
     investimentos: brl(investedTotal(w)),
     categorias: `${used} em uso`,
     metas: `${w.goals.length} ${w.goals.length === 1 ? 'meta ativa' : 'metas ativas'}`,
+    agenda: 'calendário e recorrências',
     lembretes: `${due} nos próximos 30 dias`,
     relatorios: 'ano a ano, exportar',
     configuracoes: 'segurança, dados',

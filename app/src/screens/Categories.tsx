@@ -7,8 +7,9 @@ import { addMonths, monthEnd, monthName, monthStart, todayYM } from '../domain/d
 import { brl } from '../domain/money';
 import type { YM } from '../domain/types';
 import { Icon } from '../ui/Icon';
+import { TINTS } from '../ui/chart-colors';
 import { CocoFace, Money, ScreenHead, Seg } from '../ui/bits';
-import { MonthSwitch, TINTS } from './Home';
+import { MonthSwitch } from './Home';
 
 export function Categories() {
   const desktop = useDesktop();

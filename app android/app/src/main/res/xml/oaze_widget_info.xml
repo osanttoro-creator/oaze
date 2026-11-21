@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Atualiza quando o app manda dados (sem acordar o aparelho por conta
+     própria): updatePeriodMillis 0. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="3"
+    android:targetCellHeight="2"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/oaze_widget"
+    android:previewLayout="@layout/oaze_widget"
+    android:description="@string/oaze_widget_descricao" />

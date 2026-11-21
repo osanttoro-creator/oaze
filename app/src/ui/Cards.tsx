@@ -50,7 +50,7 @@ export function BankTile({ bank, small }: { bank: string; small?: boolean }) {
   );
 }
 
-export function BankCard({ item, style, onClick, full, label }: { item: WalletItem; style?: CSSProperties; onClick?: () => void; full?: boolean; label?: string }) {
+export function BankCard({ item, style, onClick, full, label, hidden = false }: { item: WalletItem; style?: CSSProperties; onClick?: () => void; full?: boolean; label?: string; hidden?: boolean }) {
   return (
     <div
       className="bank-card"
@@ -58,8 +58,14 @@ export function BankCard({ item, style, onClick, full, label }: { item: WalletIt
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      aria-hidden={hidden || undefined}
       aria-label={label ?? `${item.name} ${item.kind === 'credito' ? 'crédito' : 'débito'}${item.last4 ? ` final ${item.last4}` : ''}`}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.()}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="card-top">
         <BankTile bank={item.bank} />
@@ -71,15 +77,14 @@ export function BankCard({ item, style, onClick, full, label }: { item: WalletIt
         <>
           <span className="card-chip" />
           <span className="card-nfc"><Icon name="nfc" size={24} /></span>
-          {item.last4 && <div className="card-number">•••• •••• •••• {item.last4}</div>}
           <svg className="card-wave" viewBox="0 0 320 60" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0 40 C60 12 110 18 170 34 S270 56 320 26" fill="none" stroke="currentColor" strokeWidth="1.2" />
           </svg>
           <div className="card-foot">
-            <div><small>TITULAR</small><b>{item.holder}</b></div>
+            <div><small>FINAL DO CARTÃO</small><b>{item.last4 || '—'}</b></div>
             {item.validThru && <div><small>VALIDADE</small><b>{item.validThru}</b></div>}
-            <span className="card-net">{item.network}</span>
           </div>
+          <span className="card-oaze" aria-hidden="true" />
         </>
       )}
     </div>

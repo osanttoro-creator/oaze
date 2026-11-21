@@ -1,0 +1,72 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "site.oaze.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        /* 16/11/2026: o app da Play Console ficou preso ao pacote oaze.site
+           (um envio antigo usou esse nome e a Google nao deixa trocar). */
+        applicationId "oaze.site"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // O CI passa um número crescente: a Play Store recusa códigos repetidos.
+        versionCode = (project.findProperty('oazeVersionCode') ?: '1').toString().toInteger()
+        versionName "2.6.0"
+        // ID do app OAZE na AdMob (conta de Jonatham, 31/10/2026). A propriedade
+        // oazeAdmobAppId troca o ID sem editar este arquivo.
+        manifestPlaceholders = [admobAppId: (project.findProperty('oazeAdmobAppId') ?: 'ca-app-pub-3943764788328980~3295029475').toString()]
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    buildTypes {
+        debug {
+            // Instala ao lado do futuro app de loja e usa só dados de teste.
+            applicationIdSuffix ".teste"
+            versionNameSuffix "-teste"
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    // Assinatura do Oásis pela Google Play (OazePlayPlugin). PBL 8: a Play exige 7+ até ago/2026 e 8+ depois.
+    implementation "com.android.billingclient:billing:8.3.0"
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    /* So liga o Firebase quando o google-services.json tem o pacote
+       oaze.site; sem isso o build para. Enquanto o oaze.site nao for
+       cadastrado no projeto Firebase, o push fica desligado. */
+    if (servicesJSON.text =~ /"package_name"s*:s*"oaze.site"/) {
+        apply plugin: 'com.google.gms.google-services'
+    } else {
+        logger.warn('google-services.json sem o pacote oaze.site: push desligado neste build')
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

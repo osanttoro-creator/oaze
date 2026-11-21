@@ -1,0 +1,116 @@
+# Microsoft Store: gera o pacote MSIX para enviar pelo Partner Center.
+#
+# Por que MSIX e não o MSI/EXE que o Tauri já produz: no caminho empacotado a
+# Microsoft assina o pacote e hospeda o binário sem custo; no caminho
+# "instalador como está" o editor precisa comprar certificado de uma CA do
+# programa de raízes confiáveis e hospedar o arquivo numa URL estável.
+# Comparação: https://learn.microsoft.com/en-us/windows/apps/distribute-through-store/how-to-distribute-your-win32-app-through-microsoft-store
+#
+# Variáveis do repositório (Settings → Secrets and variables → Actions → Variables).
+# Os três valores de identidade são atribuídos pelo Partner Center ao produto —
+# não são escolha nossa, e o Partner Center compara o manifesto caractere por
+# caractere:
+#   MSSTORE_IDENTITY_NAME           ex.: 12345Editor.OAZE
+#   MSSTORE_IDENTITY_PUBLISHER      ex.: CN=AAAAAAAA-1111-2222-3333-BBBBBBBBBBBB
+#   MSSTORE_PUBLISHER_DISPLAY_NAME  o nome jurídico do editor, como aparece lá
+#
+# O pacote sai sem assinatura de propósito. Isso é o esperado para envio pela
+# Store, e também significa que ele não instala nesta máquina sem um
+# certificado de teste confiado localmente.
+name: App · Windows (Microsoft Store)
+
+on:
+  workflow_dispatch:
+    inputs:
+      canal:
+        description: 'teste = pacote para o canal de testes da Store (sincronização pode estar desligada); producao = exige sincronização validada'
+        type: choice
+        options: [teste, producao]
+        default: teste
+  # A mesma tag que dispara o AAB do Play: uma publicação, os dois pacotes.
+  push:
+    tags: ['app-v*']
+
+jobs:
+  verifica:
+    uses: ./.github/workflows/app-ci.yml
+
+  msix:
+    needs: verifica
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: app
+    env:
+      VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_OAZE_ENV: production
+      VITE_OAZE_SYNC_ENABLED: ${{ vars.OAZE_SYNC_ENABLED }}
+      CANAL: ${{ inputs.canal || 'producao' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: app desktop
+
+      # Um pacote de loja sem conta configurada seria um app que não deixa
+      # ninguém entrar. Já a sincronização pode ficar desligada no canal de
+      # testes: sem conta o app funciona inteiro, isolado no aparelho — isso é
+      # promessa do produto. Para produção ela precisa ter sido validada entre
+      # dois aparelhos (docs/12-PUBLICACAO.md).
+      - name: Confere o que o canal exige
+        shell: bash
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error::Configure OAZE_SUPABASE_URL e OAZE_SUPABASE_PUBLISHABLE_KEY nas variáveis do repositório."
+            exit 1
+          fi
+          if [ "$CANAL" = producao ] && [ "$VITE_OAZE_SYNC_ENABLED" != true ]; then
+            echo "::error::Canal de produção exige OAZE_SYNC_ENABLED=true, depois do teste real entre dois aparelhos. Use o canal 'teste' enquanto isso."
+            exit 1
+          fi
+          echo "canal: $CANAL · sincronização: ${VITE_OAZE_SYNC_ENABLED:-false}"
+
+      - run: npm ci
+      # --no-bundle: o MSIX não usa instalador. O MSI/EXE do Tauri é o outro
+      # caminho de distribuição e sai do workflow "App · Windows".
+      - run: npm run tauri -- build --no-bundle
+
+      - name: Empacota MSIX
+        env:
+          MSSTORE_IDENTITY_NAME: ${{ vars.MSSTORE_IDENTITY_NAME }}
+          MSSTORE_IDENTITY_PUBLISHER: ${{ vars.MSSTORE_IDENTITY_PUBLISHER }}
+          MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+        run: node tools/empacotar-msix.mjs
+
+      # O repositório privado esgotou a cota de artifacts; releases mantêm
+      # o pacote acessível ao proprietário sem depender desse armazenamento.
+      - name: Disponibiliza MSIX para o Partner Center
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.sha }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $tag = "app-v${version}-windows-store-rc"
+          $assets = @(Get-ChildItem '../app desktop/target/msix' -Filter '*.msix' -File) | ForEach-Object FullName
+          if (-not $assets -or $assets.Count -eq 0) { throw 'Pacote MSIX não encontrado.' }
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --clobber
+          } else {
+            gh release create $tag @assets --draft --prerelease --target $env:RELEASE_SHA --title "OAZE $version Windows Store - candidato" --notes "MSIX sem assinatura para envio ao Partner Center. A Microsoft assina após aceitar o pacote."
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao disponibilizar o MSIX.' }
+          gh release edit $tag --draft=false
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao publicar o MSIX.' }

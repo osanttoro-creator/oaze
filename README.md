@@ -32,11 +32,15 @@ npm run dev                  # http://localhost:5188  (?demo abre o exemplo)
 
 ## Testar no celular
 
-O workflow [App · teste mobile](.github/workflows/app-mobile-test.yml) gera
-um APK Android instalável em **Actions → Artifacts** após cada mudança na
-`main`. No iPhone, o CI compila sem assinatura; instalação em aparelho exige
-TestFlight. O passo a passo e os limites da sincronização estão em
+O workflow [App · Android](.github/workflows/app-mobile-test.yml) gera um APK
+instalável em **Actions → Artifacts** após cada mudança na `main`. O passo a
+passo e os limites da sincronização estão em
 [Teste mobile e lojas](docs/12-PUBLICACAO.md).
+
+As duas lojas desta rodada são **Google Play** e **Microsoft Store**. Os
+projetos iOS e macOS continuam no repositório e o núcleo compila para eles, mas
+não são compilados nem preparados para loja agora. O que cada loja ainda espera
+está em [Fichas de loja](docs/17-FICHAS-DE-LOJA.md).
 
 | Comando | O que faz |
 |---|---|
@@ -46,10 +50,22 @@ TestFlight. O passo a passo e os limites da sincronização estão em
 | `npm run build` | `dist/` — o mesmo pacote vai para web, Capacitor e Tauri |
 | `npm run verificar:seguranca` | varre segredo e confere a CSP |
 | `npm run check` | os quatro acima, na ordem |
-| `npx cap sync` | copia `dist/` para `android/` e `ios/` |
-| `npx tauri build` | instaladores de desktop (precisa de Rust) |
+| `npx cap sync` | copia o pacote para `app android/` e `app/ios/` |
+| `npm run tauri -- build` | instaladores do Windows a partir de `app desktop/` (precisa de Rust) |
 
 ## Onde as coisas estão
+
+Na raiz (16/11/2026):
+
+```
+site institucional/   o site oaze.site (repositório próprio)
+app/                  o núcleo comum: interface, regras e o pacote web
+app android/          o projeto Android (Capacitor), sem cópia do núcleo
+app desktop/          o projeto Windows (Tauri), sem cópia do núcleo
+supabase/             funções e migrações do servidor
+```
+
+Dentro do núcleo:
 
 ```
 app/src/
@@ -70,7 +86,7 @@ app/src/
   ui/              componentes compostos e o mapa de navegação
   screens/         as telas
   shell/           cascas: ilha inferior, barra lateral, paleta de comandos
-app/android · app/ios · app/src-tauri     projetos nativos
+app/ios                                    projeto iOS (futuro)
 docs/                                      auditoria, arquitetura, publicação
 ```
 

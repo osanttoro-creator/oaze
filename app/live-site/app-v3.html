@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR" data-oaze-mode="live" data-cookies-no-aceite>
+<head>
+  <script src="/assets/app/estilos-inline.js?v=20261101g"></script>
+  <script src="/assets/app/erros-amigaveis.js?v=20261107a"></script>
+  <script src="/assets/app/vidro.js?v=20261120a"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1F2D4D">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Painel privado do OAZE para organizar contas, cartões, calendário e investimentos em uma conta protegida.">
+  <title>OAZE — seu espaço financeiro</title>
+  <link rel="icon" href="/assets/brand/oaze-favicon.svg" type="image/svg+xml">
+  <!-- O ?v= destes endereços é LUGAR RESERVADO. Quem decide o valor é
+       deploy/hostinger/montar-pacote.ps1, que troca cada um pelo hash do
+       próprio arquivo ao montar o pacote: endereço só muda quando o
+       arquivo muda, e cache de navegador deixa de esconder publicação.
+       Não precisa editar à mão. -->
+  <link rel="stylesheet" href="/assets/app/app.css?v=20261023b">
+  <link rel="stylesheet" href="/assets/app/icons.css?v=20261014a">
+  <link rel="stylesheet" href="/assets/app/wallet.css?v=20261031b">
+  <link rel="stylesheet" href="/assets/app/calendar.css?v=20261023c">
+  <link rel="stylesheet" href="/assets/app/investments.css?v=20261014a">
+  <link rel="stylesheet" href="/assets/app/payment.css?v=20261014a">
+  <link rel="stylesheet" href="/assets/app/consent.css?v=20261014a">
+  <link rel="stylesheet" href="/assets/app/coco.css?v=20261014a">
+  <link rel="stylesheet" href="/assets/app/refinement.css?v=20261113a">
+  <link rel="stylesheet" href="/assets/app/forms-refinement.css?v=20261111a">
+  <link rel="stylesheet" href="/assets/app/navigation-coco-refinement.css?v=20261023a">
+  <link rel="stylesheet" href="/assets/app/native-layout.css">
+  <link rel="stylesheet" href="/assets/app/estado-oaze.css?v=20261028a">
+  <link rel="stylesheet" href="/assets/app/release-ui.css?v=20261111a">
+  <link rel="stylesheet" href="/assets/app/category-colors.css?v=20261030a">
+  <link rel="stylesheet" href="/assets/app/coco-pet-icon.css?v=20261111a">
+  <link rel="stylesheet" href="/assets/app/recursos-app.css?v=20261111a">
+  <link rel="stylesheet" href="/assets/app/telas.css?v=20261112a">
+  <link rel="stylesheet" href="/assets/app/gestos.css?v=20261110b">
+  <link rel="stylesheet" href="/assets/app/turma.css?v=20261114a">
+  <link rel="stylesheet" href="/assets/app/tema-c2b.css?v=20261120b">
+<script>
+/* A língua, também antes da primeira pintura. Nesta ordem:
+     1. a escolha feita em Configurações (oaze.idioma);
+     2. ?lang= no endereço — o link das páginas em inglês, francês e
+        espanhol para o app leva isso;
+     3. a língua da última página do site que a pessoa leu;
+     4. quem já usa o app (tem financas.v1) fica em português, como
+        sempre foi: trocar a língua de alguém sem ele pedir não é
+        detalhe; quem chega agora recebe a do navegador.
+   Fora do português o corpo nasce escondido (data-traduzindo) até o
+   dicionário traduzir a tela — e aparece de qualquer jeito em 3 s,
+   para uma falha de rede nunca deixar o app em branco. */
+(function () {
+  var ok = { pt: 1, en: 1, fr: 1, es: 1 };
+  var lang = null;
+  try {
+    var q = (location.search.match(/[?&]lang=([a-z]{2})\b/) || [])[1];
+    lang = localStorage.getItem('oaze.idioma');
+    if (!ok[lang]) lang = null;
+    if (!lang && q && ok[q]) { lang = q; localStorage.setItem('oaze.idioma.site', q); }
+    if (!lang) { var site = localStorage.getItem('oaze.idioma.site'); if (ok[site]) lang = site; }
+    if (!lang && localStorage.getItem('financas.v1') === null) {
+      var nav = String(navigator.language || 'pt').slice(0, 2).toLowerCase();
+      lang = ok[nav] ? nav : 'en';
+    }
+  } catch (e) { /* sem armazenamento: português */ }
+  lang = lang || 'pt';
+  var raiz = document.documentElement;
+  raiz.setAttribute('data-idioma', lang);
+  raiz.setAttribute('lang', { pt: 'pt-BR', en: 'en', fr: 'fr', es: 'es' }[lang]);
+  if (lang !== 'pt') {
+    raiz.setAttribute('data-traduzindo', '');
+    setTimeout(function () { raiz.removeAttribute('data-traduzindo'); }, 3000);
+  }
+})();
+</script>
+<style>html[data-traduzindo] body { visibility: hidden; }</style>
+  <!-- Tag do vídeo premiado do Google Ad Manager (Windows/site). Vazio = libera sem vídeo. -->
+  <meta name="oaze-ima-tag" content="">
+</head>
+<body class="v3">
+  <!-- Abertura: motion completo na primeira vez; depois, cortina rápida
+       enquanto o app monta a tela. Ver assets/app/turma-abertura.js. -->
+  <div class="tm-abertura" id="tm-abertura" role="status" aria-label="Abrindo a OAZE"><img class="tm-abertura-pet" src="/assets/turma/oaze/pet-running.webp" alt="" width="192" height="224"><strong>OAZE</strong><span class="tm-abertura-barra"><i></i></span></div>
+  <script src="/assets/app/turma-abertura.js?v=20261114a"></script>
+  <a class="v3-skip" href="#v3-content">Pular para o conteúdo</a>
+  <div class="v3-liquid-ether" id="v3-liquid-ether" aria-hidden="true"></div>
+  <div class="v3-shell">
+    <aside class="v3-sidebar" aria-label="Navegação principal">
+      <a class="v3-logo" href="/app" aria-label="OAZE — início"><img class="v3-logo-marca" src="/assets/brand/v3/oaze-v3-logo-escuro.svg" alt="OAZE"></a>
+      <button class="v3-new" type="button" data-action="new">＋ <span>Novo lançamento</span> <kbd>N</kbd></button>
+      <nav id="v3-desktop-nav" aria-label="Seções"></nav>
+      <button class="v3-profile" type="button" data-action="profiles"><span class="v3-avatar" id="v3-avatar">P</span><span><strong id="v3-owner">Seu OAZE</strong><small id="v3-profile-name">Pessoal</small></span><span aria-hidden="true">⌄</span></button>
+    </aside>
+    <main class="v3-main" id="v3-content">
+      <header class="v3-top">
+        <div class="v3-title-wrap"><button class="v3-back" type="button" data-action="back" aria-label="Voltar">‹</button><div><span class="v3-eyebrow" id="v3-eyebrow"></span><h1 id="v3-title">início</h1></div></div>
+        <div class="v3-top-actions"><div class="v3-period v3-periodo" id="v3-period" role="group" aria-label="Mês exibido"><button type="button" data-period-step="-1" aria-label="Mês anterior">&lsaquo;</button><button type="button" data-action="period" data-period-label>set 2026</button><button type="button" data-period-step="1" aria-label="Próximo mês">&rsaquo;</button></div><button class="v3-icon-button" type="button" data-action="privacy" aria-label="Ocultar valores" aria-pressed="false"><span class="v3-fi v3-fi-eye" aria-hidden="true"></span></button><button class="v3-icon-button" type="button" data-action="notifications" aria-label="Lembretes"><span class="v3-fi v3-fi-reminders" aria-hidden="true"></span><span class="v3-notification-count" id="v3-notification-dot" hidden></span></button></div>
+      </header>
+      <div class="v3-demo-note" id="v3-demo-note" hidden></div>
+      <div id="v3-view" aria-live="polite"><div class="v3-skeleton" role="status" aria-label="Carregando seu OAZE"><div class="v3-skeleton-column"><div class="v3-skeleton-card"><span class="v3-skeleton-line short"></span><span class="v3-skeleton-line value"></span><span class="v3-skeleton-line medium"></span></div></div><div class="v3-skeleton-column"><div class="v3-skeleton-card"><span class="v3-skeleton-line short"></span><span class="v3-skeleton-line value"></span><span class="v3-skeleton-line medium"></span></div><div class="v3-skeleton-card"><span class="v3-skeleton-line medium"></span><span class="v3-skeleton-line short"></span></div></div></div></div>
+    </main>
+  </div>
+  <nav class="v3-bottom" id="v3-mobile-nav" aria-label="Navegação no celular"></nav>
+  <button class="v3-coco-fab" type="button" data-action="coco" aria-label="Abrir OAZE"><span class="v3-coco-pet" aria-hidden="true"><img src="/assets/turma/oaze/icone-192.webp" width="192" height="192" alt=""></span><span class="v3-coco-count" id="v3-coco-count" hidden></span></button>
+  <button class="v3-voice-global" id="v3-voice-global" type="button" data-action="voice-stop" hidden>● OAZE usando o microfone · encerrar</button>
+  <div class="v3-overlay" id="v3-overlay" hidden><div class="v3-scrim" data-action="close"></div><section class="v3-sheet" id="v3-sheet" role="dialog" aria-modal="true" aria-label="Painel do OAZE"></section></div>
+  <div class="v3-toast" id="v3-toast" role="status" hidden></div>
+  <script src="/assets/vendor/supabase.js?v=20261014a"></script>
+  <script src="/assets/js/supabase-config.js?v=20261014a"></script>
+  <script src="/assets/js/site-auth.js?v=20261110a"></script>
+  <script src="/assets/js/idioma.js?v=20261110a"></script>
+  <script src="/assets/js/utils.js?v=20261014a"></script>
+  <script src="/assets/vendor/bancos.js?v=20261014a"></script>
+  <script src="/assets/js/central-marcas.js?v=20261113a"></script>
+  <script src="/assets/vendor/icons.js?v=20261101e"></script>
+  <script src="/assets/js/icons.js?v=20261113a"></script>
+  <script src="/assets/js/automacoes/normalizar-estabelecimento.js?v=20261014a"></script>
+  <script src="/assets/js/automacoes/categorizar.js?v=20261014a"></script>
+  <script src="/assets/js/automacoes/detectar-recorrencias.js?v=20261014a"></script>
+  <script src="/assets/js/automacoes/metas-automaticas.js?v=20261014a"></script>
+  <script src="/assets/js/store.js?v=20261111a"></script>
+  <script src="/assets/js/calc.js?v=20261111a"></script>
+  <script src="/assets/js/planos.js?v=20261110a"></script>
+  <script src="/assets/js/limites.js?v=20261110a"></script>
+  <script src="/assets/js/ai.js?v=20261111a"></script>
+  <script src="/assets/app/live-backend.js?v=20261112a"></script>
+  <script src="/assets/app/carteira.js?v=20261014a"></script>
+  <script src="/assets/app/coco-import.js?v=20261111a"></script>
+  <script src="/assets/app/coco-realtime.js?v=20261111a"></script>
+  <script src="/assets/app/onboarding-ponte.js?v=20261014a"></script>
+  <script src="/assets/js/onboarding.js?v=20261014a"></script>
+  <script src="/assets/app/liquid-ether.js?v=20261023b" defer></script>
+  <script src="/assets/app/estado-oaze-pdf.js?v=20261110a"></script>
+  <script src="/assets/app/estado-oaze.js?v=20261028a"></script>
+  <script src="/assets/app/release-ui.js?v=20261028a"></script>
+  <script src="/assets/app/anuncio-web.js?v=20261112a"></script>
+  <script src="/assets/app/recursos-app.js?v=20261112a"></script>
+  <script src="/assets/app/missoes.js?v=20261031b"></script>
+  <script src="/assets/app/teste-gratis.js?v=20261110a"></script>
+  <script src="/assets/app/mais-telas.js?v=20261110a"></script>
+  <script src="/assets/app/funcoes-oaze.js?v=20261112a"></script>
+  <script src="/assets/app/gestos.js?v=20261110a"></script>
+  <script src="/assets/app/turma.js?v=20261114a"></script>
+  <script src="/assets/app/app.js?v=20261114a"></script>
+  <script src="/assets/js/cookies.js?v=20261014a" defer></script>
+</body>
+</html>

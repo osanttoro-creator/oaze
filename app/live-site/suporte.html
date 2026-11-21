@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Suporte — OAZE</title>
+  <meta name="description" content="Como falar com o suporte do OAZE, prazos de resposta e passos para exportar dados ou excluir a conta.">
+<link rel="canonical" href="https://oaze.site/suporte">
+<!-- idiomas: gerado por tools/gen-idiomas.js -->
+<link rel="alternate" hreflang="pt-BR" href="https://oaze.site/suporte">
+<link rel="alternate" hreflang="en" href="https://oaze.site/en/suporte">
+<link rel="alternate" hreflang="fr" href="https://oaze.site/fr/suporte">
+<link rel="alternate" hreflang="es" href="https://oaze.site/es/suporte">
+<link rel="alternate" hreflang="x-default" href="https://oaze.site/suporte">
+<!-- /idiomas -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OAZE">
+<meta property="og:title" content="Suporte — OAZE">
+<meta property="og:description" content="Como falar com a gente e resolver o mais comum sozinho.">
+<meta property="og:url" content="https://oaze.site/suporte">
+<meta property="og:image" content="https://oaze.site/assets/img/oaze-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OAZE — controle financeiro pessoal">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Suporte — OAZE">
+<meta name="twitter:description" content="Ajuda para usar o OAZE e cuidar dos seus dados.">
+<meta name="twitter:image" content="https://oaze.site/assets/img/oaze-og.png">
+<meta name="theme-color" content="#071822">
+<link rel="icon" href="/assets/brand/oaze-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/img/oaze-48.png" sizes="48x48" type="image/png">
+<link rel="apple-touch-icon" href="/assets/img/oaze-180.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script>document.documentElement.classList.add("anima");</script>
+</head>
+<body>
+
+<div class="ceu" aria-hidden="true"></div>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="topo">
+  <div class="env">
+    <a class="marca" href="/" aria-label="OAZE, página inicial">
+        <img src="/assets/brand/oaze-logo-escuro.svg" alt="" width="116" height="40" decoding="async">
+    </a>
+    <button class="hamburguer" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Abrir menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <nav class="menu" id="menu-principal" aria-label="Navegação principal">
+      <a href="/recursos">Recursos</a><a href="/precos">Preços</a>
+      <a href="/#seguranca">Segurança</a><a href="/suporte" aria-current="page">Suporte</a>
+    </nav>
+    <div class="acoes-topo">
+      <a class="btn btn-fantasma" href="/entrar">Entrar</a>
+      <a class="btn btn-principal" href="/entrar">Entrar</a>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+  <section class="secao cabeca-pagina">
+    <div class="env">
+      <div class="secao-topo">
+        <p class="etiqueta">Suporte</p>
+        <h1>Como podemos <em>ajudar</em></h1>
+        <p>A maior parte do que as pessoas escrevem pedindo, dá para resolver em dois cliques. Está tudo abaixo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---- como falar com a gente ----
+       Padrão editorial da seção Segurança da página inicial. -->
+  <section class="secao" style="padding-top:0">
+    <div class="env">
+      <h2 class="sr-only">Falar com a gente</h2>
+      <div class="grade grade-editorial">
+        <!-- O FORMULÁRIO GRAVA NO SUPABASE ANTES DE MANDAR O E-MAIL
+             (função oaze-contato). Se o envio falhar, a mensagem continua
+             guardada: nenhuma se perde por causa do correio. -->
+        <article class="carta revela" id="contato">
+          <h3>Escreva para a gente</h3>
+          <form class="contato" id="formContato" novalidate>
+            <div class="recado" id="contatoRecado" role="status" aria-live="polite" hidden></div>
+            <div class="campo">
+              <label for="contatoNome">Seu nome</label>
+              <input type="text" id="contatoNome" name="nome" autocomplete="name" maxlength="100" required>
+              <p class="erro" id="contatoNomeErro" hidden>Diga como podemos te chamar.</p>
+            </div>
+            <div class="campo">
+              <label for="contatoEmail">Seu e-mail</label>
+              <input type="email" id="contatoEmail" name="email" autocomplete="email" maxlength="200" required aria-describedby="contatoEmailDica">
+              <p class="dica" id="contatoEmailDica">É para ele que respondemos.</p>
+              <p class="erro" id="contatoEmailErro" hidden>Confira o e-mail: é por ele que vamos responder.</p>
+            </div>
+            <div class="campo">
+              <label for="contatoMensagem">Mensagem</label>
+              <textarea id="contatoMensagem" name="mensagem" rows="6" minlength="10" maxlength="5000" required></textarea>
+              <p class="erro" id="contatoMensagemErro" hidden>Escreva um pouco mais — pelo menos uma frase.</p>
+            </div>
+            <!-- campo-isca: fora da tela e fora da ordem de Tab. Pessoas não o
+                 veem; robôs o preenchem, e a função os descarta em silêncio. -->
+            <div class="contato-isca" aria-hidden="true">
+              <label for="contatoSite">Deixe em branco</label>
+              <input type="text" id="contatoSite" name="site" tabindex="-1" autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-principal" id="contatoEnviar">Enviar mensagem</button>
+          </form>
+          <p class="contato-prazo">Respondemos em até <strong>2 dias úteis</strong>. Pedidos ligados à LGPD, em
+          até <strong>15 dias</strong>, como manda a lei.</p>
+        </article>
+
+        <article class="carta revela">
+          <h3>O que incluir na mensagem</h3>
+          <p>O e-mail da conta, o que você esperava que acontecesse, o que aconteceu, e o
+          aparelho e navegador. Se apareceu um código de erro, mande ele — é por ele que
+          achamos o registro do que houve.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao secao-faq" style="padding-top:0">
+    <div class="env">
+      <div class="secao-topo revela"><h2>Resolver sozinho, agora</h2></div>
+      <div class="faq">
+        <details>
+          <summary>Exportar todos os meus dados</summary>
+          <div class="resposta">
+            <p>No app: <strong>Relatórios → Exportar CSV</strong> ou <strong>Exportar
+            PDF</strong>, no plano Oásis. Sai em formato aberto, na hora, sem
+            precisar pedir nem esperar.</p>
+            <p>É também assim que se exerce o direito de portabilidade da LGPD.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Excluir minha conta</summary>
+          <div class="resposta">
+            <p>No app: <strong>Configurações → Conta → Excluir conta</strong>. Pedimos que
+            você digite o próprio e-mail para confirmar.</p>
+            <p><strong>Não tem volta.</strong> Os registros financeiros são apagados junto,
+            em cascata no banco. Exporte seus dados antes — depois não há como recuperar,
+            nem por nós.</p>
+            <p>Sem o app, por e-mail e o que fica guardado: <a href="/excluir-conta">oaze.site/excluir-conta</a>.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Não consigo entrar</summary>
+          <div class="resposta">
+            <p>A entrada é pela sua conta Google. No app, depois da primeira vez, você usa o PIN de 6 dígitos, a digital ou o rosto.</p>
+            <p>Esqueceu o PIN? Entre de novo pela conta Google e crie outro. Depois de cinco tentativas erradas, o PIN fica bloqueado por 15 minutos.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Meus dados sumiram</summary>
+          <div class="resposta">
+            <p>Se você usava <strong>sem conta</strong>, os dados ficavam só naquele
+            navegador — limpar os dados do site ou trocar de aparelho apaga tudo, e não
+            temos cópia. É a diferença que a conta faz.</p>
+            <p>Se você <strong>tem conta</strong>, os dados estão no servidor. Entre na
+            conta certa (confira o e-mail) e eles voltam. Se mesmo assim não aparecerem,
+            escreva para o suporte antes de mexer em mais alguma coisa.</p>
+          </div>
+        </details>
+        <details>
+          <summary>A assistente OAZE parou de responder</summary>
+          <div class="resposta">
+            <p>Cada plano tem um limite de consultas por mês: 10 no Semente e
+            200 no Oásis. Atingido o limite, ela volta no mês seguinte.</p>
+            <p>Erro nosso ou indisponibilidade do provedor <strong>não</strong> consomem
+            consulta — se você viu um erro, aquela consulta não foi cobrada.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="env">
+    <div class="rodape-grade">
+      <div>
+        <a class="marca" href="/" aria-label="OAZE, página inicial">
+        <img src="/assets/brand/oaze-logo-escuro.svg" alt="" width="116" height="40" decoding="async">
+        </a>
+        <p class="rodape-sobre">Um painel para enxergar o próprio dinheiro sem virar planilha.</p>
+      </div>
+      <div><h3>Produto</h3><ul>
+        <li><a href="/recursos">Recursos</a></li><li><a href="/precos">Preços</a></li>
+        <li><a href="/#coco">Coco</a></li><li><a href="/#seguranca">Segurança</a></li></ul></div>
+      <div><h3>Conta</h3><ul>
+        <li><a href="/entrar">Entrar</a></li>
+        </ul></div>
+      <div><h3>Legal</h3><ul>
+        <li><a href="/termos">Termos de uso</a></li><li><a href="/privacidade">Política de privacidade</a></li>
+        <li><a href="/suporte">Suporte</a></li></ul></div>
+    </div>
+    <div class="rodape-fim">
+      <p>© <span data-ano>2026</span> OAZE</p>
+      <p>Feito no Brasil · valores em reais</p>
+      <p><a href="/suporte#contato">Fale com a gente</a></p>
+    <!-- seletor-idioma: gerado --><nav class="idiomas" data-idiomas aria-label="Idioma"><a data-idioma href="/suporte" hreflang="pt-BR" lang="pt-BR" aria-current="true">Português</a><a data-idioma href="/en/suporte" hreflang="en" lang="en">English</a><a data-idioma href="/fr/suporte" hreflang="fr" lang="fr">Français</a><a data-idioma href="/es/suporte" hreflang="es" lang="es">Español</a></nav><!-- /seletor-idioma --></div>
+  </div>
+</footer>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/contato.js" defer></script>
+<script src="/assets/js/cookies.js" defer></script>
+<script src="/assets/js/idioma-esfera.js" defer></script>
+</body>
+</html>

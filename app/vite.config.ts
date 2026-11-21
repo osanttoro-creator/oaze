@@ -18,6 +18,8 @@ export default defineConfig({
       coisa — ou quebrarem sem motivo real.
     */
     environment: 'node',
+    /* Telas lazy podem carregar mais devagar em máquinas com Drive sincronizado. */
+    testTimeout: 15000,
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     setupFiles: ['src/test/setup.ts'],
     /*

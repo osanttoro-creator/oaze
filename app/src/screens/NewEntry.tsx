@@ -8,9 +8,9 @@ import { compound } from '../domain/calc';
 import { addDaysISO, todayISO } from '../domain/dates';
 import type { ID, InvestmentType, Method } from '../domain/types';
 import { Icon } from '../ui/Icon';
+import { METHOD_ICON } from '../ui/method-icons';
 import { CocoFace, Seg, Sheet, Toggle } from '../ui/bits';
 import { CardThumb, walletItems } from '../ui/Cards';
-import { METHOD_ICON } from './Transactions';
 
 const PAY: Method[] = ['pix', 'cartao_fisico', 'cartao_virtual', 'dinheiro', 'boleto', 'debito_automatico', 'transferencia'];
 const RECEIVE: Method[] = ['pix', 'transferencia', 'dinheiro', 'deposito', 'boleto'];
@@ -34,21 +34,21 @@ const TYPES: [EntryType, string][] = [['despesa', 'Despesa'], ['receita', 'Recei
 export function NewEntry({ desktop }: { desktop: boolean }) {
   const w = useWorkspace();
   const owner = useApp((s) => s.owner.name);
-  const initial = useUI((u) => u.novo.type);
+  const initial = useUI((u) => u.novo);
   const items = walletItems(w.accounts, w.cards, owner.toUpperCase());
 
-  const [type, setType] = useState<EntryType>(initial);
+  const [type, setType] = useState<EntryType>(initial.type);
   const [cents, setCents] = useState('');
   const [typed, setTyped] = useState('');
   const [desc, setDesc] = useState('');
   const [catId, setCatId] = useState<ID | undefined>(undefined);
-  const [method, setMethod] = useState<Method>(initial === 'receita' ? 'pix' : w.cards.length ? 'cartao_virtual' : 'pix');
+  const [method, setMethod] = useState<Method>(initial.type === 'receita' ? 'pix' : w.cards.length ? 'cartao_virtual' : 'pix');
   const [source, setSource] = useState<ID | undefined>(undefined);
   const [toAcc, setToAcc] = useState<ID | undefined>(w.accounts[1]?.id);
   const [parc, setParc] = useState(1);
   const [paid, setPaid] = useState(true);
   const [fixed, setFixed] = useState(false);
-  const [date, setDate] = useState(todayISO());
+  const [date, setDate] = useState(initial.date ?? todayISO());
   const [invType, setInvType] = useState<InvestmentType>('tesouro');
   const [rate, setRate] = useState(TAXA_SUGERIDA.tesouro);
   const [prazo, setPrazo] = useState(24);

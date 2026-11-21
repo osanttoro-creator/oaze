@@ -1,22 +1,27 @@
 {
   "name": "oaze-app",
   "private": true,
-  "version": "2.0.0-alpha.1",
+  "version": "2.6.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:published": "vite build --config vite.bridge.config.ts && node tools/build-published-app.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",
     "verificar:seguranca": "node tools/verificar-seguranca.mjs",
-    "check": "npm run typecheck && npm test && npm run build && npm run verificar:seguranca"
+    "check": "npm run typecheck && npm test && npm run build && npm run build:published && npm run verificar:seguranca",
+    "tauri": "node tools/tauri.mjs"
   },
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "^10.0.0",
+    "@capacitor-community/admob": "8.2.1",
     "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/clipboard": "^8.0.1",
     "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.5",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/local-notifications": "^8.3.1",
     "@capacitor/preferences": "^8.0.1",
@@ -24,6 +29,7 @@
     "@capacitor/push-notifications": "^8.1.3",
     "@capacitor/share": "^8.0.3",
     "@supabase/supabase-js": "^2.117.2",
+    "@tauri-apps/plugin-opener": "^2.7.2",
     "capacitor-secure-storage-plugin": "^0.13.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"

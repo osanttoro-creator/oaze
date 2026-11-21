@@ -1,0 +1,76 @@
+<!--
+  Trecho para android/app/src/main/AndroidManifest.xml
+  O Capacitor já gera o manifesto; acrescente só o que falta e confira o resto.
+-->
+
+<!-- ===== 1 · Permissões: dentro de <manifest>, fora de <application> ===== -->
+
+<!-- O Capacitor já declara INTERNET -->
+<uses-permission android:name="android.permission.INTERNET" />
+
+<!-- Android 13+: lembretes de vencimento. Pedir em tempo de execução, quando a pessoa ligar os lembretes -->
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+<!-- Biometria. Normalmente o plugin já declara; confira que ficou uma vez só -->
+<uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+<!-- NÃO DECLARAR. Nenhuma é usada, e cada uma pede justificativa à Google Play:
+     SCHEDULE_EXACT_ALARM, USE_EXACT_ALARM, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION,
+     READ_CONTACTS, CAMERA, RECORD_AUDIO, READ_SMS, READ_CALL_LOG,
+     MANAGE_EXTERNAL_STORAGE, BIND_NOTIFICATION_LISTENER_SERVICE, QUERY_ALL_PACKAGES -->
+
+
+<!-- ===== 2 · Backup: atributos da tag <application> =====
+     allowBackup="false" tira os dados do app do backup automático na nuvem do Google.
+     Num app financeiro isso evita que lançamentos de quem usa sem conta fiquem numa cópia fora
+     do controle do OAZE. A transferência direta de um aparelho para outro, na troca de celular,
+     continua funcionando no Android 12 ou mais novo.
+     Custo: quem usa sem conta e troca de celular sem essa transferência perde os dados. A
+     sincronização por conta resolve.
+-->
+<application
+    android:allowBackup="false"
+    android:fullBackupContent="false"
+    ...>
+
+
+<!-- ===== 3 · Links: dentro da <activity> principal (MainActivity) ===== -->
+
+<!-- Links do oaze.site que abrem o app. autoVerify confere o assetlinks.json no site.
+     Um caminho por linha, de propósito: /app/planos fica de fora e abre no navegador,
+     porque o app Android não vende nada. -->
+<intent-filter android:autoVerify="true">
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data android:scheme="https" android:host="oaze.site" />
+    <data android:path="/app" />
+    <data android:path="/app/financeiro" />
+    <data android:path="/app/carteira" />
+    <data android:path="/app/orcamento" />
+    <data android:path="/app/metas" />
+    <data android:path="/app/recorrencias" />
+    <data android:path="/app/calendario" />
+    <data android:path="/app/investimentos" />
+    <data android:path="/app/analises" />
+    <data android:path="/app/uglez" />
+    <data android:path="/app/categorias" />
+    <data android:path="/app/configuracoes" />
+</intent-filter>
+
+<!-- Esquema próprio: atalhos do ícone e retornos internos (site.oaze.app://novo/despesa) -->
+<intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data android:scheme="site.oaze.app" />
+</intent-filter>
+
+
+<!-- ===== 4 · O que não fica no manifesto, mas precisa existir =====
+     · Canal de notificação criado em JavaScript pelo @capacitor/local-notifications:
+       id "lembretes", nome "Lembretes de vencimento", importância padrão.
+     · Miniatura protegida nos apps recentes quando o bloqueio por biometria estiver ligado:
+       feito pelo @capacitor-community/privacy-screen.
+     · Ícone ic_stat_oaze em res/drawable: silhueta branca sobre transparente.
+-->

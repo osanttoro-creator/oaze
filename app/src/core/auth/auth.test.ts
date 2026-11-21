@@ -19,6 +19,7 @@ const fake = {
   session: null as { access_token: string; user: { id: string; email: string; user_metadata: Record<string, unknown> } } | null,
   listener: null as Listener | null,
   erro: null as string | null,
+  platform: 'web' as 'web' | 'android' | 'windows',
   chamadas: [] as string[],
 };
 
@@ -64,9 +65,10 @@ vi.mock('../api/client', () => ({
         fake.chamadas.push('resetPasswordForEmail');
         return fake.erro ? { error: { message: fake.erro } } : { error: null };
       },
-      signInWithOAuth: async ({ provider }: { provider: string }) => {
-        fake.chamadas.push(`oauth:${provider}`);
-        return fake.erro ? { error: { message: fake.erro } } : { error: null };
+      signInWithOAuth: async ({ provider, options }: { provider: string; options: { redirectTo: string; skipBrowserRedirect: boolean } }) => {
+        fake.chamadas.push(`oauth:${provider}:${options.redirectTo}:${options.skipBrowserRedirect}`);
+        return fake.erro ? { data: null, error: { message: fake.erro } } :
+          { data: { url: 'https://example.supabase.co/auth/v1/authorize?provider=' + provider }, error: null };
       },
       signOut: async ({ scope }: { scope: string }) => {
         fake.chamadas.push(`signOut:${scope}`);
@@ -78,16 +80,24 @@ vi.mock('../api/client', () => ({
         fake.chamadas.push('updateUser');
         return fake.erro ? { error: { message: fake.erro } } : { error: null };
       },
-      setSession: async () => ({ error: null }),
-      exchangeCodeForSession: async () => ({ error: null }),
+      setSession: async () => { fake.chamadas.push('setSession'); return { error: null }; },
+      exchangeCodeForSession: async () => { fake.chamadas.push('exchangeCode'); return { error: null }; },
     },
   }),
 }));
 
-vi.mock('../../platform', () => ({ platform: () => 'web' }));
+vi.mock('../../platform', () => ({ platform: () => fake.platform }));
+vi.mock('@capacitor/browser', () => ({ Browser: {
+  open: async () => { fake.chamadas.push('browser:open'); },
+  close: async () => { fake.chamadas.push('browser:close'); },
+} }));
+vi.mock('@tauri-apps/plugin-opener', () => ({
+  openUrl: async () => { fake.chamadas.push('desktop:open'); },
+}));
 
 const {
   authState,
+  completeOAuthFromUrl,
   deleteAccount,
   sendMagicLink,
   sendPasswordReset,
@@ -103,6 +113,7 @@ const { callFunction } = await import('../api/client');
 beforeEach(() => {
   fake.session = null;
   fake.erro = null;
+  fake.platform = 'web';
   fake.chamadas = [];
 });
 
@@ -201,8 +212,37 @@ describe('caminhos sem senha', () => {
     await startAuth();
     await signInWithProvider('google');
     await signInWithProvider('apple');
-    expect(fake.chamadas).toContain('oauth:google');
-    expect(fake.chamadas).toContain('oauth:apple');
+    expect(fake.chamadas).toContain(`oauth:google:${location.origin}/app:false`);
+    expect(fake.chamadas).toContain(`oauth:apple:${location.origin}/app:false`);
+  });
+
+  it('Android abre o provedor fora do WebView e volta por deep link', async () => {
+    fake.platform = 'android';
+    await signInWithProvider('google');
+    expect(fake.chamadas).toContain('oauth:google:oaze://auth:true');
+    expect(fake.chamadas).toContain('browser:open');
+    expect(await completeOAuthFromUrl('oaze://auth?code=abc')).toBe(true);
+    expect(fake.chamadas).toContain('exchangeCode');
+  });
+
+  it('Windows abre o provedor no navegador padrão', async () => {
+    fake.platform = 'windows';
+    await signInWithProvider('apple');
+    expect(fake.chamadas).toContain('oauth:apple:oaze://auth:true');
+    expect(fake.chamadas).toContain('desktop:open');
+    expect(await completeOAuthFromUrl('oaze://auth?code=abc')).toBe(true);
+    expect(fake.chamadas).toContain('exchangeCode');
+  });
+
+  it('recusa callbacks de outro esquema ou host', async () => {
+    expect(await completeOAuthFromUrl('https://outro.site/?code=abc')).toBe(false);
+    expect(await completeOAuthFromUrl('oaze://outro?code=abc')).toBe(false);
+    expect(fake.chamadas).not.toContain('exchangeCode');
+  });
+
+  it('recusa tokens implícitos em links que qualquer aplicativo pode forjar', async () => {
+    expect(await completeOAuthFromUrl('oaze://auth#access_token=a&refresh_token=b')).toBe(false);
+    expect(fake.chamadas).not.toContain('setSession');
   });
 });
 

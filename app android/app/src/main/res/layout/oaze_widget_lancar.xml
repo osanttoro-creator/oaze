@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lançamento rápido (1x1): um toque abre o formulário de nova despesa. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/oaze_lancar_raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="6dp"
+    android:background="@drawable/oaze_widget_fundo"
+    android:contentDescription="Novo lançamento no OAZE">
+    <TextView android:layout_width="44dp" android:layout_height="44dp" android:gravity="center"
+        android:text="+" android:textSize="26sp" android:textStyle="bold" android:textColor="#0D1821"
+        android:background="@drawable/oaze_widget_botao" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginTop="4dp" android:text="Lançar" android:textSize="12sp" android:textColor="#F0E5CF" />
+</LinearLayout>

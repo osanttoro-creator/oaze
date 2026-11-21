@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Confirmar e-mail — OAZE</title>
+<meta name="description" content="Confirmação de e-mail da sua conta OAZE.">
+<link rel="canonical" href="https://oaze.site/confirmar-email">
+<!-- idiomas: gerado por tools/gen-idiomas.js -->
+<link rel="alternate" hreflang="pt-BR" href="https://oaze.site/confirmar-email">
+<link rel="alternate" hreflang="en" href="https://oaze.site/en/confirmar-email">
+<link rel="alternate" hreflang="fr" href="https://oaze.site/fr/confirmar-email">
+<link rel="alternate" hreflang="es" href="https://oaze.site/es/confirmar-email">
+<link rel="alternate" hreflang="x-default" href="https://oaze.site/confirmar-email">
+<!-- /idiomas -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#071822">
+<link rel="icon" href="/assets/brand/oaze-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/img/oaze-48.png" sizes="48x48" type="image/png">
+<link rel="apple-touch-icon" href="/assets/img/oaze-180.png">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+
+<div class="ceu" aria-hidden="true"></div>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="topo">
+  <div class="env">
+    <a class="marca" href="/" aria-label="OAZE, página inicial">
+        <img src="/assets/brand/oaze-logo-escuro.svg" alt="" width="116" height="40" decoding="async">
+    </a>
+  </div>
+</header>
+
+<main id="conteudo" class="secao">
+  <div class="env">
+    <div class="painel-conta" style="text-align:center">
+      <h1 id="titulo">Confirmando…</h1>
+      <p class="recado" id="recado" role="status" aria-live="polite" hidden></p>
+      <p id="explica">Um instante enquanto validamos o link.</p>
+      <p id="acoes" hidden>
+        <a class="btn btn-principal btn-largo btn-grande" id="botao-ir" href="/onboarding">Continuar</a>
+      </p>
+      <p class="pe-do-painel" id="pe" hidden>
+        <a href="/entrar">Ir para a tela de entrada</a>
+      </p>
+    </div>
+  </div>
+</main>
+
+<script src="/assets/vendor/supabase.js"></script>
+<script src="/assets/js/supabase-config.js"></script>
+<script src="/assets/js/site-auth.js"></script>
+<script>
+(function () {
+  'use strict';
+  var A = window.SiteAuth;
+  var titulo = document.getElementById('titulo');
+  var explica = document.getElementById('explica');
+  var recado = document.getElementById('recado');
+  var acoes = document.getElementById('acoes');
+  var pe = document.getElementById('pe');
+
+  if (!A.cliente()) { explica.textContent = ''; A.semConfig(recado); return; }
+
+  function pronto(u) {
+    titulo.textContent = 'E-mail confirmado';
+    explica.textContent = 'Sua conta ' + (u.email ? '(' + u.email + ') ' : '') +
+      'está ativa. Vamos montar seu painel em alguns passos rápidos.';
+    acoes.hidden = false;
+  }
+
+  function falhou() {
+    titulo.textContent = 'Link expirado';
+    explica.textContent = '';
+    /* Nem sempre é falha: quem já confirmou antes e clicou de novo
+       cai aqui igual. O texto cobre os dois casos em vez de acusar
+       um erro que pode não ter havido. */
+    A.diz(recado, 'Este link não vale mais — ou porque expirou, ou porque ' +
+      'já foi usado. Se você já confirmou antes, é só entrar normalmente.', 'aviso');
+    pe.hidden = false;
+  }
+
+  /* Mesmo padrão da redefinição: o SDK precisa de um instante para
+     transformar o fragmento da URL em sessão. */
+  A.quemEsta().then(function (u) {
+    if (u) return pronto(u);
+    setTimeout(function () {
+      A.quemEsta().then(function (v) { v ? pronto(v) : falhou(); });
+    }, 1200);
+  });
+})();
+</script>
+<script src="/assets/js/cookies.js" defer></script>
+<script src="/assets/js/idioma-esfera.js" defer></script>
+<div class="idiomas-solto"><!-- seletor-idioma: gerado --><nav class="idiomas" data-idiomas aria-label="Idioma"><a data-idioma href="/confirmar-email" hreflang="pt-BR" lang="pt-BR" aria-current="true">Português</a><a data-idioma href="/en/confirmar-email" hreflang="en" lang="en">English</a><a data-idioma href="/fr/confirmar-email" hreflang="fr" lang="fr">Français</a><a data-idioma href="/es/confirmar-email" hreflang="es" lang="es">Español</a></nav><!-- /seletor-idioma --></div>
+</body>
+</html>

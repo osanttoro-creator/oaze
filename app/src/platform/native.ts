@@ -2,6 +2,8 @@ import { isDesktopShell, platform, registerBiometrics, type Biometrics } from '.
 import { completeOAuthFromUrl } from '../core/auth';
 import { reportHandled } from '../core/telemetry';
 
+const authFailed = () => window.dispatchEvent(new CustomEvent('oaze:auth-error'));
+
 /*
   Ligar o que é nativo — P3 e P12 da auditoria.
 
@@ -229,7 +231,36 @@ export async function haptic(kind: HapticKind = 'light'): Promise<void> {
   }
 }
 
-/* ------------------------------------------------------------- deep links */
+/* --------------------------------------------------- botão voltar do aparelho */
+
+/**
+ * Entrega o botão voltar físico do Android para quem sabe o que está na tela.
+ *
+ * Registrar este ouvinte tem um efeito que não é óbvio: o Capacitor **deixa**
+ * de usar o histórico do webview e passa a decisão para o app. É o que
+ * queremos — mas é também por isso que `decide` precisa poder responder
+ * `exit`. Sem ouvinte nenhum, o Capacitor volta no histórico quando pode e,
+ * quando não pode, consome a tecla e não faz nada: na tela inicial o voltar
+ * viraria um botão morto, e sair do app só pelo gesto de início.
+ *
+ * Só o Android tem botão voltar de sistema. No iPhone o gesto é da tela, e no
+ * desktop não existe.
+ */
+export async function installHardwareBack(decide: () => 'consumed' | 'exit'): Promise<void> {
+  if (platform() !== 'android') return;
+  try {
+    const { App } = await import('@capacitor/app');
+    await App.addListener('backButton', () => {
+      if (decide() === 'exit') void App.exitApp();
+    });
+  } catch (err) {
+    /* Sem o ouvinte o voltar fica com o comportamento do Capacitor. Pior, não
+       quebrado — e derrubar o arranque por causa disso seria pior ainda. */
+    reportHandled(err, 'botão voltar');
+  }
+}
+
+/* ----------------------------------------------------------------- deep links */
 
 /**
  * `oaze://` e `https://oaze.site/app/...`. Serve a duas coisas: abrir o app
@@ -239,27 +270,40 @@ export async function haptic(kind: HapticKind = 'light'): Promise<void> {
 async function installDeepLinks(): Promise<void> {
   const handle = async (url: string) => {
     try {
-      if (url.includes('access_token') || url.includes('code=')) {
-        await completeOAuthFromUrl(url);
+      if (await completeOAuthFromUrl(url)) {
+        if (platform() === 'ios' || platform() === 'android') {
+          const { Browser } = await import('@capacitor/browser');
+          await Browser.close().catch(() => {});
+        }
+        return;
+      }
+      let callback: URL | null = null;
+      try { callback = new URL(url); } catch { /* outros links são ignorados */ }
+      if (callback?.protocol === 'oaze:' && callback.hostname === 'auth') {
+        authFailed();
         return;
       }
       const screen = url.split('/app/')[1]?.split(/[?#]/)[0];
       if (screen && /^[a-z-]{1,24}$/.test(screen)) location.hash = `/${screen}`;
     } catch (err) {
       reportHandled(err, 'deep link');
+      authFailed();
     }
   };
 
   if (platform() === 'ios' || platform() === 'android') {
     const { App } = await import('@capacitor/app');
     await App.addListener('appUrlOpen', ({ url }) => void handle(url));
+    const initial = await App.getLaunchUrl().catch(() => undefined);
+    if (initial?.url) await handle(initial.url);
     return;
   }
   const invoke = invoker();
   if (invoke) {
     /* o Rust reencaminha o `deep-link` para o webview como evento de janela */
     window.addEventListener('oaze:deep-link', (e) => void handle((e as CustomEvent<string>).detail));
-    await invoke('oaze_deep_link_ready').catch(() => {});
+    const initial = await invoke<string[]>('oaze_deep_link_ready').catch(() => []);
+    for (const url of initial) await handle(url);
   }
 }
 

@@ -1,0 +1,427 @@
+/* =============================================================
+   tema-c2b.css — interface C2b "Tinta e Papel" (20/11/2026)
+   -------------------------------------------------------------
+   Proposta aprovada: propostas/2026-11-18-interface-c/c2b.html
+
+   Este arquivo é o ÚLTIMO da lista em app-v3.html e trabalha por
+   cima do que já existe: ele redefine as variáveis que o app
+   inteiro usa (--night, --panel, --milk, --display...) em vez de
+   reescrever cada tela. Quem não é citado aqui muda sozinho.
+
+   TRÊS CAMADAS, NESTA ORDEM
+     1. o céu: o fundo vivo (#v3-liquid-ether), já existente, com as
+        cores da marca. Fica fixo atrás de tudo.
+     2. o vidro: os painéis translúcidos que deixam o céu passar.
+     3. o conteúdo.
+
+   O vidro depende de backdrop-filter. Onde ele não existe, ou onde
+   a pessoa pediu menos transparência, ou num aparelho modesto
+   (html.vidro-leve, ver vidro.js), tudo vira cor sólida — a leitura
+   nunca depende do efeito.
+   ============================================================= */
+
+/* ---------------- 1. fontes do guia da marca ---------------- */
+/* Variáveis (uma só por família, todos os pesos). Licença OFL. */
+@font-face{font-family:'Bricolage';src:url('/assets/fonts/BricolageGrotesque-var.woff2') format('woff2');font-weight:400 800;font-display:swap}
+@font-face{font-family:'Figtree';src:url('/assets/fonts/Figtree-var.woff2') format('woff2');font-weight:400 800;font-display:swap}
+@font-face{font-family:'Fredoka';src:url('/assets/fonts/Fredoka-var.woff2') format('woff2');font-weight:400 700;font-display:swap}
+
+/* ---------------- 2. paleta ---------------- */
+:root{
+  /* As quatro que o app usa como fundo. Tinta é o azul do site. */
+  --night:#1F2D4D;      /* fundo geral */
+  --dark:#18233D;       /* barras e rodapés */
+  --panel:#2B3A5E;      /* cartões (cor sólida por trás do vidro) */
+  --panel2:#34466F;
+  --milk:#FFFDF8;       /* papel: texto sobre o escuro */
+  --creme:#F7EEDC;
+  --muted:#C3CADB;
+  --line:rgba(255,253,248,.11);
+
+  --teal:#5FA99B;       /* marca */
+  --teal-esc:#2F6E62;   /* ação */
+  --tang:#E9875E;       /* atenção e assinatura */
+  --blue:#9FB6D8;
+  --pos:#9FE0CF;        /* entrou */
+  --neg:#F5B293;        /* saiu */
+
+  /* turma, nas versões que leem sobre o escuro */
+  --tm-oaze:#5FA99B;--tm-nilo:#8FB7CC;--tm-bia:#E3B95A;--tm-tico:#F3A27E;--tm-lume:#AAB8EC;
+  /* e sobre o claro */
+  --nilo-ink:#355565;--nilo-bg:#DCE7EC;--bia-ink:#8A5A00;--bia-bg:#F6EACB;
+  --tico-ink:#B5562F;--tico-bg:#FBE6DB;--lume-ink:#4A5A8A;--lume-bg:#E1E5F2;
+
+  --display:'Bricolage',system-ui,sans-serif;
+  --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --marca:'Fredoka','Figtree',sans-serif;
+  --r:24px;
+  --mola:cubic-bezier(.34,1.56,.64,1);
+
+  /* a receita do vidro, num lugar só */
+  --vidro-fundo:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.05) 60%);
+  --vidro-borda:1px solid rgba(255,255,255,.2);
+  --vidro-sombra:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 0 rgba(255,255,255,.05),0 24px 40px -26px rgba(5,10,25,.7);
+  --vidro-blur:blur(26px) saturate(170%);
+  --vidro-solido:#2B3A5E;
+  --ceu-base:#17213A;
+}
+
+/* ---------------- 3. o céu ---------------- */
+/* As manchas são as mesmas da proposta (c2b.html, classe .ceu):
+   base #17213A, teal em cima à esquerda, tangerina à direita e
+   lilás embaixo. Elas ficam no #v3-liquid-ether, que já é fixo
+   atrás de tudo — e agora o canvas WebGL entra por cima só como
+   brilho, com pouca opacidade, para não apagar o degradê. */
+body.v3{background:var(--ceu-base);color:var(--milk);font-family:var(--body)}
+#v3-liquid-ether,#v3-liquid-ether.is-static{
+  background:
+    radial-gradient(58% 48% at 2% -8%,rgba(47,110,98,.95),transparent 70%),
+    radial-gradient(52% 42% at 104% 16%,rgba(233,135,94,.52),transparent 72%),
+    radial-gradient(60% 50% at 40% 112%,rgba(74,90,138,.9),transparent 74%),
+    radial-gradient(40% 30% at 86% 92%,rgba(181,86,47,.35),transparent 76%),
+    var(--ceu-base);
+}
+#v3-liquid-ether canvas{opacity:.22;mix-blend-mode:screen}
+html.vidro-leve #v3-liquid-ether canvas{display:none}
+
+/* ---------------- 4. o vidro ---------------- */
+@supports (backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px)){
+  .v3-panel,.v3-sheet,.v3-bottom,.v3-wallet-pocket,.v3-estimate,.v3-cat-tile,
+  .v3-sidebar,.v3-toast,.v3-suggestion,.v3-coco-card,.v3-coco-composer{
+    background:var(--vidro-fundo);
+    -webkit-backdrop-filter:var(--vidro-blur);backdrop-filter:var(--vidro-blur);
+    border:var(--vidro-borda);
+    box-shadow:var(--vidro-sombra);
+  }
+  /* O brilho de cima: é ele que faz o painel parecer vidro, e não
+     um retângulo cinza. Fica atrás do conteúdo, nunca por cima. */
+  .v3-panel,.v3-sheet,.v3-wallet-pocket,.v3-cat-tile{position:relative;isolation:isolate}
+  .v3-panel:before,.v3-cat-tile:before{
+    content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
+    background:radial-gradient(120% 60% at 15% 0%,rgba(255,255,255,.17),transparent 55%)
+  }
+}
+/* Sem backdrop-filter, com transparência reduzida ou em aparelho
+   modesto: cor sólida. Mesmo desenho, sem o custo. */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .v3-panel,.v3-sheet,.v3-bottom,.v3-cat-tile,.v3-sidebar{background:var(--vidro-solido);border:1px solid var(--line)}
+}
+html.vidro-leve .v3-panel,html.vidro-leve .v3-sheet,html.vidro-leve .v3-bottom,
+html.vidro-leve .v3-cat-tile,html.vidro-leve .v3-sidebar,html.vidro-leve .v3-toast{
+  background:var(--vidro-solido)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+html.vidro-leve .v3-panel:before,html.vidro-leve .v3-cat-tile:before{display:none}
+@media (prefers-reduced-transparency:reduce){
+  .v3-panel,.v3-sheet,.v3-bottom,.v3-cat-tile,.v3-sidebar{
+    background:var(--vidro-solido)!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
+
+/* ---------------- 5. tipografia e formas ---------------- */
+h1,h2,h3,.v3-money,.v3-title{font-family:var(--display);letter-spacing:-.02em}
+h1,h2,h3{font-weight:700}
+.v3-money{font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.v3-mono,.v3-tx .v3-mono,.v3-money,.v3-card-number{font-variant-numeric:tabular-nums}
+.v3-panel{border-radius:var(--r)}
+.v3-pill,.v3-primary,.v3-secondary,.v3-link,.v3-new,.v3-nav,.v3-segment,.v3-segment button{border-radius:999px}
+.v3-primary{background:var(--teal-esc);color:#fff;font-weight:700}
+.v3-primary:hover{background:#388576}
+.v3-pill.is-active{background:var(--milk);color:var(--night)}
+.v3-link{color:var(--teal)}
+.v3-positive{color:var(--pos)}
+.v3-negative{color:var(--neg)}
+.v3-quick button{border-radius:20px;background:var(--vidro-fundo);border:var(--vidro-borda);color:var(--milk);
+  transition:transform .3s var(--mola)}
+.v3-quick button:hover{transform:translateY(-3px)}
+/* Tangerina é o alerta e a assinatura, nunca o normal. */
+.v3-badge-oasis,.v3-plan.highlight{background:var(--tang);color:#fff}
+
+/* ---------------- 6. barra lateral ---------------- */
+.v3-sidebar{border-right:0;border-radius:0 26px 26px 0;margin:12px 0;padding:18px 12px}
+.v3-logo{gap:10px}
+.v3-logo .v3-logo-marca{height:34px;width:auto;object-fit:contain;object-position:left center}
+.v3-new{background:rgba(255,253,248,.93);color:var(--night);font-weight:800}
+.v3-nav{color:var(--muted);transition:background .2s ease,color .2s ease}
+.v3-nav:hover{background:rgba(255,255,255,.07);color:var(--milk)}
+.v3-nav.is-active,.v3-nav[aria-current]{background:var(--vidro-fundo);border:var(--vidro-borda);color:var(--milk);font-weight:800}
+.v3-profile{border-radius:18px;background:rgba(255,255,255,.07);border:1px solid var(--line)}
+
+/* recolhida: só os ícones. O app já guarda a escolha (NAV_KEY
+   'oaze.v3.sidebar') e já põe .is-collapsed na barra; aqui entra só
+   o visual do C2b por cima do que navigation-coco-refinement.css faz. */
+.v3-sidebar.is-collapsed .v3-logo-simbolo,
+.v3-sidebar.is-collapsed .v3-logo-nome{display:none}
+/* O ícone da OAZE no menu não é um .v3-fi, é o selo da Coco: a
+   regra que esconde o texto quando a barra recolhe levava ele
+   junto, e a linha "oaze" ficava vazia. */
+.v3-sidebar.is-collapsed .v3-nav>.v3-coco-pet:not(.v3-fi){display:inline-flex}
+.v3-sidebar.is-collapsed .v3-nav{justify-content:center;padding:0}
+.v3-sidebar.is-collapsed .v3-new{height:48px;border-radius:50%;font-size:0}
+.v3-sidebar.is-collapsed .v3-new:before{content:'+';font-size:24px;font-weight:700}
+.v3-sidebar.is-collapsed .v3-nav{height:46px;border-radius:16px}
+.v3-sidebar.is-collapsed .v3-nav.is-active,.v3-sidebar.is-collapsed .v3-nav[aria-current]{
+  background:var(--vidro-fundo);border:var(--vidro-borda)}
+/* O nome vira dica ao passar o mouse. Quem usa leitor de tela
+   continua ouvindo o texto; ele só saiu do visual. */
+.v3-sidebar.is-collapsed .v3-nav{position:relative}
+.v3-sidebar.is-collapsed .v3-nav:hover:after{
+  content:attr(aria-label);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  z-index:40;padding:6px 11px;border-radius:999px;white-space:nowrap;
+  background:var(--vidro-solido);border:var(--vidro-borda);color:var(--milk);
+  font-size:12.5px;font-weight:700;box-shadow:0 10px 24px -14px #000
+}
+
+/* ---------------- 7. telas claras ---------------- */
+/* Conversa, plano do mês e boas-vindas usam o papel do site: é onde
+   a turma e os ícones 3D aparecem melhor. */
+.v3-coco-page,.tm-plano,.tm-quiz{--vidro-fundo:linear-gradient(160deg,rgba(255,255,255,.78),rgba(255,255,255,.5));
+  --vidro-borda:1px solid rgba(255,255,255,.9);
+  --vidro-sombra:inset 0 1px 0 #fff,0 22px 40px -28px rgba(31,45,77,.45);
+  --vidro-solido:#FFFDF8;--milk:#1F2D4D;--muted:#6B7590;--line:rgba(31,45,77,.1);
+  color:#1F2D4D}
+.v3-coco-page{position:relative;border-radius:var(--r)}
+/* O respiro de baixo é o do coco.css (safe-area do aparelho): se o
+   tema mexer no padding daqui, a barra de escrever encosta na borda
+   e some atrás do gesto do celular. */
+.v3-coco-page:before{
+  content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  background:
+    radial-gradient(40% 32% at 6% 0%,rgba(159,214,200,.75),transparent 70%),
+    radial-gradient(36% 30% at 98% 26%,rgba(246,194,166,.7),transparent 72%),
+    radial-gradient(44% 36% at 50% 104%,rgba(201,210,240,.75),transparent 74%),
+    #F3EBDA
+}
+.v3-coco-page .v3-chat p{background:var(--creme);color:#1F2D4D;border-radius:20px 20px 20px 6px}
+.v3-coco-page .v3-chat p.user{background:var(--teal-esc);color:#fff;border-radius:20px 20px 6px 20px}
+.v3-coco-page .v3-muted,.v3-coco-page small{color:#6B7590}
+
+/* A tela da OAZE ocupa a janela inteira e nada escapa por baixo: a
+   linha do grid precisa poder encolher (minmax(0,1fr)), senão ela
+   cresce até o tamanho do conteúdo e a barra de escrever fica para
+   fora da janela. Quem rola é a conversa, no meio. */
+.v3-coco-screen .v3-shell{grid-template-rows:minmax(0,1fr)}
+.v3-coco-screen .v3-main{min-height:0;max-height:100%}
+.v3-coco-page>*{min-height:0}
+.v3-coco-conversation,.v3-coco-stream{min-height:0}
+
+/* ---------------- 8. barra de baixo (celular) ---------------- */
+@media(max-width:900px){
+  .v3-bottom{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    border-radius:30px;padding:8px 6px 10px}
+  .v3-main{padding-bottom:96px}
+}
+
+/* ---------------- 9. movimento ---------------- */
+.v3-panel,.v3-quick button,.v3-nav,.v3-pill{transition-timing-function:var(--mola)}
+@media(prefers-reduced-motion:reduce){
+  .v3-panel,.v3-quick button,.v3-nav,.v3-pill{transition:none}
+}
+
+/* ---------------- 10. a turma na tela clara ---------------- */
+/* Os selos e o campo de mensagem nasceram para o fundo escuro. Na
+   tela de conversa, que agora é papel, cada amigo usa a própria cor
+   clara — as mesmas dos cartões da turma no site. A ordem é a de
+   turma.js (nilo, bia, tico, lume); se ela mudar, muda só a cor. */
+.v3-coco-page .tm-quem button{
+  background:var(--creme);border:1px solid rgba(31,45,77,.1);color:#1F2D4D;font-weight:700;
+  box-shadow:0 10px 20px -16px rgba(31,45,77,.5)
+}
+.v3-coco-page .tm-quem button small{color:#6B7590;font-weight:500}
+.v3-coco-page .tm-quem button img{background:rgba(31,45,77,.06)}
+.v3-coco-page .tm-quem button:nth-child(1){background:var(--nilo-bg);color:var(--nilo-ink)}
+.v3-coco-page .tm-quem button:nth-child(2){background:var(--bia-bg);color:var(--bia-ink)}
+.v3-coco-page .tm-quem button:nth-child(3){background:var(--tico-bg);color:var(--tico-ink)}
+.v3-coco-page .tm-quem button:nth-child(4){background:var(--lume-bg);color:var(--lume-ink)}
+.v3-coco-page .tm-quem button:nth-child(-n+4) small{color:inherit;opacity:.72}
+
+/* campo de mensagem */
+.v3-coco-page .v3-coco-composer .v3-chat-form{
+  background:var(--creme);border:1px solid rgba(31,45,77,.12);
+  box-shadow:0 12px 26px -20px rgba(31,45,77,.6)
+}
+.v3-coco-page .v3-coco-composer .v3-chat-form input{color:#1F2D4D}
+
+.v3-coco-page .v3-coco-composer .v3-chat-form input::placeholder{color:#6B7590}
+.v3-coco-page .v3-coco-composer .v3-chat-form button{background:var(--teal-esc);color:#fff;border:0}
+
+/* selo de quem falou, dentro da bolha */
+.v3-coco-page .tm-selo{background:rgba(31,45,77,.06);color:var(--cor-amigo,#2F6E62)}
+
+/* ---------------- 11. carteira (só aparência) ---------------- */
+/* O funcionamento é o de sempre: carteira.js continua mandando no
+   giro, no arrasto e em quem está no centro. Aqui muda o material
+   do cartão, o bolso e os controles. */
+html .v3-wallet-item,html .v3-wallet-item:not(.is-selected){
+  color:#FFFDF8;
+  /* Cartão é plástico, não vidro: nada de desfoque nem de fundo
+     translúcido aqui, senão o céu aparece através dele. */
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  border:1px solid color-mix(in srgb,var(--card-plastic) 46%,#FFFDF8 18%);
+  background:
+    radial-gradient(ellipse 80% 70% at 86% 6%,color-mix(in srgb,var(--card-plastic) 40%,transparent),transparent 78%),
+    radial-gradient(ellipse 70% 82% at 102% 64%,color-mix(in srgb,var(--card-plastic) 20%,transparent),transparent 80%),
+    linear-gradient(145deg,#1B2944 6%,#141F36 58%,#0E1627);
+  box-shadow:0 24px 38px -16px rgba(5,10,25,.72),inset 0 1px 0 rgba(255,255,255,.22);
+}
+/* A faixa da cor do banco, à esquerda: é ela que diz de quem é o
+   cartão antes de qualquer texto. */
+.v3-wallet-item:after{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:7px;z-index:2;
+  border-radius:inherit;border-top-right-radius:0;border-bottom-right-radius:0;
+  background:var(--card-plastic);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)
+}
+.v3-wallet-item .v3-bankmark{border-radius:12px;border:1px solid rgba(255,255,255,.28);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 4px 10px -6px #000}
+/* o selo do cartão: o logo oficial, solto no canto */
+.v3-card-oaze{
+  position:absolute;right:15px;bottom:12px;z-index:3;
+  width:76px;height:auto;max-height:26px;padding:0;
+  background:none;border:0;border-radius:0;object-fit:contain;object-position:right center;
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))
+}
+
+/* bolso: vidro, como os outros painéis */
+.v3-wallet-pocket{
+  border:var(--vidro-borda);border-radius:22px 22px 30px 30px;
+  background:linear-gradient(160deg,rgba(255,255,255,.17),rgba(255,255,255,.06) 62%);
+  box-shadow:var(--vidro-sombra)
+}
+@supports (backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px)){
+  .v3-wallet-pocket{-webkit-backdrop-filter:var(--vidro-blur);backdrop-filter:var(--vidro-blur)}
+}
+html.vidro-leve .v3-wallet-pocket{background:var(--vidro-solido);-webkit-backdrop-filter:none;backdrop-filter:none}
+.v3-wallet-pocket:before{border-top-color:rgba(255,255,255,.3)}
+.v3-wallet-pocket:after{border-color:rgba(255,255,255,.22)}
+.v3-wallet-pocket .v3-pocket-logo{width:54px;height:54px;opacity:1;filter:none}
+.v3-wallet-pocket .v3-money{font-family:var(--display);font-weight:800}
+.v3-wallet-pocket .v3-pocket-hint{color:var(--muted)}
+
+/* abas, olho, setas e pontinhos */
+.v3-wallet-tabs{background:rgba(255,255,255,.08);border:var(--vidro-borda);border-radius:999px}
+.v3-wallet-tabs button{border-radius:999px;font-weight:700}
+.v3-wallet-tabs button.is-active{background:var(--milk);color:var(--night)}
+.v3-carteira-seta{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);color:var(--milk)}
+.v3-carteira-pontos i{background:rgba(255,255,255,.3)}
+.v3-carteira-pontos i.e-agora{width:20px;border-radius:9px;background:var(--milk);transform:none}
+
+/* ---------------- 12. ícones 3D ---------------- */
+/* O 3D entra onde o ícone identifica alguma coisa (categoria,
+   atalho, estado). Onde ele só aponta direção ou ação (setas,
+   fechar, voltar) o traço continua: 3D ali vira ruído. */
+.v3-cat-3d{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(5,10,25,.45))}
+/* O quadradinho colorido da categoria some quando há massinha: a
+   cor passa a ser a do próprio ícone, e o fundo só atrapalharia. */
+.v3-cat-icon:has(.v3-cat-3d),.v3-cat-tile .v3-cat-icon:has(.v3-cat-3d){background:transparent;padding:0}
+.v3-cat-icon:has(.v3-cat-3d){width:40px;height:40px}
+.v3-cat-tile .v3-cat-icon:has(.v3-cat-3d){width:48px;height:48px}
+.v3-tx .v3-cat-icon:has(.v3-cat-3d),.v3-detail-row .v3-cat-icon:has(.v3-cat-3d){width:34px;height:34px}
+.v3-spend-row .v3-cat-icon:has(.v3-cat-3d){width:38px;height:38px}
+/* Sem :has (navegador antigo), o fundo colorido fica — e o ícone
+   continua legível por cima dele. */
+
+/* O selo do lançamento: com massinha dentro, o quadrado colorido
+   sai de cena e fica só o ícone. O logo do banco continua no canto. */
+.v3-tx-selo:has(.v3-cat-3d){background:transparent!important;box-shadow:none!important;border:0!important}
+.v3-tx-selo .v3-cat-3d{width:100%;height:100%}
+.v3-cat-icon .v3-cat-3d,.v3-tx-selo .v3-cat-3d{border-radius:0}
+
+/* ---------------- 13. selo do amigo nos widgets ---------------- */
+.v3-widget-amigo{
+  display:inline-flex;align-items:center;gap:6px;margin-left:auto;
+  padding:3px 11px 3px 3px;border-radius:999px;
+  font-size:11.5px;font-weight:800;letter-spacing:.01em;
+  background:var(--amigo-bg,rgba(255,255,255,.08));color:var(--amigo-ink,var(--muted))
+}
+.v3-widget-amigo img{width:24px;height:24px;border-radius:50%;object-fit:contain;background:rgba(255,255,255,.12)}
+/* Em painel estreito o título já ocupa a linha: fica só o rosto, e o
+   nome continua no title e no leitor de tela. Com espaço, o nome
+   aparece, como na proposta. */
+.v3-panel{container-type:inline-size}
+.v3-widget-amigo{padding:3px}
+.v3-widget-amigo b{display:none;font-weight:800}
+@container (min-width:420px){
+  .v3-widget-amigo{padding:3px 11px 3px 3px}
+  .v3-widget-amigo b{display:inline}
+}
+.v3-amigo-nilo{--amigo-bg:rgba(143,183,204,.16);--amigo-ink:#AECBDC}
+.v3-amigo-bia{--amigo-bg:rgba(227,185,90,.16);--amigo-ink:#EBCB81}
+.v3-amigo-tico{--amigo-bg:rgba(243,162,126,.16);--amigo-ink:#F7BC9F}
+.v3-amigo-lume{--amigo-bg:rgba(170,184,236,.16);--amigo-ink:#C2CCF2}
+/* Com três filhos na linha, o título empurra os outros dois para a
+   direita e eles ficam lado a lado, sem quebrar. */
+.v3-row:has(.v3-widget-amigo){gap:10px;flex-wrap:nowrap}
+.v3-row:has(.v3-widget-amigo) h2{margin-right:auto;min-width:0}
+.v3-row:has(.v3-widget-amigo) .v3-widget-amigo{margin-left:0;flex:none}
+.v3-row:has(.v3-widget-amigo) .v3-link{flex:none;white-space:nowrap}
+/* na tela clara, as cores de texto dos amigos são as escuras */
+.v3-coco-page .v3-amigo-nilo{--amigo-bg:var(--nilo-bg);--amigo-ink:var(--nilo-ink)}
+.v3-coco-page .v3-amigo-bia{--amigo-bg:var(--bia-bg);--amigo-ink:var(--bia-ink)}
+.v3-coco-page .v3-amigo-tico{--amigo-bg:var(--tico-bg);--amigo-ink:var(--tico-ink)}
+.v3-coco-page .v3-amigo-lume{--amigo-bg:var(--lume-bg);--amigo-ink:var(--lume-ink)}
+
+/* ---------------- 14. carteira em 3D (como na proposta) ----------
+   O cartão do meio fica de frente e os vizinhos giram para dentro,
+   atrás dele. Quem calcula a posição continua sendo carteira.js:
+   aqui só entram a perspectiva, o giro e a ordem de quem fica na
+   frente. --d é a distância até o centro (negativa à esquerda), e
+   --ad é essa distância sem sinal. */
+.v3-wallet.is-open .v3-wallet-list{perspective:1100px;perspective-origin:50% 45%}
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item,
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item:not(.is-selected),
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item.is-selected{
+  width:min(400px,80%);
+  transform:
+    translateX(calc(-50% + var(--d) * var(--carta-salto,220px)))
+    rotateY(calc(var(--d) * -32deg))
+    scale(calc(1 - .18 * min(var(--ad),1)));
+  transform-origin:50% 50%;
+  /* Os vizinhos escurecem pelo véu do :after, nunca por opacidade:
+     cartão transparente deixa ver o fundo e perde o corpo. */
+  opacity:1;
+  box-shadow:0 26px 40px -18px rgba(5,10,25,.75),inset 0 1px 0 rgba(255,255,255,.22);
+  z-index:1
+}
+/* O do meio na frente, e sem o giro que o CSS dá aos vizinhos. */
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item.esta-no-centro{z-index:5}
+/* Os vizinhos são cenário: escurecem um pouco para o olho ir ao meio. */
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item:not(.esta-no-centro):after{
+  content:'';position:absolute;inset:0;left:0;width:100%;z-index:4;
+  border-radius:inherit;background:rgba(10,16,30,calc(.5 * min(var(--ad),1)));
+  box-shadow:none
+}
+/* A faixa do banco volta por cima desse véu, no cartão do meio. */
+.v3-wallet.is-open .v3-wallet-list .v3-wallet-item.esta-no-centro:after{
+  width:7px;background:var(--card-plastic);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)
+}
+@media(prefers-reduced-motion:reduce){
+  .v3-wallet.is-open .v3-wallet-list{perspective:none}
+  .v3-wallet.is-open .v3-wallet-list .v3-wallet-item{transform:translateX(calc(-50% + var(--d) * var(--carta-salto,220px))) scale(calc(1 - .18 * min(var(--ad),1)))}
+}
+
+/* ---------------- 15. marca oficial (01_MARCA) ---------------- */
+/* O logo da OAZE é uma peça só: o "o" com as antenas e a palavra.
+   Ele entra inteiro na barra aberta e no cartão; recolhida e no
+   bolso fica só o símbolo. */
+.v3-wallet-pocket .v3-pocket-logo{width:46px;height:46px;opacity:.9}
+/* Recolhida, a marca é só o símbolo. A caixa precisa ser quadrada e
+   um pouco maior que o desenho: o símbolo tem antenas que saem por
+   cima, e numa caixa de 36px de altura elas ficavam cortadas. */
+.v3-sidebar.is-collapsed .v3-logo{
+  width:48px;height:48px;margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center;overflow:visible
+}
+.v3-sidebar.is-collapsed .v3-logo::before{
+  background:url('/assets/brand/v3/oaze-v3-simbolo.svg') center/contain no-repeat;
+  width:38px;height:38px;border-radius:0;flex:none
+}
+.v3-sidebar.is-collapsed .v3-logo-marca{display:none}
+
+/* ---------------- 16. a OAZE em movimento ---------------- */
+/* O GIF dos estados só na conversa vazia, que é onde ela se
+   apresenta. Com movimento reduzido, volta a pose parada. */
+.v3-coco-gif{width:clamp(150px,34vw,230px);height:auto;image-rendering:auto}
+@media(prefers-reduced-motion:reduce){
+  .v3-coco-gif{content:url('/assets/turma/oaze/corpo-neutra-acolhedora.webp')}
+}

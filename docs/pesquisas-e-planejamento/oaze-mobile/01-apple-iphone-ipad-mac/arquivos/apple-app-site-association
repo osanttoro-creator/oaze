@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID.site.oaze.app"],
+        "components": [
+          { "/": "/app/planos*", "exclude": true, "comment": "Planos abre no navegador: o app não vende nada" },
+          { "/": "/app", "comment": "Painel" },
+          { "/": "/app/*", "comment": "Páginas do painel" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.site.oaze.app"]
+  }
+}

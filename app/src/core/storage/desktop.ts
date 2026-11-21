@@ -7,7 +7,7 @@ import type { SecureStore } from './index';
   O mesmo desenho do celular: a chave fica no cofre do sistema (Credential
   Manager no Windows, Keychain no macOS) e o corpo cifrado num arquivo da pasta
   de dados do app. Quem fala com o cofre é o Rust, porque é o único lado que
-  tem como; os comandos estão em `src-tauri/src/lib.rs`.
+  tem como; os comandos estão em `app desktop/src/lib.rs` (na raiz).
 
   `invoke` é obtido de `__TAURI_INTERNALS__` em vez de `import('@tauri-apps/api')`
   para este arquivo continuar compilando no build da web.

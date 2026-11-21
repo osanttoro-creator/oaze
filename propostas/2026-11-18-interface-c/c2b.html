@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OAZE · Proposta C2b · vidro, carteira giratória e barra retrátil</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Proposta visual C2b (20/11/2026). Só mockup, não altera o app.
+   Pedidos: carteira giratória para os lados como hoje, logo novo no
+   cartão, barra lateral retrátil e "liquid glass" no sistema todo. */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--tinta:#1F2D4D;--papel:#FFFDF8;--creme:#F7EEDC;--teal:#5FA99B;--teal-esc:#2F6E62;--tang:#E9875E;
+  --pos:#9FE0CF;--neg:#F5B293;--suave:#C3CADB;
+  --nilo:#355565;--nilo-c:#DCE7EC;--bia:#8A5A00;--bia-c:#F6EACB;--tico:#B5562F;--tico-c:#FBE6DB;--lume:#4A5A8A;--lume-c:#E1E5F2;
+  --mola:cubic-bezier(.34,1.56,.64,1)}
+body{font-family:Figtree,system-ui,sans-serif;background:var(--creme);color:var(--tinta)}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em}
+.num{font-variant-numeric:tabular-nums}
+.topo{max-width:1320px;margin:0 auto;padding:40px 28px 4px}
+.topo h1{font-size:40px}.topo p{max-width:860px;margin-top:10px;font-size:16px;color:#4F5A75}
+.bloco{max-width:1320px;margin:26px auto 0;padding:0 28px}
+.bloco>h2{font-size:23px;margin-bottom:4px}.bloco>p{color:#4F5A75;font-size:14.5px;margin-bottom:14px}
+
+/* ---------- vidro ---------- */
+/* Fundo vivo: manchas de cor desfocadas atrás do vidro. Sem elas o
+   vidro some, porque não há nada para refratar. */
+.ceu{position:relative;overflow:hidden;background:#17213A}
+.ceu:before,.ceu:after,.ceu .m3{content:'';position:absolute;border-radius:50%;filter:blur(60px);opacity:.75;pointer-events:none}
+.ceu:before{width:520px;height:520px;left:-120px;top:-140px;background:#2F6E62}
+.ceu:after{width:460px;height:460px;right:-100px;top:180px;background:#E9875E;opacity:.42}
+.ceu .m3{width:420px;height:420px;left:38%;bottom:-200px;background:#4A5A8A;opacity:.7}
+.ceu.claro{background:#F3EBDA}
+.ceu.claro:before{background:#9FD6C8;opacity:.8}.ceu.claro:after{background:#F6C2A6;opacity:.75}.ceu.claro .m3{background:#C9D2F0;opacity:.8}
+.vidro{position:relative;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.05) 60%);
+  backdrop-filter:blur(26px) saturate(170%);-webkit-backdrop-filter:blur(26px) saturate(170%);
+  border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.06),0 24px 40px -26px rgba(5,10,25,.7)}
+.vidro:after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(120% 60% at 15% 0%,rgba(255,255,255,.18),transparent 55%)}
+.claro .vidro{background:linear-gradient(160deg,rgba(255,255,255,.72),rgba(255,255,255,.42));border-color:rgba(255,255,255,.85);
+  box-shadow:inset 0 1px 0 #fff,0 22px 40px -28px rgba(31,45,77,.45)}
+.z{position:relative;z-index:1}
+
+/* ---------- desktop ---------- */
+.desk{border-radius:22px;overflow:hidden;border:8px solid #0c1418;box-shadow:0 40px 80px -40px rgba(0,0,0,.6);color:#fff;display:grid;grid-template-columns:250px 1fr;min-height:780px;min-width:1240px}
+.rolagem{overflow-x:auto;padding-bottom:10px}
+.lado{margin:14px 0 14px 14px;border-radius:26px;padding:18px 12px;display:flex;flex-direction:column;gap:5px}
+.logo{display:flex;align-items:center;gap:10px;margin:0 6px 12px}
+.logo .ic{width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#6CC1B1,#2F6E62);display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.logo .ic img{width:37px}
+.logo b{font-family:Fredoka;font-weight:700;font-size:29px}
+.recolher{margin-left:auto;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px}
+.novo{display:flex;align-items:center;gap:8px;background:rgba(255,253,248,.92);color:var(--tinta);border-radius:999px;padding:10px 14px;font-weight:800;font-size:14px;margin:2px 0 10px}
+.novo img{width:26px}
+.item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:999px;font-weight:600;font-size:14.5px;color:var(--suave)}
+.item i{width:22px;height:22px;border-radius:7px;border:2px solid currentColor;opacity:.75}
+.item.at{color:#fff;font-weight:800}
+.item.at img{width:30px;margin:-4px}
+.perfil{margin-top:auto;display:flex;align-items:center;gap:10px;border-radius:18px;padding:10px 12px;font-size:13px}
+.perfil .av{width:34px;height:34px;border-radius:50%;background:var(--teal);display:grid;place-items:center;font-weight:800;color:var(--tinta)}
+.perfil small{display:block;color:var(--suave);font-size:11.5px}
+.main{padding:22px 22px;display:grid;gap:14px;align-content:start}
+.cab{display:flex;align-items:center;gap:14px}
+.cab{position:relative;z-index:1;color:#fff;text-shadow:0 1px 12px rgba(5,10,25,.45)}
+.cab small{display:block;color:#DDE3EF;font-size:12.5px}
+.cab b{font-family:"Bricolage Grotesque";font-size:26px}
+.cab .dir{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pil{border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px}
+.bola{width:40px;height:40px;border-radius:50%;display:grid;place-items:center}
+.bola img{width:26px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{border-radius:22px;padding:14px 16px}
+.kpi small{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--suave)}
+.kpi b{display:block;font-family:"Bricolage Grotesque";font-weight:800;font-size:23px;margin-top:4px}
+.kpi span{font-size:12px;color:var(--suave)}
+.kpi img{position:absolute;right:10px;top:10px;width:40px;z-index:2}
+.kpi.dest{background:linear-gradient(150deg,rgba(95,169,155,.75),rgba(47,110,98,.55))}
+.linha{display:grid;grid-template-columns:400px 1fr;gap:14px}
+.linha3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.wid{border-radius:24px;overflow:hidden}
+.wid>header{position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;font-weight:800}
+.wid>header img{width:24px;height:24px;border-radius:50%}
+.wid>header em{margin-left:auto;font-style:normal;font-weight:600;font-size:11.5px;opacity:.75}
+.wid>header .ponto{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.wid .c{position:relative;z-index:1;padding:4px 14px 14px;font-size:13px}
+.w-nilo{--c:#8FB7CC}.w-tico{--c:#F3A27E}.w-bia{--c:#E3B95A}.w-lume{--c:#AAB8EC}.w-oaze{--c:#5FA99B}
+
+/* ---------- carteira giratória (como hoje) ---------- */
+.cart-top{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding:12px 14px 4px}
+.cart-top small{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--suave)}
+.seg{margin-left:auto;display:flex;border-radius:999px;padding:3px;gap:2px}
+.seg span{border-radius:999px;padding:6px 14px;font-weight:800;font-size:12px;color:var(--suave)}
+.seg span.at{background:rgba(255,253,248,.92);color:var(--tinta)}
+.olho{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:14px}
+.carrossel{position:relative;z-index:1;height:212px;perspective:1100px;margin-top:6px}
+.cartao{position:absolute;top:10px;left:50%;width:280px;height:176px;margin-left:-140px;border-radius:22px;padding:16px;color:#fff;overflow:hidden;
+  background:linear-gradient(135deg,var(--a),var(--b));box-shadow:0 26px 40px -22px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .5s var(--mola)}
+.cartao:before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.28),rgba(255,255,255,0) 38%,rgba(255,255,255,0) 70%,rgba(255,255,255,.12));pointer-events:none}
+.cartao:after{content:'';position:absolute;right:-60px;top:-70px;width:220px;height:220px;border-radius:50%;border:26px solid rgba(255,255,255,.07)}
+.cartao.lado-e{transform:translateX(-172px) rotateY(32deg) scale(.82);opacity:.55;filter:saturate(.8)}
+.cartao.lado-d{transform:translateX(172px) rotateY(-32deg) scale(.82);opacity:.55;filter:saturate(.8)}
+.cartao.centro{z-index:3}
+.banco{display:flex;align-items:center;gap:9px;position:relative;z-index:1}
+.banco .bm{width:34px;height:34px;border-radius:10px;background:#fff;color:var(--b);display:grid;place-items:center;font-weight:900;font-size:11px;letter-spacing:-.02em}
+.banco b{font-family:"Bricolage Grotesque";font-size:17px}
+.banco .tipo{margin-left:auto;font:500 9.5px "IBM Plex Mono";letter-spacing:.08em;background:rgba(0,0,0,.22);border-radius:7px;padding:3px 7px}
+.chip{position:relative;z-index:1;margin-top:20px;width:40px;height:30px;border-radius:7px;background:linear-gradient(135deg,#f6e3b0,#c9a24a);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.contato{position:absolute;left:66px;top:76px;width:22px;height:22px;opacity:.8;z-index:1}
+.rod{position:absolute;left:16px;right:14px;bottom:14px;display:flex;align-items:flex-end;z-index:1}
+.rod small{display:block;font:500 9px "IBM Plex Mono";letter-spacing:.1em;opacity:.8}
+.rod .fim{font:500 15px "IBM Plex Mono";letter-spacing:.12em}
+.marca-cartao{margin-left:auto;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:3px 9px 3px 3px;backdrop-filter:blur(8px)}
+.marca-cartao span{width:24px;height:24px;border-radius:8px;background:linear-gradient(145deg,#6CC1B1,#2F6E62);display:grid;place-items:center}
+.marca-cartao img{width:21px}
+.marca-cartao b{font-family:Fredoka;font-weight:700;font-size:16px;letter-spacing:-.02em}
+.seta{position:absolute;top:84px;z-index:5;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:18px;font-weight:800;color:#fff}
+.seta.e{left:6px}.seta.d{right:6px}
+.pontos{position:relative;z-index:1;display:flex;gap:6px;justify-content:center;margin:2px 0 8px}
+.pontos i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}
+.pontos i.at{width:20px;border-radius:9px;background:#fff}
+.it-a{--a:#2A2F3A;--b:#151922}.it-a .faixa{position:absolute;left:0;top:0;bottom:0;width:7px;background:#EC7000;z-index:2}
+.nu-a{--a:#8A3FD0;--b:#5A1696}.in-a{--a:#FF8A3D;--b:#D9581A}
+.bolso{position:relative;margin:2px 14px 12px;border-radius:26px;padding:16px 18px;display:flex;align-items:center;gap:14px}
+.bolso .cost{position:absolute;top:-1px;left:30%;right:30%;height:16px;border-radius:0 0 40% 40%;background:rgba(10,16,30,.35);border:1px solid rgba(255,255,255,.12);border-top:0}
+.bolso .z small{display:block;font-size:11.5px;color:var(--suave)}
+.bolso .z b{display:block;font-family:"Bricolage Grotesque";font-weight:800;font-size:29px}
+.bolso .selo-o{margin-left:auto;width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,#6CC1B1,#2F6E62);display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.bolso .selo-o img{width:52px}
+
+/* widgets e conteúdo */
+.pergunta{display:flex;gap:8px;align-items:center;border-radius:999px;padding:6px 6px 6px 16px;font-size:14px;color:#E7EAF2}
+.pergunta span{flex:1}.pergunta i{width:38px;height:38px;border-radius:50%;background:var(--teal-esc);display:grid;place-items:center;font-style:normal;font-weight:800}
+.dois{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.dois div{display:flex;align-items:center;gap:8px;justify-content:center;border-radius:999px;padding:9px;font-weight:800;font-size:13px}
+.dois img{width:28px}
+.turma{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.turma span{display:flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px 3px 3px;font-size:11.5px;font-weight:800;background:var(--cc);color:var(--cf)}
+.turma img{width:24px;height:24px;border-radius:50%}
+.t-nilo{--cc:var(--nilo-c);--cf:var(--nilo)}.t-bia{--cc:var(--bia-c);--cf:var(--bia)}.t-tico{--cc:var(--tico-c);--cf:var(--tico)}.t-lume{--cc:var(--lume-c);--cf:var(--lume)}
+.plano{display:grid;grid-template-columns:52px 1fr;gap:6px 12px;align-items:center}
+.plano>img{width:52px}.plano b{font-family:"Bricolage Grotesque";font-size:19px}
+.plano small{display:block;color:var(--suave);font-size:12px}
+.barra-b{height:8px;border-radius:9px;background:rgba(255,255,255,.14);margin-top:6px;overflow:hidden}
+.barra-b i{display:block;height:100%;background:#E3B95A;border-radius:inherit}
+.prox{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.prox:last-child{border:0}.prox img{width:32px}.prox span{flex:1}.prox small{display:block;color:var(--suave);font-size:11.5px}
+.selo{font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;background:var(--tang);color:#fff;margin-left:4px}
+.rosca{display:flex;gap:14px;align-items:center}
+.rosca .r{width:104px;height:104px;border-radius:50%;background:conic-gradient(#5FA99B 0 38%,#E9875E 38% 62%,#8FB7CC 62% 80%,#E3B95A 80% 92%,#AAB8EC 92% 100%);display:grid;place-items:center;flex:none}
+.rosca .r:after{content:'R$ 4.368';width:64%;height:64%;border-radius:50%;background:rgba(23,33,58,.85);display:grid;place-items:center;font:800 13px "Bricolage Grotesque"}
+.leg{display:grid;gap:4px;font-size:12.5px;flex:1}.leg div{display:flex;align-items:center;gap:7px}.leg img{width:24px}.leg b{margin-left:auto}
+.rende{display:flex;align-items:center;gap:12px}.rende img{width:52px}.rende b{font-family:"Bricolage Grotesque";font-size:23px;color:var(--pos)}
+.rende small{display:block;color:var(--suave);font-size:11.5px;margin-top:2px}
+
+/* barra recolhida */
+.estados{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+.mini{width:92px;height:520px;border-radius:24px;border:8px solid #0c1418;overflow:hidden}
+.mini .lado2{height:100%;margin:0;border-radius:0;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.mini .ic{width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,#6CC1B1,#2F6E62);display:grid;place-items:center}
+.mini .ic img{width:38px}
+.mini .b{width:46px;height:46px;border-radius:16px;display:grid;place-items:center;color:var(--suave)}
+.mini .b i{width:22px;height:22px;border-radius:7px;border:2px solid currentColor;opacity:.75}
+.mini .b.at img{width:36px}
+.mini .b.mais{background:rgba(255,253,248,.92);color:var(--tinta);font-weight:900;font-size:22px}
+.mini .abrir{margin-top:auto;font-weight:900}
+.explica{font-size:14.5px;color:#4F5A75;max-width:620px}
+.explica b{color:var(--tinta)}
+.explica ul{margin:8px 0 0 18px;display:grid;gap:4px}
+
+/* celular */
+.fones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.f .rot{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#4F5A75;margin:0 0 8px 6px}
+.fone{height:720px;border-radius:44px;padding:10px;background:#0c1418;box-shadow:0 30px 60px -30px rgba(0,0,0,.5)}
+.tela{height:100%;border-radius:36px;display:flex;flex-direction:column;color:#fff}
+.tela.claro{color:var(--tinta)}
+.bar{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:22px 18px 6px}
+.bar small{display:block;font-size:12px;opacity:.75}.bar b{font-family:"Bricolage Grotesque";font-size:21px}
+.nav{position:relative;z-index:1;margin:auto 12px 12px;border-radius:30px;display:flex;justify-content:space-around;align-items:flex-end;padding:8px 6px 10px}
+.nav div{font-size:10.5px;text-align:center;color:var(--suave);width:54px}
+.nav i{display:block;width:22px;height:22px;margin:0 auto 3px;border-radius:7px;border:2px solid currentColor;opacity:.75}
+.nav .at{color:#fff;font-weight:800}
+.nav .at img{width:36px;display:block;margin:-12px auto 0}
+.claro .nav div{color:#6B7590}.claro .nav .at{color:var(--tinta)}
+.f .carrossel{height:200px}
+.f .cartao{width:250px;height:158px;margin-left:-125px}
+.f .cartao.lado-e{transform:translateX(-150px) rotateY(34deg) scale(.8)}
+.f .cartao.lado-d{transform:translateX(150px) rotateY(-34deg) scale(.8)}
+.f .seta{top:72px}
+.lista{position:relative;margin:0 14px;border-radius:22px;padding:2px 12px}
+.lista .it{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:13.5px}
+.lista .it:last-child{border:0}
+.lista img{width:36px;height:36px}.lista span{flex:1}.lista small{display:block;font-size:11px;color:var(--suave)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.dia{position:relative;z-index:1;margin:10px 18px 6px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--suave)}
+.msgs{position:relative;z-index:1;padding:6px 14px;display:flex;flex-direction:column;gap:9px;flex:1}
+.eu{align-self:flex-end;max-width:80%;background:var(--teal-esc);color:#fff;border-radius:20px 20px 6px 20px;padding:9px 13px;font-size:13.5px}
+.ela{align-self:flex-start;max-width:92%;display:flex;gap:8px}
+.ela>img{width:34px;height:34px;border-radius:50%;flex:none;background:var(--cc)}
+.bolha{border-radius:20px 20px 20px 6px;padding:9px 13px;font-size:13.5px}
+.bolha:before{content:'';position:absolute;left:12px;right:12px;top:0;height:3px;border-radius:0 0 4px 4px;background:var(--cf)}
+.quem{position:relative;z-index:1;font-size:11px;font-weight:800;color:var(--cf);text-transform:uppercase;letter-spacing:.05em}
+.bolha>div,.bolha>span{position:relative;z-index:1}
+.proj{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin-top:6px;font-size:12.5px}
+.proj b{text-align:right}.proj .l{font-weight:800;color:var(--teal-esc)}
+.fonte{font-size:10.5px;color:#6B7590;margin-top:5px}
+.cab-c{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding:20px 16px 6px}
+.cab-c img{width:46px}.cab-c b{display:block;font-family:"Bricolage Grotesque";font-size:20px}.cab-c small{font-size:12px;color:#6B7590}
+.entrada{position:relative;margin:6px 14px 4px;display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 6px 6px 12px;font-size:13px;color:#6B7590}
+.entrada>*{position:relative;z-index:1}
+.entrada img{width:30px}.entrada span{flex:1}.entrada i{width:34px;height:34px;border-radius:50%;background:var(--teal-esc);display:grid;place-items:center;color:#fff;font-style:normal;font-weight:800}
+.notas{max-width:1320px;margin:20px auto 50px;padding:0 28px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.notas div{background:var(--papel);border-radius:20px;padding:16px;font-size:13.5px;color:#4F5A75;box-shadow:0 22px 44px -26px rgba(31,45,77,.45)}
+.notas b{display:block;color:var(--tinta);font-family:"Bricolage Grotesque";font-size:16px;margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<div class="topo">
+  <h1>Proposta C2b · vidro, carteira giratória e barra retrátil</h1>
+  <p>Mesma direção C2 (tinta e papel), agora com o efeito de vidro em todo o sistema: painéis translúcidos com desfoque, brilho na borda e cor viva por trás. A carteira volta a ser como no app hoje, girando para os lados, e o cartão leva o logo novo da OAZE. A barra lateral recolhe para só os ícones.</p>
+</div>
+
+<div class="bloco">
+  <h2>Computador (Windows) · barra aberta</h2>
+  <p>Tela inicial com vidro. A carteira gira para os lados: o cartão do meio em destaque e os vizinhos inclinados nas laterais.</p>
+  <div class="rolagem"><div class="desk ceu"><span class="m3"></span>
+    <aside class="lado vidro"><div class="z" style="display:flex;flex-direction:column;gap:5px;height:100%">
+      <div class="logo"><span class="ic"><img src="a/t/oaze-pet.webp" alt=""></span><b>oaze</b><span class="recolher vidro" title="Recolher">‹</span></div>
+      <div class="novo"><img src="a/i/adicionar.webp" alt="">Novo lançamento</div>
+      <div class="item at vidro"><img src="a/i/casa.webp" alt=""><span class="z">início</span></div>
+      <div class="item"><i></i>lançamentos</div>
+      <div class="item"><i></i>carteira</div>
+      <div class="item"><i></i>agenda</div>
+      <div class="item"><i></i>oaze e turma</div>
+      <div class="item"><i></i>mais</div>
+      <div class="perfil vidro"><span class="av z">a</span><div class="z">ana souza<small>Plano Oásis</small></div></div>
+    </div></aside>
+    <main class="main">
+      <div class="cab"><div><small>boa tarde,</small><b>Ana Souza</b></div>
+        <div class="dir"><span class="pil vidro"><span class="z">‹ set 2026 ›</span></span><span class="bola vidro"><img class="z" src="a/i/lembrete.webp" alt=""></span></div></div>
+      <div class="kpis">
+        <div class="kpi vidro"><small class="z">Patrimônio</small><b class="num z">R$ 18.420,35</b><span class="z">R$ 12.180,35 disponível</span><img src="a/i/cofre.webp" alt=""></div>
+        <div class="kpi vidro"><small class="z">Receitas do mês</small><b class="num z">R$ 7.850,00</b><span class="z">+4% que agosto</span><img src="a/i/dinheiro.webp" alt=""></div>
+        <div class="kpi vidro"><small class="z">Despesas do mês</small><b class="num z">R$ 4.368,23</b><span class="z">−6% que agosto</span><img src="a/i/fatura.webp" alt=""></div>
+        <div class="kpi vidro dest"><small class="z" style="color:#E6F4F0">Sobra do mês</small><b class="num z">R$ 3.481,77</b><span class="z" style="color:#E6F4F0">Você está no azul</span><img src="a/i/cofrinho.webp" alt=""></div>
+      </div>
+      <div class="linha">
+        <div class="wid vidro">
+          <div class="cart-top"><small>Sua carteira</small><span class="seg vidro"><span class="at z">Débito</span><span class="z">Crédito</span></span><span class="olho vidro"><span class="z">◉</span></span></div>
+          <div class="carrossel">
+            <div class="cartao nu-a lado-e"><div class="banco"><span class="bm">Nu</span><b>Nubank</b></div></div>
+            <div class="cartao in-a lado-d"><div class="banco"><span class="bm">in</span><b>Inter</b></div></div>
+            <div class="cartao it-a centro"><span class="faixa"></span>
+              <div class="banco"><span class="bm" style="background:#EC7000;color:#fff">itaú</span><b>Itaú</b><span class="tipo">DÉBITO</span></div>
+              <div class="chip"></div>
+              <div class="rod"><div><small>FINAL DO CARTÃO</small><span class="fim">0917</span></div>
+                <span class="marca-cartao"><span><img src="a/t/oaze-pet.webp" alt=""></span><b>oaze</b></span></div>
+            </div>
+            <span class="seta e vidro"><span class="z">‹</span></span><span class="seta d vidro"><span class="z">›</span></span>
+          </div>
+          <div class="pontos"><i></i><i class="at"></i><i></i><i></i></div>
+          <div class="bolso vidro"><span class="cost"></span><div class="z"><small>Saldo da conta · Itaú</small><b class="num">R$ 10.830,35</b><small>Toque na carteira para fechar ⌃</small></div><span class="selo-o z"><img src="a/t/oaze-pet.webp" alt=""></span></div>
+        </div>
+        <div style="display:grid;gap:14px;align-content:start">
+          <div class="wid vidro w-oaze"><header><img src="a/t/oaze-rosto.webp" alt="">Pergunte à OAZE<em>a turma entra quando precisa</em><span class="ponto"></span></header>
+            <div class="c"><div class="pergunta vidro"><span class="z">Vou fechar o mês no azul?</span><i class="z">›</i></div>
+              <div class="dois"><div class="vidro"><img class="z" src="a/i/camera.webp" alt=""><span class="z">Foto do recibo</span></div><div class="vidro"><img class="z" src="a/i/recibo.webp" alt=""><span class="z">Lançar à mão</span></div></div>
+              <div class="turma"><span class="t-nilo"><img src="a/t/nilo-rosto.webp" alt="">Nilo</span><span class="t-bia"><img src="a/t/bia-rosto.webp" alt="">Bia</span><span class="t-tico"><img src="a/t/tico-rosto.webp" alt="">Tico</span><span class="t-lume"><img src="a/t/lume-rosto.webp" alt="">Lume</span></div></div></div>
+          <div class="wid vidro w-bia"><header><img src="a/t/bia-rosto.webp" alt="">Plano de setembro<em>Bia</em><span class="ponto"></span></header>
+            <div class="c plano"><img src="a/i/meta.webp" alt=""><div><b class="num">Guardar R$ 1.200</b><small>Faltam R$ 420 · 9 dias</small><div class="barra-b"><i style="width:65%"></i></div></div></div></div>
+        </div>
+      </div>
+      <div class="linha3">
+        <div class="wid vidro w-tico"><header><img src="a/t/tico-rosto.webp" alt="">Próximos 7 dias<em>Tico</em><span class="ponto"></span></header><div class="c">
+          <div class="prox"><img src="a/i/internet.webp" alt=""><span>Internet<small>30 set · débito automático</small></span><b class="num">R$ 119,90</b></div>
+          <div class="prox"><img src="a/i/fatura.webp" alt=""><span>Fatura Nubank <span class="selo">2 dias</span><small>05 out</small></span><b class="num">R$ 1.982,30</b></div></div></div>
+        <div class="wid vidro w-lume"><header><img src="a/t/lume-rosto.webp" alt="">Onde foi o mês<em>Lume</em><span class="ponto"></span></header><div class="c rosca"><div class="r"></div>
+          <div class="leg"><div><img src="a/i/casa.webp" alt="">Casa<b>38%</b></div><div><img src="a/i/alimentacao.webp" alt="">Comida<b>24%</b></div><div><img src="a/i/transporte.webp" alt="">Transporte<b>18%</b></div></div></div></div>
+        <div class="wid vidro w-nilo"><header><img src="a/t/nilo-rosto.webp" alt="">Rende hoje<em>Nilo</em><span class="ponto"></span></header><div class="c rende"><img src="a/i/crescimento.webp" alt="">
+          <div><b class="num">+ R$ 38,42</b> no mês<small>Reserva a 110% do CDI · CDI 14,90% a.a. (Banco Central, hoje)</small></div></div></div>
+      </div>
+    </main>
+  </div></div>
+</div>
+
+<div class="bloco">
+  <h2>Barra lateral recolhida</h2>
+  <p>Um toque em ‹ recolhe a barra para só os ícones e libera espaço para a tela. O item ativo continua com o ícone 3D.</p>
+  <div class="estados">
+    <div class="mini ceu"><span class="m3"></span><div class="lado2 vidro"><div class="z" style="display:flex;flex-direction:column;align-items:center;gap:10px;height:100%">
+      <span class="ic"><img src="a/t/oaze-pet.webp" alt=""></span>
+      <span class="b mais">+</span>
+      <span class="b at vidro"><img class="z" src="a/i/casa.webp" alt=""></span>
+      <span class="b"><i></i></span><span class="b"><i></i></span><span class="b"><i></i></span><span class="b"><i></i></span>
+      <span class="b abrir vidro"><span class="z" style="color:#fff">›</span></span>
+    </div></div></div>
+    <div class="explica"><b>Como funciona:</b>
+      <ul><li>Aberta: logo completo, nomes dos itens e o perfil.</li>
+      <li>Recolhida: só o símbolo da OAZE, o botão de lançar e os ícones. Passar o mouse mostra o nome do item.</li>
+      <li>O app lembra a escolha de cada pessoa (hoje ele já guarda isso).</li>
+      <li>Em telas menores que 1100 px, a barra começa recolhida.</li></ul>
+    </div>
+  </div>
+</div>
+
+<div class="bloco">
+  <h2>Celular (Android)</h2>
+  <p>Vidro também no celular: barra inferior flutuante, cartões translúcidos e a carteira girando para os lados.</p>
+  <div class="fones">
+    <div class="f"><div class="rot">Carteira</div><div class="fone"><div class="tela ceu"><span class="m3"></span>
+      <div class="bar"><div><small>visão geral</small><b>Carteira</b></div><span class="bola vidro"><img class="z" src="a/i/banco.webp" alt=""></span></div>
+      <div class="cart-top" style="padding-top:2px"><span class="seg vidro" style="margin:0 auto"><span class="at z">Débito</span><span class="z">Crédito</span></span></div>
+      <div class="carrossel">
+        <div class="cartao nu-a lado-e"><div class="banco"><span class="bm">Nu</span><b>Nubank</b></div></div>
+        <div class="cartao in-a lado-d"><div class="banco"><span class="bm">in</span><b>Inter</b></div></div>
+        <div class="cartao it-a centro"><span class="faixa"></span>
+          <div class="banco"><span class="bm" style="background:#EC7000;color:#fff">itaú</span><b>Itaú</b><span class="tipo">DÉBITO</span></div>
+          <div class="chip"></div>
+          <div class="rod"><div><small>FINAL</small><span class="fim">0917</span></div><span class="marca-cartao"><span><img src="a/t/oaze-pet.webp" alt=""></span><b>oaze</b></span></div></div>
+        <span class="seta e vidro"><span class="z">‹</span></span><span class="seta d vidro"><span class="z">›</span></span>
+      </div>
+      <div class="pontos"><i></i><i class="at"></i><i></i><i></i></div>
+      <div class="bolso vidro"><span class="cost"></span><div class="z"><small>Saldo · Itaú</small><b class="num" style="font-size:25px">R$ 10.830,35</b><small>Toque para fechar ⌃</small></div><span class="selo-o z" style="width:50px;height:50px"><img src="a/t/oaze-pet.webp" alt="" style="width:44px"></span></div>
+      <div class="lista vidro"><div class="it"><img src="a/i/dinheiro.webp" alt=""><span>Salário<small>25 set · TED</small></span><b class="num pos">+ 6.500,00</b></div>
+        <div class="it"><img src="a/i/casa.webp" alt=""><span>Aluguel<small>25 set · Pix</small></span><b class="num neg">− 1.850,00</b></div></div>
+      <div class="nav vidro"><div class="z"><i></i>início</div><div class="z"><i></i>lançar</div><div class="at z"><img src="a/i/carteira.webp" alt="">carteira</div><div class="z"><i></i>agenda</div><div class="z"><i></i>mais</div></div>
+    </div></div></div>
+
+    <div class="f"><div class="rot">Lançamentos</div><div class="fone"><div class="tela ceu"><span class="m3"></span>
+      <div class="bar"><div><small>setembro de 2026</small><b>Lançamentos</b></div><span class="bola vidro"><img class="z" src="a/i/adicionar.webp" alt=""></span></div>
+      <div class="dia">Hoje · 22 set</div>
+      <div class="lista vidro">
+        <div class="it"><img src="a/i/saude.webp" alt=""><span>Farmácia<small>Saúde · Nubank</small></span><b class="num neg">− 74,20</b></div>
+        <div class="it"><img src="a/i/transporte.webp" alt=""><span>Uber<small>Transporte · Nubank</small></span><b class="num neg">− 32,50</b></div></div>
+      <div class="dia">20 set</div>
+      <div class="lista vidro">
+        <div class="it"><img src="a/i/mercado.webp" alt=""><span>Supermercado<small>Mercado · Itaú</small></span><b class="num neg">− 286,40</b></div>
+        <div class="it"><img src="a/i/cinema.webp" alt=""><span>Cinema<small>Lazer</small></span><b class="num neg">− 48,00</b></div>
+        <div class="it"><img src="a/i/investimento.webp" alt=""><span>Aporte CDB<small>Investimento</small></span><b class="num">− 500,00</b></div>
+        <div class="it"><img src="a/i/dinheiro.webp" alt=""><span>Freela<small>Receita · Pix</small></span><b class="num pos">+ 900,00</b></div></div>
+      <div class="nav vidro"><div class="z"><i></i>início</div><div class="at z"><img src="a/i/transferencias.webp" alt="">lançar</div><div class="z"><i></i>carteira</div><div class="z"><i></i>agenda</div><div class="z"><i></i>mais</div></div>
+    </div></div></div>
+
+    <div class="f"><div class="rot">Conversa com a turma</div><div class="fone"><div class="tela ceu claro"><span class="m3"></span>
+      <div class="cab-c"><img src="a/t/oaze-pet.webp" alt=""><div><b>OAZE</b><small>e a turma, quando o assunto pede</small></div></div>
+      <div class="turma" style="padding:0 14px;position:relative;z-index:1"><span class="t-nilo"><img src="a/t/nilo-rosto.webp" alt="">Nilo</span><span class="t-bia"><img src="a/t/bia-rosto.webp" alt="">Bia</span><span class="t-tico"><img src="a/t/tico-rosto.webp" alt="">Tico</span><span class="t-lume"><img src="a/t/lume-rosto.webp" alt="">Lume</span></div>
+      <div class="msgs">
+        <div class="eu">Quanto rende R$ 5 mil num CDB de 110% do CDI em 1 ano?</div>
+        <div class="ela t-nilo"><img src="a/t/nilo-rosto.webp" alt=""><div class="bolha vidro"><div class="quem">Nilo</div><span>Com o CDI de hoje:</span>
+          <div class="proj num"><span>Bruto</span><b>R$ 5.819,50</b><span>IR (17,5%)</span><b>− R$ 143,41</b><span class="l">Líquido</span><b class="l">R$ 5.676,09</b></div>
+          <div class="fonte">CDI 14,90% a.a. · Banco Central</div></div></div>
+        <div class="eu">Lança o recibo do mercado</div>
+        <div class="ela t-tico"><img src="a/t/tico-rosto.webp" alt=""><div class="bolha vidro"><div class="quem">Tico</div><span>Achei 2 itens: mercado R$ 286,40 e padaria R$ 24,90. Confere antes de salvar?</span></div></div>
+      </div>
+      <div class="entrada vidro"><img src="a/i/camera.webp" alt=""><span>Mensagem para a OAZE</span><i>›</i></div>
+      <div class="nav vidro"><div class="z"><i></i>início</div><div class="z"><i></i>lançar</div><div class="z"><i></i>carteira</div><div class="at z"><img src="a/t/oaze-pet.webp" alt="">oaze</div><div class="z"><i></i>mais</div></div>
+    </div></div></div>
+  </div>
+</div>
+
+<div class="notas">
+  <div><b>Carteira igual a hoje</b>Um cartão por vez, setas ‹ › e pontinhos, os vizinhos aparecem inclinados nas laterais. Débito e crédito, olho para esconder valores, bolso com o saldo e "toque para fechar".</div>
+  <div><b>Logo no cartão</b>Todo cartão leva o selo OAZE (o símbolo 3D + "oaze") no canto. O bolso da carteira também ganha o símbolo.</div>
+  <div><b>Vidro (liquid glass)</b>Painéis translúcidos com desfoque e brilho na borda, sobre um fundo com manchas de teal, tangerina e lilás. Escuro nas telas de número, claro na conversa.</div>
+  <div><b>Barra retrátil</b>Aberta ou só ícones, com o botão ‹ ›. O app guarda a escolha e começa recolhida em telas pequenas.</div>
+</div>
+</body>
+</html>

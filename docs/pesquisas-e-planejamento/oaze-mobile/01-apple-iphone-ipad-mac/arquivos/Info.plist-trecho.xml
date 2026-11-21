@@ -1,0 +1,66 @@
+<!--
+  Trecho para ios/App/App/Info.plist
+  Acrescente as chaves dentro do <dict> principal. Se a chave já existir, substitua o valor.
+
+  Atalhos do ícone: ficam no plugin @capawesome/capacitor-app-shortcuts, definidos em
+  JavaScript, com o mesmo código no Android. Por isso não há UIApplicationShortcutItems aqui.
+-->
+
+<!-- Nome sob o ícone -->
+<key>CFBundleDisplayName</key>
+<string>OAZE</string>
+
+<!-- Texto do pedido de Face ID. Sem ele, o iOS encerra o app ao pedir a biometria -->
+<key>NSFaceIDUsageDescription</key>
+<string>O OAZE usa o Face ID para proteger seus dados financeiros quando você abre o app.</string>
+
+<!-- Só HTTPS e criptografia do sistema: isento de documentação de exportação -->
+<key>ITSAppUsesNonExemptEncryption</key>
+<false/>
+
+<!-- Esquemas de URL:
+     1. site.oaze.app:// para os atalhos e retornos internos
+     2. o ID do cliente iOS do Google ao contrário, que o SDK do Google Sign-In exige.
+        Troque pelo valor real (com.googleusercontent.apps.NUMERO-HASH) e confira no guia
+        do @capgo/capacitor-social-login -->
+<key>CFBundleURLTypes</key>
+<array>
+	<dict>
+		<key>CFBundleURLName</key>
+		<string>site.oaze.app</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+			<string>site.oaze.app</string>
+		</array>
+	</dict>
+	<dict>
+		<key>CFBundleURLName</key>
+		<string>google-sign-in</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+			<string>com.googleusercontent.apps.ID_DO_CLIENTE_IOS_AO_CONTRARIO</string>
+		</array>
+	</dict>
+</array>
+
+<!-- iPhone só em retrato, como o manifesto do site -->
+<key>UISupportedInterfaceOrientations</key>
+<array>
+	<string>UIInterfaceOrientationPortrait</string>
+</array>
+
+<!-- iPad em todas: o layout do OAZE já responde à largura -->
+<key>UISupportedInterfaceOrientations~ipad</key>
+<array>
+	<string>UIInterfaceOrientationPortrait</string>
+	<string>UIInterfaceOrientationPortraitUpsideDown</string>
+	<string>UIInterfaceOrientationLandscapeLeft</string>
+	<string>UIInterfaceOrientationLandscapeRight</string>
+</array>
+
+<!-- Push da v2: acrescentar só quando entrar
+<key>UIBackgroundModes</key>
+<array>
+	<string>remote-notification</string>
+</array>
+-->

@@ -160,7 +160,7 @@ function IslandShell({
         </main>
         {!hideChrome && (
           <>
-            {!cocoOpen && (
+            {!cocoOpen && screen !== 'inicio' && (
               <button
                 type="button"
                 className="oz-field-fab oz-trigger"

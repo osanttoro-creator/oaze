@@ -1,0 +1,71 @@
+{
+  "$schema": "../app/node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "OAZE",
+  "version": "2.6.1",
+  "identifier": "site.oaze.app",
+  "build": {
+    "frontendDist": "../app/dist-live",
+    "devUrl": "http://localhost:5188",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build:published"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "OAZE",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "backgroundColor": "#1C3340"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' https://imasdk.googleapis.com; img-src 'self' data: blob: https://*.googleusercontent.com https://*.supabase.co https://cdn.brandfetch.io https://imasdk.googleapis.com https://*.doubleclick.net https://*.googlesyndication.com https://*.googleadservices.com https://*.google.com https://*.gstatic.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://*.supabase.co wss://*.supabase.co https://imasdk.googleapis.com https://*.doubleclick.net https://*.googlesyndication.com https://*.googleadservices.com https://*.google.com https://*.gstatic.com; media-src 'self' blob: https://imasdk.googleapis.com https://*.doubleclick.net https://*.googlesyndication.com https://*.googleadservices.com https://*.google.com https://*.gstatic.com; object-src 'none'; base-uri 'self'; frame-src https://imasdk.googleapis.com https://*.doubleclick.net https://*.googlesyndication.com https://*.googleadservices.com https://*.google.com https://*.gstatic.com",
+      "dangerousDisableAssetCspModification": [
+        "style-src"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "msi",
+      "nsis",
+      "app",
+      "dmg"
+    ],
+    "category": "Finance",
+    "publisher": "OAZE",
+    "shortDescription": "Todos os seus cartões em um só lugar.",
+    "longDescription": "Contas, cartões, faturas, metas e investimentos numa visão só, com a Coco organizando e deixando tudo pronto para você confirmar.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "12.0",
+      "entitlements": "Entitlements.plist"
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      }
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "oaze"
+        ]
+      }
+    }
+  }
+}

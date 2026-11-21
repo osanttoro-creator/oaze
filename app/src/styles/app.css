@@ -118,7 +118,7 @@ input[type='range'] { accent-color: var(--teal); width: 100%; }
 .greet strong { font: 500 1.375rem/1.15 var(--f-display); letter-spacing: -.01em; text-transform: lowercase; }
 
 /* ------------------------------------------------------------ carteira */
-.wallet { position: relative; margin: 0 0 16px; }
+.wallet { position: relative; margin: 0 0 16px; min-width: 0; }
 .bank-card { position: absolute; top: 0; left: 7%; right: 7%; height: 200px; border-radius: 22px; box-shadow: var(--shadow-card); overflow: hidden; transition: transform .55s var(--ease-out), box-shadow .3s; cursor: pointer; will-change: transform; }
 .bank-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255, 255, 255, .12) 0%, rgba(255, 255, 255, 0) 42%); pointer-events: none; }
 .bank-card:focus-visible { outline-offset: 3px; }
@@ -129,17 +129,17 @@ input[type='range'] { accent-color: var(--teal); width: 100%; }
 .card-last { font: 500 0.8438rem/1 var(--f-mono); letter-spacing: .06em; }
 .card-chip { position: absolute; left: 20px; top: 60px; width: 46px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #F0E5CF 0%, #C9BEA4 55%, #A89D86 100%); box-shadow: inset 0 0 0 1px rgba(13, 24, 33, .2); }
 .card-nfc { position: absolute; left: 76px; top: 66px; opacity: .8; }
-.card-number { position: absolute; left: 20px; right: 20px; top: 110px; font: 500 0.9375rem/1 var(--f-mono); letter-spacing: .16em; white-space: nowrap; }
 .card-foot { position: absolute; left: 20px; right: 20px; bottom: 14px; display: flex; align-items: flex-end; gap: 22px; }
 .card-foot small { display: block; font: 500 0.5938rem/1 var(--f-mono); letter-spacing: .14em; color: currentColor; opacity: .7; margin-bottom: 5px; }
 .card-foot b { font: 500 0.8125rem/1 var(--f-mono); letter-spacing: .08em; white-space: nowrap; }
-.card-net { margin-left: auto; font: italic 700 0.9375rem/1 var(--f-ui); letter-spacing: -.01em; opacity: .9; }
+.card-oaze { position: absolute; right: 20px; bottom: 16px; width: 58px; height: 23px; background: currentColor; -webkit-mask: url('/brand/oaze-logo-mono-milk.svg') center / contain no-repeat; mask: url('/brand/oaze-logo-mono-milk.svg') center / contain no-repeat; opacity: .9; }
 .card-wave { position: absolute; left: 0; right: 0; bottom: 30px; width: 100%; height: 60px; opacity: .35; }
 
-.pocket { position: absolute; top: 0; left: 0; right: 0; height: 224px; z-index: 20; cursor: pointer; transition: transform .55s var(--ease-out); }
+.pocket { position: absolute; top: 0; left: 0; right: 0; height: 224px; z-index: 20; cursor: pointer; container-type: inline-size; transition: transform .55s var(--ease-out); }
+.pocket:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 28px; }
 .pocket svg.shape { position: absolute; inset: 0; width: 100%; height: 100%; }
 .pocket-body { position: relative; padding: 62px 30px 0 32px; }
-.pocket-body .hero { margin: 8px 0 6px; font-size: clamp(30px, 9.4vw, 42px); white-space: nowrap; }
+.pocket-body .hero { margin: 8px 0 6px; font-size: clamp(1.25rem, 6.8cqw, 2.625rem); white-space: nowrap; }
 .pocket-body .muted { font-size: 0.875rem; line-height: 1.35; }
 .pocket-hint { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--text-3); font-size: 0.9375rem; font-weight: 500; }
 
@@ -199,6 +199,7 @@ input[type='range'] { accent-color: var(--teal); width: 100%; }
 /* ------------------------------------------------------------ coco */
 .coco-cta { display: flex; align-items: center; gap: 12px; width: 100%; height: 72px; padding: 0 20px 0 10px; border-radius: 22px; background: var(--teal); color: var(--night); font-weight: 600; text-align: left; }
 .coco-cta img { width: 64px; }
+.coco-cta .home-intelligence { border-radius: 50%; background: var(--surface); box-shadow: 0 0 0 1px rgba(13, 24, 33, .3); }
 
 @keyframes cocoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -276,10 +277,18 @@ input[type='range'] { accent-color: var(--teal); width: 100%; }
 @media (min-width: 1024px) {
   .hero { font-size: 2.5rem; }
   .d-head .month-switch { height: 40px; }
-  .home-grid { display: grid; grid-template-columns: minmax(330px, 380px) 1fr; gap: 22px; align-items: start; }
+  .home-grid { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 22px; align-items: start; }
+  .home-grid > * { min-width: 0; }
   .home-grid .wallet .bank-card { left: 5%; right: 5%; }
+  .home-grid .panel .hero-l { font-size: clamp(2rem, 3vw, 2.75rem); }
+  .home-grid .inout { gap: 12px; }
+  .home-grid .inout .mono { font-size: 0.875rem; }
   .quick button { height: 70px; font-size: 0.8125rem; border-radius: 20px; gap: 6px; }
   .wave { margin: 14px -20px -22px; height: 190px; }
+}
+
+@media (min-width: 1024px) and (max-width: 1350px) {
+  .home-grid .grid-2 { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {

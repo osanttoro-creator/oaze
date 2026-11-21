@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventário OAZE</title>
+<style>
+@font-face{font-family:Unbounded;src:url(fontes/Unbounded-Medium.ttf);font-weight:500}
+@font-face{font-family:Instrument;src:url(fontes/InstrumentSans-Regular.ttf);font-weight:400}
+@font-face{font-family:Instrument;src:url(fontes/InstrumentSans-SemiBold.ttf);font-weight:600}
+:root{--creme:#F7EEDC;--tinta:#1F2D4D;--suave:#5C6680;--teal:#5FA99B;--teal-e:#3F8276;--lar:#E9875E;--verm:#C9533F;--linha:#E6DBC3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--creme);color:var(--tinta);font:15px/1.45 Instrument,system-ui,sans-serif}
+header{max-width:1000px;margin:0 auto;padding:30px 18px 6px}
+h1{font:500 clamp(24px,3vw,34px) Unbounded;margin:0 0 6px}
+header p{color:var(--suave);max-width:72ch;margin:6px 0}
+.barra{position:sticky;top:0;z-index:5;background:rgba(247,238,220,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--linha)}
+.barra .in{max-width:1000px;margin:0 auto;padding:10px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.cont{font-weight:600;font-size:14px}
+.cont b{display:inline-block;min-width:22px;text-align:center;border-radius:8px;padding:1px 6px;color:#fff}
+.cont .f{background:var(--teal-e)}.cont .m{background:var(--lar)}.cont .s{background:var(--verm)}
+.copiar{margin-left:auto;font:600 14px Instrument;padding:10px 18px;border-radius:12px;border:0;background:var(--tinta);color:var(--creme);cursor:pointer;box-shadow:0 4px 0 #0f1830}
+.copiar:active{transform:translateY(4px);box-shadow:none}
+main{max-width:1000px;margin:0 auto;padding:6px 18px 80px}
+h2{font:500 20px Unbounded;margin:30px 0 4px}
+h2 small{font:400 13px Instrument;color:var(--suave);margin-left:6px}
+.item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:#fff;border:1px solid var(--linha);border-radius:14px;padding:11px 14px;margin:8px 0}
+.item b{display:block}
+.item span{color:var(--suave);font-size:13.5px}
+.item.trava{border-color:var(--teal);background:#F1F8F6}
+.item.trava .ops{opacity:.55;pointer-events:none}
+.tag{display:inline-block;font:600 11px Instrument;letter-spacing:.06em;text-transform:uppercase;color:var(--teal-e);margin-left:6px}
+.ops{display:flex;gap:4px}
+.ops button{font:600 12.5px Instrument;padding:7px 11px;border-radius:10px;border:1.5px solid var(--linha);background:#fff;color:var(--suave);cursor:pointer}
+.ops button[aria-pressed=true][data-v=fica]{background:var(--teal-e);border-color:var(--teal-e);color:#fff}
+.ops button[aria-pressed=true][data-v=muda]{background:var(--lar);border-color:var(--lar);color:#fff}
+.ops button[aria-pressed=true][data-v=sai]{background:var(--verm);border-color:var(--verm);color:#fff}
+.nota{width:100%;grid-column:1/-1;font:13px Instrument;border:1px dashed var(--linha);border-radius:10px;padding:7px 10px;display:none}
+.item.com-nota .nota{display:block}
+.aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--tinta);color:var(--creme);padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:opacity .2s}
+.aviso.v{opacity:1}
+@media(max-width:640px){.item{grid-template-columns:1fr}.ops{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tudo o que existe no OAZE hoje</h1>
+  <p>Levantado do código atual (app 2.5.0 e site de 12/11). Para cada item, marque <b>fica</b>, <b>muda</b> (abre um campo para dizer como) ou <b>sai</b>. Tudo começa em "fica". Os itens em verde você já mandou manter e estão travados.</p>
+  <p>No fim, toque em <b>Copiar minhas escolhas</b> e cole aqui na conversa. As marcações ficam guardadas neste navegador se você fechar a página.</p>
+</header>
+<div class="barra"><div class="in">
+  <span class="cont">Fica <b class="f" id="nf">0</b></span>
+  <span class="cont">Muda <b class="m" id="nm">0</b></span>
+  <span class="cont">Sai <b class="s" id="ns">0</b></span>
+  <button class="copiar" id="copiar">Copiar minhas escolhas</button>
+</div></div>
+<main id="lista"></main>
+<div class="aviso" id="aviso">Copiado. Cole na conversa.</div>
+
+<script>
+/* [grupo, [ [id, nome, descrição, travado?] ] ] */
+const GRUPOS = [
+ ['Carteira e cartões', 'travado por você', [
+  ['carteira','Carteira de contas e cartões','Um cartão por vez, trocado de lado (arrastar no celular, setas no computador); fecha mostrando o saldo.',1],
+  ['cartoes-visual','Visual dos cartões','Preto ou transparente, com faixa de cor em degradê e a logo do banco.',1],
+  ['cartoes-debito-credito','Abas Débito e Crédito','Separa contas (débito) de cartões de crédito dentro da carteira.',1],
+  ['cartoes-ocultar','Esconder cartão da carteira','Tira um cartão da vista sem apagar; contador dos escondidos.',1],
+  ['faturas','Faturas do cartão','Fatura por fatura, escolher em qual fatura cai a compra, quitar e desfazer quitação.',1],
+  ['adiantar-fatura','Adiantar fatura','Pagar parte da fatura antes do fechamento.',1],
+  ['central-marcas','Central de marcas (logos)','116 bancos, bandeiras, vales, lojas e marcas, com logo da Brandfetch.',1]
+ ]],
+ ['Início (tela principal)', '24 blocos que a pessoa liga e desliga', [
+  ['inicio-saudacao','Saudação e resumo','Nome, mês, patrimônio, entradas, saídas e sobra.'],
+  ['inicio-blocos','Blocos editáveis do Início','Escolher e reordenar: saldo por conta, faturas, previsto, até o fim do mês, onde foi o mês, de onde veio, fluxo de caixa, comparação com mês anterior, débito × crédito, despesas e receitas fixas, parcelas, assinaturas, tetos por categoria, reserva de emergência, patrimônio, investimentos, aportes, porquinhos, últimos lançamentos, OAZE Score, fatura × limite.'],
+  ['inicio-oaze','Bloco "Converse com a OAZE"','Pergunta rápida, foto do recibo, lançar à mão e sugestões.'],
+  ['constancia','Constância de registro','Linha discreta com a sequência de dias registrando (sem pontos).'],
+  ['oaze-porcentagem','OAZE em porcentagem','Barras do uso da OAZE no dia e na semana.'],
+  ['score','OAZE Score','Nota da saúde financeira do mês.']
+ ]],
+ ['Lançamentos', '', [
+  ['lancar','Novo lançamento','Despesa, receita, transferência e investimento; menu de ações no botão +.'],
+  ['calculadora','Calculadora no campo de valor','Contas no próprio campo, pelo teclado, com histórico.'],
+  ['recorrencia','Recorrência e parcelas','Fixo mensal, parcelado no cartão, data de início.'],
+  ['situacao','Pago / não pago','Previsto não entra no saldo até ser pago.'],
+  ['deslizar','Deslizar na linha','Para a direita marca pago; para a esquerda editar/apagar.'],
+  ['filtros','Filtros','Por situação, fonte, categoria e tag.'],
+  ['busca','Busca em todos os meses','Por texto, valor ou categoria.'],
+  ['local','Local da compra','Opcional; aviso de viagem.'],
+  ['tags','Tags','Marcadores livres nos lançamentos.'],
+  ['dividir','Dividir despesa','Rachar um gasto com outras pessoas.']
+ ]],
+ ['Planejar', '', [
+  ['categorias','Categorias e cores','Ícones e cores por categoria, despesas e receitas.'],
+  ['orcamentos','Tetos por categoria (orçamentos)','Limite mensal por categoria com alerta.'],
+  ['porquinhos','Porquinhos (metas)','Metas com depósitos, retiradas e caixinhas ligadas a contas.'],
+  ['investimentos','Investimentos','CDB, taxa fixa, CDI diário, cotações, aportes e projeções.'],
+  ['planejamento','Planejamento (salário e meses)','Aba de planejamento dentro de investimentos.'],
+  ['projecoes','Projeções','Saldo dos próximos meses.'],
+  ['desejos','Lista de desejos','"Posso comprar?" com prazo para juntar.']
+ ]],
+ ['Acompanhar', '', [
+  ['agenda','Agenda (ano, mês, semana)','Vencimentos, fixos e parcelas no calendário.'],
+  ['financiamentos','Financiamentos','Parcelas, saldo devedor e juros.'],
+  ['emprestimos','Empréstimos e simulador de quitação','Quanto economiza quitando antes.'],
+  ['receber','Quem me deve','Valores a receber de pessoas.'],
+  ['resumo','Resumo automático','Semana e mês em 1 minuto.'],
+  ['lembretes','Avisos e lembretes','Vencimento na véspera e no dia, orçamento, metas, score, dólar e dicas.']
+ ]],
+ ['Analisar e relatórios', '', [
+  ['relatorio','Relatório personalizado','Por período, conta, categoria e tag.'],
+  ['estado-pdf','Estado do OAZE (PDF)','Relatório completo em PDF.'],
+  ['csv','Exportar CSV','Planilha dos lançamentos.'],
+  ['ir','Relatório para o IR','Rendimentos, dedutíveis e bens.']
+ ]],
+ ['OAZE (assistente)', 'vira a turma: OAZE + Nilo, Bia, Tico, Lume', [
+  ['oaze-conversa','Conversa por texto','Perguntas sobre o dinheiro, com respostas e propostas para confirmar.'],
+  ['oaze-voz','Conversa por voz','Hoje em tempo real (OpenAI); passaria a "aperta, fala, solta".'],
+  ['oaze-agora','Aba "Agora"','Dicas e alertas do momento.'],
+  ['oaze-analises','Análises','Gráficos dos últimos 6 meses com explicação.'],
+  ['oaze-extratos','Importar extrato (PDF/CSV)','Lê o arquivo, propõe lançamentos, revisar antes de salvar.'],
+  ['oaze-comprovante','Foto de comprovante','Câmera ou arquivo; lê valor, loja e data.'],
+  ['oaze-nota','Nota fiscal (QR da NFC-e)','Loja, total e itens.'],
+  ['oaze-banco','Avisos do banco (Android)','Lançar pela notificação do app do banco.'],
+  ['oaze-memoria','Memória da OAZE','Regras e preferências aprendidas; pausar e apagar.'],
+  ['oaze-atalhos','Atalhos da conversa','Dívidas, Planejar, Metas, Análises, Extratos, Memória.'],
+  ['oaze-fab','Botão flutuante da OAZE','Mascote no canto de todas as telas.']
+ ]],
+ ['Conta, perfis e segurança', '', [
+  ['perfis','Perfis (espaços)','Pessoal, casa etc.; trocar, editar e apagar.'],
+  ['compartilhar','Compartilhar perfil','Convite com permissão de ver ou editar.'],
+  ['cofre','Cofre com PIN','Dados sensíveis só com PIN.'],
+  ['biometria','Desbloqueio por digital/rosto','Android e Windows Hello.'],
+  ['ocultar-valores','Esconder valores','Olho no topo que mascara os números.'],
+  ['permissoes','Central de permissões','Notificações, localização, microfone, câmera, biometria e anúncios.'],
+  ['idiomas','Idiomas','Português, inglês, francês e espanhol.'],
+  ['backup','Backup JSON','Baixar uma cópia de tudo.'],
+  ['excluir-conta','Excluir conta','Com confirmação por e-mail.'],
+  ['boas-vindas','Boas-vindas antes do login','Três telas curtas: objetivo e banco principal.']
+ ]],
+ ['Planos e cobrança', '', [
+  ['plano-tela','Tela Plano e assinatura','Semente × Oásis, mensal/anual.'],
+  ['seja-pro','Botão "Seja Pro" no topo','Atalho para a tela de planos.'],
+  ['teste-gratis','Teste grátis de 30 dias','Com nota de risco antifraude no servidor.'],
+  ['cupom','Cupom de desconto','Na tela de plano.'],
+  ['reembolso','Reembolso em 7 dias','Pela Stripe, dentro do app.'],
+  ['stripe','Pagamento Stripe','Windows e site; portal para trocar cartão.'],
+  ['play','Assinatura pela Google Play','Android da loja; restaurar e gerenciar.'],
+  ['anuncio','Anúncio premiado (Semente, Android)','Assistir vídeo libera mais lançamentos.'],
+  ['windows-oasis','Windows só para Oásis','Tela de assinatura para quem é Semente.']
+ ]],
+ ['Só no Android', '', [
+  ['widget-resumo','Widget de resumo (3×2)','Saldo e próximos vencimentos na tela inicial.'],
+  ['widget-atalhos','Widget de atalhos (4×1)','Despesa, receita, recibo e OAZE.'],
+  ['widget-lancar','Widget lançar (1×1)','Um toque para lançar.'],
+  ['atalhos-icone','Atalhos ao segurar o ícone','Novo lançamento, foto do recibo, OAZE.'],
+  ['push-dolar','Notificação do dólar','Push com a cotação do dia.'],
+  ['dobraveis','Dobráveis (Fold e Flip)','Tela externa, aberto, meio dobrado.']
+ ]],
+ ['Só no Windows', '', [
+  ['win-pdf','Salvar PDF pelo "Salvar como"','Relatório salvo onde a pessoa escolher.'],
+  ['win-links','Links externos no navegador','Stripe, site e mapas abrem fora do app.'],
+  ['win-avisos','Avisos do Windows','Só com o app aberto.']
+ ]],
+ ['Site institucional', 'mesmas informações, visual novo', [
+  ['site-inicio','Página inicial','Apresentação, recursos, assistente, segurança, planos, lojas, perguntas e contato.'],
+  ['site-precos','Preços','Comparação Semente × Oásis.'],
+  ['site-recursos','Recursos','Lista do que o app faz.'],
+  ['site-assinar','Assinar (/assinar) e Pronto (/pronto)','Conta + pagamento Stripe + links das lojas.'],
+  ['site-suporte','Suporte e formulário de contato','Mensagens gravadas no Supabase.'],
+  ['site-legais','Termos, privacidade e excluir conta','Páginas legais.'],
+  ['site-senha','Recuperar e redefinir senha, confirmar e-mail','Usadas pelos e-mails da conta.'],
+  ['site-idiomas','Site em 4 idiomas','Português, inglês, francês e espanhol.'],
+  ['site-retorno','Retorno do app (retorno-app.html)','Volta do pagamento para o app do Windows.']
+ ]]
+];
+
+const CHAVE = 'oaze.inventario.2026-11-13';
+let estado = {};
+try { estado = JSON.parse(localStorage.getItem(CHAVE) || '{}'); } catch (e) {}
+const guardar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) {} };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const lista = document.getElementById('lista');
+lista.innerHTML = GRUPOS.map(([g, sub, itens]) => `<h2>${esc(g)}${sub ? `<small>${esc(sub)}</small>` : ''}</h2>` + itens.map(([id, nome, desc, trava]) => {
+  const v = trava ? 'fica' : (estado[id]?.v || 'fica');
+  return `<div class="item${trava ? ' trava' : ''}${v === 'muda' ? ' com-nota' : ''}" data-id="${id}" data-nome="${esc(nome)}" data-grupo="${esc(g)}">
+    <div><b>${esc(nome)}${trava ? '<span class="tag">fica</span>' : ''}</b><span>${esc(desc)}</span></div>
+    <div class="ops">${['fica', 'muda', 'sai'].map((o) => `<button type="button" data-v="${o}" aria-pressed="${v === o}">${o}</button>`).join('')}</div>
+    <input class="nota" placeholder="Como deve mudar?" value="${esc(estado[id]?.nota || '')}">
+  </div>`;
+}).join('')).join('');
+
+function contar() {
+  const t = { fica: 0, muda: 0, sai: 0 };
+  document.querySelectorAll('.item').forEach((el) => { t[el.querySelector('[aria-pressed=true]').dataset.v]++; });
+  nf.textContent = t.fica; nm.textContent = t.muda; ns.textContent = t.sai;
+}
+lista.addEventListener('click', (e) => {
+  const b = e.target.closest('.ops button'); if (!b) return;
+  const item = b.closest('.item'), id = item.dataset.id;
+  item.querySelectorAll('.ops button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+  item.classList.toggle('com-nota', b.dataset.v === 'muda');
+  estado[id] = Object.assign(estado[id] || {}, { v: b.dataset.v }); guardar(); contar();
+  if (b.dataset.v === 'muda') item.querySelector('.nota').focus();
+});
+lista.addEventListener('input', (e) => {
+  if (!e.target.classList.contains('nota')) return;
+  const id = e.target.closest('.item').dataset.id;
+  estado[id] = Object.assign(estado[id] || { v: 'muda' }, { nota: e.target.value }); guardar();
+});
+document.getElementById('copiar').addEventListener('click', async () => {
+  const por = { muda: [], sai: [] };
+  document.querySelectorAll('.item').forEach((el) => {
+    const v = el.querySelector('[aria-pressed=true]').dataset.v;
+    if (v === 'fica') return;
+    const nota = el.querySelector('.nota').value.trim();
+    por[v].push(`- ${el.dataset.nome} (${el.dataset.grupo})${v === 'muda' && nota ? ': ' + nota : ''}`);
+  });
+  const txt = 'Inventário OAZE — minhas escolhas\n\nSAI:\n' + (por.sai.join('\n') || '- nada') +
+    '\n\nMUDA:\n' + (por.muda.join('\n') || '- nada') + '\n\nO resto fica como está.';
+  try { await navigator.clipboard.writeText(txt); }
+  catch (err) { const t = document.createElement('textarea'); t.value = txt; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+  aviso.classList.add('v'); setTimeout(() => aviso.classList.remove('v'), 2200);
+});
+contar();
+</script>
+</body>
+</html>

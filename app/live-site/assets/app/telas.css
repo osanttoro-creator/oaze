@@ -1,0 +1,209 @@
+/* =============================================================
+   telas.css — todos os tamanhos de tela (01/11/2026)
+   Carregado por último. Cobre:
+   1. tela externa estreita dos dobráveis (Galaxy Z Fold: 280–360 px)
+   2. dobrável aberto e tablets pequenos (600–900 px, quase quadrado)
+   3. modo Flex (meio dobrado, dobra horizontal): conteúdo em cima,
+      controles embaixo — Viewport Segments API
+   4. dobra vertical (duas telas lado a lado)
+   5. monitores largos e ultrawide (≥ 1920 px, 21:9, 32:9)
+   ============================================================= */
+
+/* Base: nenhuma grade pode exigir mais largura do que a tela tem. */
+.v3-grid > *, .v3-home-widgets > *, .v3-home-layout > *, .v3-categories > *, .v3-panel { min-width: 0; }
+.v3-row { flex-wrap: wrap; row-gap: 6px; }
+img, video, svg { max-width: 100%; }
+
+/* ---------- 1. tela externa estreita (≤ 360 px) ---------- */
+@media (max-width: 360px) {
+  .v3-main { padding-left: 10px !important; padding-right: 10px !important; }
+  .v3-grid, .v3-categories, .v3-home-layout, .v3-home-widgets, .v3-cat-grid, .oz-sim, .v3-form-row { grid-template-columns: minmax(0, 1fr) !important; }
+  .v3-panel { padding: 14px !important; border-radius: 20px !important; }
+  .v3-top h1, .v3-home-identity h1 { font-size: 22px !important; }
+  .v3-top-actions { gap: 4px !important; }
+  .v3-top-actions .v3-icon-button { width: 34px; height: 34px; }
+  .v3-greeting strong { font-size: 15px; }
+  .v3-money { font-size: clamp(20px, 8vw, 28px) !important; }
+  .oz-inicio-coco form { display: flex; gap: 6px; min-width: 0; }
+  .oz-inicio-coco form input { min-width: 0; flex: 1; }
+  .oz-captura { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .oz-captura > * { min-width: 0; font-size: 12px; padding-left: 8px; padding-right: 8px; }
+  .v3-bottom { left: 6px !important; right: 6px !important; }
+  .v3-bottom button { font-size: 9px !important; }
+  .v3-bottom button.v3-bottom-plus { width: 54px !important; height: 54px !important; }
+  .v3-tx:has(> .v3-tx-main) { grid-template-columns: 36px minmax(0, 1fr) 28px !important; }
+  .v3-tx > .v3-tx-main, .v3-tx > .v3-tx-amount { grid-column: 2 !important; }
+  .v3-tx > .v3-status { grid-column: 3 !important; }
+  .oz-tela-corpo { padding-left: 12px !important; padding-right: 12px !important; }
+  .oz-lista li { grid-template-columns: minmax(0, 1fr) auto !important; }
+  .oz-lista li > button { grid-column: 1 / -1; justify-self: start; }
+  .v3-sheet { padding: 16px !important; }
+  .v3-coco-fab { right: 10px !important; }
+  /* seis atalhos da OAZE em 3 colunas não cabem em 280 px */
+  .v3-coco-tools { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+/* ---------- 2. dobrável aberto / tablet pequeno (600–900 px) ---------- */
+@media (min-width: 600px) and (max-width: 900px) {
+  .v3-home-widgets { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .v3-widget-slot.is-largo { grid-column: 1 / -1; }
+  .v3-cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .oz-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .v3-more-section, .v3-more-list { max-width: 760px; margin-left: auto; margin-right: auto; }
+  .v3-sheet { width: min(680px, 100%) !important; margin: 0 auto; }
+  .v3-overlay { justify-content: center !important; }
+  .v3-main { padding-left: 24px !important; padding-right: 24px !important; }
+  .oz-tela-corpo { max-width: 760px; margin: 0 auto; }
+}
+
+/* ---------- 3. modo Flex: dobra horizontal (em cima / embaixo) ----------
+   O que se lê fica na metade de cima; o que se toca (barra, gaveta,
+   conversa da Coco) desce para a metade de baixo. */
+@media (vertical-viewport-segments: 2) {
+  :root {
+    --dobra-topo: env(viewport-segment-bottom 0 0, 50dvh);
+    --dobra-base: env(viewport-segment-top 0 1, 50dvh);
+  }
+  .v3-main { max-height: var(--dobra-topo); overflow-y: auto; padding-bottom: 24px !important; }
+  .v3-sheet { height: calc(100dvh - var(--dobra-base)) !important; align-self: end; border-radius: 26px 26px 0 0 !important; }
+  .oz-tela { top: var(--dobra-base) !important; height: calc(100dvh - var(--dobra-base)) !important; }
+  .v3-coco-page { display: grid; grid-template-rows: var(--dobra-topo) 1fr; height: 100dvh; }
+  .v3-coco-page .v3-coco-conversation { padding-top: calc(var(--dobra-base) - var(--dobra-topo)); }
+  .v3-coco-fab { bottom: calc(100dvh - var(--dobra-topo) + 12px) !important; }
+}
+
+/* ---------- 4. dobra vertical: duas telas lado a lado ---------- */
+@media (horizontal-viewport-segments: 2) {
+  :root {
+    --tela-esq: env(viewport-segment-width 0 0, 50vw);
+    --dobradica: calc(env(viewport-segment-left 1 0, 50vw) - env(viewport-segment-right 0 0, 50vw));
+  }
+  .v3-home-layout { grid-template-columns: calc(var(--tela-esq) - 24px) minmax(0, 1fr) !important; column-gap: calc(var(--dobradica) + 24px) !important; }
+  .v3-home-widgets { grid-template-columns: minmax(0, 1fr) !important; }
+  .v3-sheet { width: calc(100vw - var(--tela-esq) - var(--dobradica)) !important; }
+  .v3-overlay { justify-content: flex-end !important; }
+}
+
+/* ---------- 5. monitores largos e ultrawide ---------- */
+@media (min-width: 1920px) {
+  .v3-main { max-width: 2400px !important; }
+  .v3-home-layout { grid-template-columns: minmax(380px, 520px) minmax(0, 1fr) !important; }
+  .v3-home-widgets { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important; }
+  .v3-cat-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; }
+  .oz-tela-corpo { max-width: 980px; margin: 0 auto; }
+  .oz-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+}
+/* 21:9 e 32:9: a tela é larga e baixa. Conteúdo centrado com teto de
+   largura, gavetas mais largas e nada esticado de ponta a ponta. */
+@media (min-width: 2400px), (min-aspect-ratio: 21/9) and (min-width: 1600px) {
+  .v3-main { max-width: min(2800px, 92vw) !important; margin-left: auto !important; margin-right: auto !important; }
+  .v3-sheet { width: min(560px, 100%) !important; }
+  .v3-home-carteira { top: 12px; }
+  .oz-tela .oz-tela-corpo { max-width: 1100px; }
+}
+@media (min-aspect-ratio: 21/9) and (max-height: 900px) {
+  .v3-wave svg { max-height: 150px; }
+  .v3-home-widgets .v3-panel { max-height: 70vh; overflow: auto; }
+}
+
+/* Indicadores fixos da Início: o valor nunca é cortado */
+.v3-home-metric { min-width: 0; overflow: hidden; }
+.v3-home-metric .v3-money { font-size: clamp(20px, 2.1vw, 34px) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
+.v3-home-metric small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+@media (max-width: 900px) { .v3-home-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 360px) { .v3-home-metrics { grid-template-columns: minmax(0, 1fr) !important; } }
+.v3-home-carteira .v3-quick { margin-top: 14px; }
+
+/* Logo de banco sempre num ladrilho com a cor da marca */
+.v3-picker-icon.is-marca { background: var(--bank-bg) !important; color: var(--bank-ink) !important; }
+.v3-picker-icon.is-marca svg { width: 20px; height: 20px; }
+.v3-invoice-bank, .v3-bank-current-logo, .v3-bank-option-logo, .v3-tx-banco { background: var(--bank-bg) !important; color: var(--bank-ink) !important; }
+.v3-invoice-bank svg.bank-icon:not(.is-generic), .v3-bank-current-logo svg.bank-icon:not(.is-generic), .v3-bank-option-logo svg.bank-icon:not(.is-generic), .v3-picker-icon svg.bank-icon:not(.is-generic) { fill: currentColor; }
+.bank-icon.is-sigla text { fill: currentColor; }
+
+/* Amostra "Transparente" da paleta: quadriculado, para não parecer vazia */
+.v3-color-opt[data-oaze-color="#00000000"] { background: repeating-conic-gradient(#8a949b 0 25%, #e9eef0 0 50%) 50% / 10px 10px !important; }
+.v3-cat-icon[style*="#00000000"], .v3-picker-icon[style*="#00000000"] { outline: 1.5px dashed var(--line); }
+
+/* Aporte com os mesmos seletores de despesa e receita (ícone + cor) */
+#v3-form-investment .v3-picker-field{display:grid;gap:6px;min-width:0}
+#v3-form-investment .v3-picker-field:has(>label[hidden]){display:none}
+#v3-form-investment .v3-picker{position:relative;min-width:0}
+#v3-form-investment .v3-picker summary{display:flex;align-items:center;gap:10px;min-height:52px;padding:7px 12px;border:1px solid rgba(240,229,207,.2);border-radius:15px;background:rgba(240,229,207,.075);color:var(--milk);font-size:14px;font-weight:500;cursor:pointer;list-style:none}
+#v3-form-investment .v3-picker summary::-webkit-details-marker{display:none}
+#v3-form-investment .v3-picker summary:focus-visible,#v3-form-investment .v3-picker-options button:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+#v3-form-investment .v3-picker summary>span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#v3-form-investment .v3-picker-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--picker-accent,var(--teal)) 19%,transparent);color:var(--picker-accent,var(--teal))}
+#v3-form-investment .v3-picker-icon svg{width:22px;height:22px;object-fit:contain}
+#v3-form-investment .v3-picker-icon.is-paid{color:#79c7ad;background:rgba(95,169,155,.18)}
+#v3-form-investment .v3-picker-icon.is-pending{color:#f0cf82;background:rgba(240,207,130,.16)}
+#v3-form-investment .v3-picker-icon.is-cancelled{color:#ef9696;background:rgba(239,150,150,.15)}
+#v3-form-investment .v3-picker-caret{color:var(--teal);font-size:19px;transition:transform .18s ease}
+#v3-form-investment .v3-picker[open] .v3-picker-caret{transform:rotate(180deg)}
+#v3-form-investment .v3-picker-options{position:relative;z-index:9;max-height:min(240px,38vh);margin-top:6px;overflow:auto;padding:6px;border:1px solid rgba(240,229,207,.26);border-radius:16px;background:#152d38;box-shadow:0 16px 34px rgba(0,7,14,.35);backdrop-filter:blur(20px)}
+#v3-form-investment .v3-picker-options button{display:flex;align-items:center;gap:11px;width:100%;min-height:45px;padding:6px 9px;border:0;border-radius:10px;background:transparent;color:var(--milk);font:500 13px var(--body,Instrument,sans-serif);text-align:left;cursor:pointer}
+#v3-form-investment .v3-picker-options button:hover,#v3-form-investment .v3-picker-options button.is-selected{background:rgba(240,229,207,.09)}
+#v3-form-investment .v3-picker-options button>span:nth-child(2){flex:1;min-width:0}
+#v3-form-investment .v3-picker-options button small{display:block;color:var(--muted);font-weight:400;line-height:1.3}
+#v3-form-investment .v3-picker-options button b{color:var(--teal)}
+#v3-form-investment .v3-picker-caret{transition:none}
+
+/* Carteira: material preto translúcido, com faixa da cor escolhida. */
+html .v3-wallet-item, html .v3-wallet-item:not(.is-selected) {
+  color: #f0e5cf;
+  border: 1px solid rgba(240,229,207,.24);
+  border-left: 7px solid var(--card-plastic,#5fa99b);
+  background:
+    radial-gradient(ellipse 85% 70% at 90% 5%,color-mix(in srgb,var(--card-plastic,#5fa99b) 14%,transparent),transparent 72%),
+    linear-gradient(145deg,rgba(5,10,15,.86),rgba(7,14,21,.76) 55%,rgba(3,8,13,.82));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 32px rgba(0,0,0,.35), inset 0 1px rgba(255,255,255,.12);
+}
+html .v3-wallet-item:after {
+  background: linear-gradient(90deg,var(--card-plastic,#5fa99b),transparent 80%) left top / 100% 7px no-repeat !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+html .v3-wallet-item:before { opacity: .28; }
+html .v3-wallet-item .v3-bankmark {
+  background: var(--bank-bg); color: var(--bank-ink);
+  border: 1.5px solid rgba(240,229,207,.35);
+  box-shadow: 0 3px 10px rgba(0,0,0,.28);
+}
+html .v3-wallet-item .v3-card-top strong,
+html .v3-wallet-item .v3-card-number,
+html .v3-wallet-item .v3-card-footer,
+html .v3-wallet-item .v3-card-validity,
+html .v3-wallet-item .v3-contactless,
+html .v3-wallet-item .v3-card-hide { color: #f0e5cf; text-shadow: none; }
+html .v3-wallet-item.is-claro .v3-card-oaze { filter: none; opacity: 1; }
+html .v3-wallet-item .v3-card-hide { background: rgba(0,0,0,.28); }
+
+/* =============================================================
+   MAIS COM COR (01/11/2026): cada item com a própria cor viva,
+   ícone na cor cheia sobre fundo da mesma cor (como no Kontto).
+   Por classe, não por style: vale também no app do Windows.
+   ============================================================= */
+.v3-more-ic.oz-cor-0 { --tom: #3EC7D6; --tom-bg: rgba(62,199,214,.18); }
+.v3-more-ic.oz-cor-1 { --tom: #5AA2FF; --tom-bg: rgba(90,162,255,.18); }
+.v3-more-ic.oz-cor-2 { --tom: #F2B33D; --tom-bg: rgba(242,179,61,.18); }
+.v3-more-ic.oz-cor-3 { --tom: #3ECF8E; --tom-bg: rgba(62,207,142,.18); }
+.v3-more-ic.oz-cor-4 { --tom: #B98AF5; --tom-bg: rgba(185,138,245,.18); }
+.v3-more-ic.oz-cor-5 { --tom: #FF8A65; --tom-bg: rgba(255,138,101,.18); }
+.v3-more-ic.oz-cor-6 { --tom: #F06292; --tom-bg: rgba(240,98,146,.18); }
+.v3-more-ic.oz-cor-7 { --tom: #9CCC65; --tom-bg: rgba(156,204,101,.18); }
+.v3-more-ic.oz-cor-8 { --tom: #4DD0E1; --tom-bg: rgba(77,208,225,.18); }
+.v3-more-ic.oz-cor-9 { --tom: #FFB74D; --tom-bg: rgba(255,183,77,.18); }
+.v3-more-ic[class*="oz-cor-"] { background: var(--tom-bg) !important; color: var(--tom) !important; }
+.v3-more-ic[class*="oz-cor-"] svg { stroke: currentColor; }
+
+/* MAIS EM BLOCOS (01/11/2026): mesmo padrão de Configurações e dos widgets —
+   título da seção acima, painel separado para cada grupo, ícones coloridos. */
+.v3-more-blocos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 18px 16px; align-items: start; }
+.v3-more-bloco { min-width: 0; }
+.v3-more-bloco > .v3-section-title { display: block; margin: 0 0 10px 4px; }
+.v3-more-blocos .v3-more-secao.v3-panel { padding: 6px 16px; border-radius: 24px; }
+.v3-more-blocos .v3-more-secao > button { min-height: 58px; padding: 10px 2px; border-bottom: 1px solid var(--line, rgba(240,229,207,.08)); }
+.v3-more-blocos .v3-more-secao > button:last-child { border-bottom: 0; }
+.v3-more-blocos .v3-more-secao > button:hover { background: rgba(240,229,207,.04); border-radius: 14px; }
+@media (min-width: 1920px) { .v3-more-blocos { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); } }

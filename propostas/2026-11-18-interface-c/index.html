@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OAZE · Direção C · três versões visuais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Proposta de 18/11/2026. Direção C (híbrido por cômodo): telas de números
+   escuras, telas de conversa e planejamento claras, mesmas formas do site. */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--creme:#F7EEDC;--papel:#FFFDF8;--tinta:#1F2D4D;--teal:#5FA99B;--teal-esc:#2F6E62;--tang:#E9875E;
+  --nilo:#355565;--nilo-c:#DCE7EC;--bia:#8A5A00;--bia-c:#F6EACB;--tico:#B5562F;--tico-c:#FBE6DB;--lume:#4A5A8A;--lume-c:#E1E5F2;
+  --mola:cubic-bezier(.34,1.56,.64,1)}
+body{font-family:Figtree,system-ui,sans-serif;background:var(--creme);color:var(--tinta)}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em}
+.topo{max-width:1240px;margin:0 auto;padding:44px 28px 8px}
+.topo h1{font-size:44px;line-height:1.05}
+.topo p{max-width:760px;margin-top:12px;font-size:17px;color:#4F5A75}
+.legenda{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.legenda span{background:var(--papel);border:1px solid #E3D6BA;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+
+section.versao{max-width:1240px;margin:36px auto 0;padding:28px;border-radius:28px;background:var(--papel);box-shadow:0 22px 44px -26px rgba(31,45,77,.45)}
+.cab{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.cab .num{font-family:Fredoka;font-size:15px;background:var(--tinta);color:#fff;border-radius:999px;padding:4px 12px}
+.cab h2{font-size:30px}
+.cab p{flex-basis:100%;color:#4F5A75;margin-top:6px;max-width:900px}
+.amostras{display:flex;gap:8px;margin-top:12px}
+.amostras i{width:34px;height:34px;border-radius:10px;border:1px solid rgba(0,0,0,.08)}
+.telas{display:flex;gap:26px;margin-top:24px;overflow-x:auto;padding:4px 2px 18px}
+.fone{flex:0 0 340px;height:720px;border-radius:44px;padding:10px;background:#0c1418;box-shadow:0 30px 60px -30px rgba(0,0,0,.5)}
+.fone .rot{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4F5A75;margin:0 0 8px 6px}
+.wrap{display:flex;flex-direction:column}
+.tela{height:100%;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+
+/* ---------- tela escura (números) ---------- */
+.esc{background:var(--e-fundo);color:var(--e-texto)}
+.esc .barra{display:flex;align-items:center;justify-content:space-between;padding:22px 20px 10px}
+.esc .ola small{display:block;font-size:12px;opacity:.7}
+.esc .ola b{font-family:"Bricolage Grotesque";font-size:20px}
+.esc .sino{width:38px;height:38px;border-radius:50%;background:var(--e-cartao);display:grid;place-items:center}
+.esc .sino img{width:26px}
+.saldo{margin:6px 16px 0;border-radius:24px;padding:18px 84px 18px 18px;background:var(--e-destaque);color:var(--e-dtexto);position:relative;overflow:hidden}
+.saldo small{font-size:12px;font-weight:600;opacity:.75;letter-spacing:.04em;text-transform:uppercase}
+.saldo .v{font-family:"Bricolage Grotesque";font-weight:800;font-size:28px;margin-top:4px;font-variant-numeric:tabular-nums}
+.saldo .lin{display:flex;flex-direction:column;gap:1px;font-size:12.5px;margin-top:6px;opacity:.85}
+.saldo img{position:absolute;right:-6px;bottom:-8px;width:84px;transform:rotate(-8deg)}
+.atalhos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 16px 0}
+.atalhos div{background:var(--e-cartao);border-radius:18px;padding:10px 4px 8px;text-align:center;font-size:11px;font-weight:600}
+.atalhos img{width:var(--ic-atalho);height:var(--ic-atalho);display:block;margin:0 auto 4px;transition:transform .35s var(--mola)}
+.atalhos div:hover img{transform:translateY(-4px) scale(1.08)}
+.wid{margin:12px 16px 0;border-radius:22px;background:var(--e-cartao);overflow:hidden}
+.wid header{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--w-cab);color:var(--w-cabtexto);font-size:12.5px;font-weight:700}
+.wid header img{width:22px;height:22px;border-radius:50%}
+.wid header em{margin-left:auto;font-style:normal;font-weight:600;opacity:.75;font-size:11px}
+.wid .corpo{padding:10px 12px 12px;font-size:13px}
+.rende{display:flex;align-items:center;gap:10px}
+.rende img{width:46px}
+.rende b{font-family:"Bricolage Grotesque";font-size:20px;color:var(--e-pos)}
+.rende small{display:block;font-size:11.5px;opacity:.7}
+.prox{display:flex;align-items:center;gap:9px;padding:5px 0}
+.prox img{width:30px}
+.prox span{flex:1}
+.prox b{font-variant-numeric:tabular-nums}
+.selo{font-size:10px;font-weight:700;border-radius:999px;padding:2px 7px;background:var(--tang);color:#fff}
+.nav{margin-top:auto;display:flex;justify-content:space-around;align-items:center;padding:10px 10px 16px;background:var(--e-nav)}
+.nav div{font-size:10.5px;text-align:center;opacity:.6;width:56px}
+.nav div.at{opacity:1;font-weight:700}
+.nav .ico{width:26px;height:26px;margin:0 auto 2px;border-radius:8px;border:2px solid currentColor;opacity:.75}
+.nav .at img{width:36px;height:36px;display:block;margin:-10px auto 0;transform:translateY(-2px)}
+.nav .at .pil{display:block;margin:2px auto 0;width:18px;height:4px;border-radius:9px;background:var(--teal)}
+
+/* ---------- tela clara (conversa) ---------- */
+.clr{background:var(--c-fundo);color:var(--tinta)}
+.clr .barra{display:flex;align-items:center;gap:10px;padding:20px 18px 8px}
+.clr .barra img{width:44px}
+.clr .barra b{font-family:"Bricolage Grotesque";font-size:19px;display:block}
+.clr .barra small{font-size:12px;color:#4F5A75}
+.turma{display:flex;gap:6px;padding:4px 16px 8px;overflow:hidden}
+.turma span{display:flex;align-items:center;gap:5px;border-radius:999px;padding:4px 10px 4px 4px;font-size:11.5px;font-weight:700;background:var(--cor-c);color:var(--cor)}
+.turma img{width:24px;height:24px;border-radius:50%}
+.msgs{padding:4px 14px;display:flex;flex-direction:column;gap:9px;flex:1}
+.eu{align-self:flex-end;max-width:78%;background:var(--c-eu);color:var(--c-eutexto);border-radius:20px 20px 6px 20px;padding:9px 13px;font-size:13.5px}
+.ela{align-self:flex-start;max-width:88%;display:flex;gap:8px}
+.ela>img{width:34px;height:34px;border-radius:50%;background:var(--cor-c);flex:none}
+.bolha{background:var(--c-bolha);border-radius:20px 20px 20px 6px;padding:9px 13px;font-size:13.5px;box-shadow:0 8px 18px -14px rgba(31,45,77,.5);border-top:3px solid var(--cor)}
+.bolha .quem{font-size:11px;font-weight:800;color:var(--cor);text-transform:uppercase;letter-spacing:.05em}
+.proj{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin-top:6px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.proj b{text-align:right}
+.proj .liq{font-weight:800;color:var(--teal-esc)}
+.fonte{font-size:10.5px;color:#4F5A75;margin-top:5px}
+.card-rev{margin:2px 0 0 42px;background:var(--c-bolha);border-radius:18px;padding:10px;font-size:12.5px;border:1.5px dashed var(--tico)}
+.card-rev .it{display:flex;align-items:center;gap:8px;padding:3px 0}
+.card-rev img{width:28px}
+.card-rev .it span{flex:1}
+.card-rev .bt{display:flex;gap:6px;margin-top:8px}
+.card-rev .bt i{font-style:normal;flex:1;text-align:center;border-radius:999px;padding:7px;font-weight:700;font-size:12px}
+.card-rev .bt .p{background:var(--teal-esc);color:#fff}
+.card-rev .bt .s{background:var(--tico-c);color:var(--tico)}
+.entrada{margin:8px 14px 16px;display:flex;align-items:center;gap:8px;background:var(--c-bolha);border-radius:999px;padding:7px 7px 7px 14px;font-size:13px;color:#4F5A75;box-shadow:0 8px 18px -14px rgba(31,45,77,.6)}
+.entrada img{width:30px}
+.entrada span{flex:1}
+.entrada i{width:34px;height:34px;border-radius:50%;background:var(--teal-esc);display:grid;place-items:center;color:#fff;font-style:normal;font-weight:800}
+
+/* ---------- carteira (escura) ---------- */
+.cartao{margin:8px 16px 0;height:170px;border-radius:24px;padding:16px;color:#fff;position:relative;overflow:hidden;background:linear-gradient(135deg,#EC7000,#B85700)}
+.cartao b{font-family:"Bricolage Grotesque";font-size:18px}
+.cartao .chip{width:38px;height:28px;border-radius:7px;background:linear-gradient(135deg,#f2d78a,#c79b3b);margin-top:26px}
+.cartao .fim{position:absolute;left:16px;bottom:14px;font-family:monospace;letter-spacing:.12em}
+.cartao .log{position:absolute;right:16px;bottom:12px;font-family:Fredoka;font-weight:700;font-size:20px}
+.tit{margin:16px 18px 6px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.lanc{margin:0 16px;border-radius:20px;background:var(--e-cartao);padding:4px 12px}
+.lanc .it{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--e-fio);font-size:13px}
+.lanc .it:last-child{border:0}
+.lanc img{width:var(--ic-lista);height:var(--ic-lista)}
+.lanc .it span{flex:1}
+.lanc .it small{display:block;font-size:11px;opacity:.65}
+.lanc b{font-variant-numeric:tabular-nums}
+.neg{color:var(--e-neg)}.pos{color:var(--e-pos)}
+.vazio{margin:12px 16px 0;border-radius:20px;border:1.5px dashed var(--e-fio);padding:12px;display:flex;align-items:center;gap:10px;font-size:12.5px}
+.vazio img{width:44px}
+
+/* ---------- as três versões ---------- */
+.v1{--e-fundo:#1C3340;--e-texto:#F7EEDC;--e-cartao:#264555;--e-nav:#172C37;--e-fio:rgba(247,238,220,.12);
+  --e-destaque:#F7EEDC;--e-dtexto:#1F2D4D;--e-pos:#8FD3C3;--e-neg:#F3A27E;
+  --c-fundo:#F7EEDC;--c-bolha:#FFFDF8;--c-eu:#1C3340;--c-eutexto:#F7EEDC;--ic-atalho:40px;--ic-lista:32px}
+.v2{--e-fundo:#1F2D4D;--e-texto:#FFFDF8;--e-cartao:#2B3A5E;--e-nav:#18233D;--e-fio:rgba(255,253,248,.12);
+  --e-destaque:linear-gradient(135deg,#5FA99B,#2F6E62);--e-dtexto:#fff;--e-pos:#9FE0CF;--e-neg:#F5B293;
+  --c-fundo:#FFFDF8;--c-bolha:#F7EEDC;--c-eu:#2F6E62;--c-eutexto:#fff;--ic-atalho:40px;--ic-lista:32px}
+.v3{--e-fundo:#12332F;--e-texto:#EFF7F4;--e-cartao:#1B4640;--e-nav:#0E2926;--e-fio:rgba(239,247,244,.12);
+  --e-destaque:linear-gradient(135deg,#E9875E,#C9673F);--e-dtexto:#fff;--e-pos:#A6E3CE;--e-neg:#FFC2A6;
+  --c-fundo:#DDEEE9;--c-bolha:#FFFDF8;--c-eu:#12332F;--c-eutexto:#EFF7F4;--ic-atalho:50px;--ic-lista:40px}
+.v2 .wid header{border-bottom:1px solid var(--e-fio)}
+.v3 .atalhos div{padding-top:6px}
+
+/* cores de cada amigo nos cabeçalhos dos widgets */
+.w-nilo{--w-cab:var(--nilo-c);--w-cabtexto:var(--nilo)}
+.w-bia{--w-cab:var(--bia-c);--w-cabtexto:var(--bia)}
+.w-tico{--w-cab:var(--tico-c);--w-cabtexto:var(--tico)}
+.v1 .w-nilo,.v1 .w-bia,.v1 .w-tico{--w-cab:rgba(247,238,220,.08);--w-cabtexto:#F7EEDC}
+.v1 .w-nilo header{box-shadow:inset 4px 0 0 #8fb7cc}.v1 .w-bia header{box-shadow:inset 4px 0 0 #e3b95a}.v1 .w-tico header{box-shadow:inset 4px 0 0 #f3a27e}
+.c-oaze{--cor:var(--teal-esc);--cor-c:#DDEEE9}.c-nilo{--cor:var(--nilo);--cor-c:var(--nilo-c)}.c-bia{--cor:var(--bia);--cor-c:var(--bia-c)}
+.c-tico{--cor:var(--tico);--cor-c:var(--tico-c)}.c-lume{--cor:var(--lume);--cor-c:var(--lume-c)}
+.nota{margin-top:6px;font-size:14px;color:#4F5A75}
+.nota b{color:var(--tinta)}
+
+/* ---------- logo ---------- */
+.logos{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:22px}
+.logo-op{border-radius:24px;overflow:hidden;border:1px solid #E3D6BA;background:var(--papel)}
+.logo-op .fundo{display:flex;align-items:center;justify-content:center;gap:16px;height:150px}
+.logo-op .fundo.esc2{background:#1C3340}
+.logo-op .txt{padding:14px 16px 18px;font-size:14px;color:#4F5A75}
+.logo-op .txt h3{font-size:19px;color:var(--tinta);margin-bottom:4px}
+.marca{font-family:Fredoka;font-weight:700;font-size:54px;color:var(--teal-esc);letter-spacing:-.02em;line-height:1}
+.esc2 .marca{color:#F7EEDC}
+.icone-app{width:84px;height:84px;border-radius:22px;background:linear-gradient(145deg,#5FA99B,#2F6E62);display:grid;place-items:center;box-shadow:0 14px 26px -14px rgba(0,0,0,.6)}
+.icone-app img{width:74px}
+.icone-app.p{width:44px;height:44px;border-radius:12px}.icone-app.p img{width:38px}
+.selo-t{position:relative;width:120px;height:120px;border-radius:50%;background:var(--creme);border:4px solid var(--teal);display:grid;place-items:center}
+.selo-t img.o{width:96px;position:relative;z-index:2}
+.selo-t img.a{position:absolute;width:44px;top:-6px}
+.selo-t img.a1{left:-14px;transform:rotate(-18deg)}.selo-t img.a2{left:22px;top:-22px}.selo-t img.a3{right:22px;top:-22px}.selo-t img.a4{right:-14px;transform:rotate(18deg)}
+.antigo{height:58px}
+footer{max-width:1240px;margin:30px auto 60px;padding:0 28px;color:#4F5A75;font-size:13px}
+@media (max-width:900px){.logos{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topo">
+  <h1>Direção C: três versões visuais</h1>
+  <p>Telas de números (início, carteira) escuras, com contraste para valores e cartões de banco. Telas de conversa e planejamento claras, como o site, onde a turma e os ícones 3D vivem. As três versões mudam só o tom do escuro, do claro e o peso dos ícones; formas, fontes e movimento são os do site.</p>
+  <div class="legenda"><span>Títulos: Bricolage Grotesque</span><span>Texto e números: Figtree</span><span>Logo: Fredoka</span><span>Cantos: pílula, 20 a 24 px</span><span>Movimento: mola do site</span></div>
+</div>
+
+<template id="telas">
+  <div class="telas">
+    <div class="wrap"><div class="rot">Início · escura</div>
+    <div class="fone"><div class="tela esc">
+      <div class="barra"><div class="ola"><small>boa tarde,</small><b>Ana Souza</b></div><div class="sino"><img src="a/i/lembrete.webp" alt=""></div></div>
+      <div class="saldo"><small>Sobra do mês</small><div class="v">R$ 3.481,77</div><div class="lin"><span>Entrou R$ 7.850,00</span><span>Saiu R$ 4.368,23</span></div><img src="a/i/cofrinho.webp" alt=""></div>
+      <div class="atalhos">
+        <div><img src="a/i/adicionar.webp" alt="">Lançar</div><div><img src="a/i/camera.webp" alt="">Recibo</div>
+        <div><img src="a/i/planejamento.webp" alt="">Plano</div><div><img src="a/i/conversa.webp" onerror="this.src='a/i/recibo.webp'" alt="">OAZE</div>
+      </div>
+      <div class="wid w-nilo"><header><img src="a/t/nilo-rosto.webp" alt="">Rende hoje<em>Nilo</em></header>
+        <div class="corpo rende"><img src="a/i/crescimento.webp" alt=""><div><b>+ R$ 38,42</b> no mês<small>Reserva a 110% do CDI · CDI 14,90% a.a. (BCB, hoje)</small></div></div></div>
+      <div class="wid w-tico"><header><img src="a/t/tico-rosto.webp" alt="">Próximos 7 dias<em>Tico</em></header>
+        <div class="corpo">
+          <div class="prox"><img src="a/i/internet.webp" alt=""><span>Internet · 30 set</span><b>R$ 119,90</b></div>
+          <div class="prox"><img src="a/i/fatura.webp" alt=""><span>Fatura Nubank · 05 out <span class="selo">2 dias</span></span><b>R$ 1.982,30</b></div>
+        </div></div>
+      <div class="nav"><div class="at"><img src="a/i/casa.webp" alt="">início<span class="pil"></span></div><div><div class="ico"></div>lançar</div><div><div class="ico"></div>carteira</div><div><div class="ico"></div>agenda</div><div><div class="ico"></div>mais</div></div>
+    </div></div></div>
+
+    <div class="wrap"><div class="rot">Conversa com a turma · clara</div>
+    <div class="fone"><div class="tela clr">
+      <div class="barra"><img src="a/t/oaze-pet.webp" alt=""><div><b>OAZE</b><small>e a turma, quando o assunto pede</small></div></div>
+      <div class="turma"><span class="c-nilo"><img src="a/t/nilo-rosto.webp" alt="">Nilo</span><span class="c-bia"><img src="a/t/bia-rosto.webp" alt="">Bia</span><span class="c-tico"><img src="a/t/tico-rosto.webp" alt="">Tico</span><span class="c-lume"><img src="a/t/lume-rosto.webp" alt="">Lume</span></div>
+      <div class="msgs">
+        <div class="eu">Quanto rende R$ 5 mil num CDB de 110% do CDI em 1 ano?</div>
+        <div class="ela c-nilo"><img src="a/t/nilo-rosto.webp" alt=""><div class="bolha"><div class="quem">Nilo</div>Com o CDI de hoje, fica assim:
+          <div class="proj"><span>Bruto</span><b>R$ 5.819,50</b><span>IR (17,5%)</span><b>− R$ 143,41</b><span class="liq">Líquido</span><b class="liq">R$ 5.676,09</b></div>
+          <div class="fonte">CDI 14,90% a.a. · Banco Central, 19/11/2026 · supõe a taxa constante</div></div></div>
+        <div class="eu">Lança o recibo do mercado</div>
+        <div class="ela c-tico"><img src="a/t/tico-rosto.webp" alt=""><div class="bolha"><div class="quem">Tico</div>Achei 2 itens. Confere antes de salvar?</div></div>
+        <div class="card-rev">
+          <div class="it"><img src="a/i/mercado.webp" alt=""><span>Supermercado · 18/11</span><b>R$ 286,40</b></div>
+          <div class="it"><img src="a/i/alimentacao.webp" alt=""><span>Padaria · 18/11</span><b>R$ 24,90</b></div>
+          <div class="bt"><i class="p">Salvar os 2</i><i class="s">Revisar</i></div>
+        </div>
+      </div>
+      <div class="entrada"><img src="a/i/camera.webp" alt=""><span>Mensagem para a OAZE</span><i>›</i></div>
+    </div></div></div>
+
+    <div class="wrap"><div class="rot">Carteira · escura</div>
+    <div class="fone"><div class="tela esc">
+      <div class="barra"><div class="ola"><small>visão geral</small><b>Carteira</b></div><div class="sino"><img src="a/i/carteira.webp" alt=""></div></div>
+      <div class="cartao"><b>Itaú</b><div class="chip"></div><div class="fim">•••• 0917</div><div class="log">oaze</div></div>
+      <div class="tit">Extrato da conta</div>
+      <div class="lanc">
+        <div class="it"><img src="a/i/dinheiro.webp" alt=""><span>Salário<small>25 set · TED</small></span><b class="pos">+ R$ 6.500,00</b></div>
+        <div class="it"><img src="a/i/casa.webp" alt=""><span>Aluguel<small>25 set · Pix</small></span><b class="neg">− R$ 1.850,00</b></div>
+        <div class="it"><img src="a/i/saude.webp" alt=""><span>Farmácia<small>22 set · cartão</small></span><b class="neg">− R$ 74,20</b></div>
+        <div class="it"><img src="a/i/transporte.webp" alt=""><span>Uber<small>21 set · cartão</small></span><b class="neg">− R$ 32,50</b></div>
+      </div>
+      <div class="vazio"><img src="a/i/calendario.webp" alt=""><span><b>Nada lançado hoje.</b> Mandou foto de recibo? O Tico organiza pra você.</span></div>
+      <div class="nav"><div><div class="ico"></div>início</div><div><div class="ico"></div>lançar</div><div class="at"><img src="a/i/carteira.webp" alt="">carteira<span class="pil"></span></div><div><div class="ico"></div>agenda</div><div><div class="ico"></div>mais</div></div>
+    </div></div></div>
+  </div>
+</template>
+
+<section class="versao v1">
+  <div class="cab"><span class="num">C1</span><h2>Noite e Creme</h2>
+    <p>Mantém o escuro atual do app (#1C3340) e traz o creme do site para o destaque do saldo, os textos e as conversas. É a mudança mais suave: quem já usa o app reconhece na hora. Widgets com faixa lateral na cor de cada amigo.</p></div>
+  <div class="amostras"><i style="background:#1C3340"></i><i style="background:#264555"></i><i style="background:#F7EEDC"></i><i style="background:#5FA99B"></i><i style="background:#E9875E"></i></div>
+  <div class="slot"></div>
+  <p class="nota"><b>Melhor para:</b> atualizar sem estranhamento. <b>Risco:</b> a tela clara e a escura ficam com temperaturas diferentes (creme quente, noite fria).</p>
+</section>
+
+<section class="versao v2">
+  <div class="cab"><span class="num">C2</span><h2>Tinta e Papel</h2>
+    <p>O escuro vira a "tinta" do site (#1F2D4D), um azul-marinho mais quente, e o claro vira o "papel" (#FFFDF8). O saldo ganha o degradê teal. Cabeçalhos dos widgets na cor clara do amigo, igual aos cartões da turma no site.</p></div>
+  <div class="amostras"><i style="background:#1F2D4D"></i><i style="background:#2B3A5E"></i><i style="background:#FFFDF8"></i><i style="background:#5FA99B"></i><i style="background:#F6EACB"></i></div>
+  <div class="slot"></div>
+  <p class="nota"><b>Melhor para:</b> ficar idêntico ao site (as mesmas cores de texto e fundo dos dois lados). <b>Risco:</b> o marinho deixa a carteira mais "banco tradicional".</p>
+</section>
+
+<section class="versao v3">
+  <div class="cab"><span class="num">C3</span><h2>Teal Profundo</h2>
+    <p>O escuro vira um teal bem fundo (#12332F), da família da cor da marca, e o claro vira o teal-claro do site. Saldo em tangerina, ícones 3D 25% maiores. É a versão mais "personagem": o app inteiro respira a cor da OAZE.</p></div>
+  <div class="amostras"><i style="background:#12332F"></i><i style="background:#1B4640"></i><i style="background:#DDEEE9"></i><i style="background:#E9875E"></i><i style="background:#FFFDF8"></i></div>
+  <div class="slot"></div>
+  <p class="nota"><b>Melhor para:</b> marca forte e diferente dos apps de banco. <b>Risco:</b> tangerina no saldo pode ser lida como "alerta"; dá para trocar por creme.</p>
+</section>
+
+<section class="versao">
+  <div class="cab"><span class="num">Logo</span><h2>Três caminhos para o logo</h2>
+    <p>O símbolo atual (o "o" com três antenas) fica bonito grande, mas some em 48 px no ícone do app. As opções abaixo resolvem isso de jeitos diferentes.</p></div>
+  <div class="logos">
+    <div class="logo-op">
+      <div class="fundo"><img class="antigo" src="a/logo/oaze-v3-logo-claro.svg" alt="logo atual"></div>
+      <div class="fundo esc2"><img class="antigo" src="a/logo/oaze-v3-logo-escuro.svg" alt="logo atual no escuro"></div>
+      <div class="txt"><h3>1. Refinar o atual</h3>Mesmo desenho, traço mais grosso e antenas maiores para funcionar pequeno. Menor custo, nenhuma ruptura com o que já foi impresso ou publicado.</div>
+    </div>
+    <div class="logo-op">
+      <div class="fundo"><div class="icone-app"><img src="a/t/oaze-pet.webp" alt=""></div><span class="marca">oaze</span></div>
+      <div class="fundo esc2"><div class="icone-app p"><img src="a/t/oaze-pet.webp" alt=""></div><span class="marca" style="font-size:40px">oaze</span></div>
+      <div class="txt"><h3>2. Símbolo 3D + palavra (recomendado)</h3>O ícone do app vira a cabeça da OAZE em 3D, no mesmo estilo dos ícones. A palavra "oaze" em Fredoka fica sozinha nos cabeçalhos. Junta o que o site e o app já fazem hoje.</div>
+    </div>
+    <div class="logo-op">
+      <div class="fundo"><div class="selo-t"><img class="a a1" src="a/t/nilo-rosto.webp" alt=""><img class="a a2" src="a/t/bia-rosto.webp" alt=""><img class="a a3" src="a/t/tico-rosto.webp" alt=""><img class="a a4" src="a/t/lume-rosto.webp" alt=""><img class="o" src="a/t/oaze-pet.webp" alt=""></div></div>
+      <div class="fundo esc2"><span class="marca">oaze</span><span style="color:#F7EEDC;font-weight:700">& turma</span></div>
+      <div class="txt"><h3>3. Selo da turma</h3>A OAZE com os quatro amigos espiando. Não substitui o logo: vira assinatura de campanhas, redes sociais e da tela de abertura.</div>
+    </div>
+  </div>
+</section>
+
+<footer>Proposta visual de 19/11/2026 · dados de exemplo (Ana Souza) · ícones e personagens da pasta de identidade visual · números ilustrativos.</footer>
+
+<script>
+  const t = document.getElementById('telas');
+  document.querySelectorAll('.slot').forEach((s) => s.replaceWith(t.content.cloneNode(true)));
+</script>
+</body>
+</html>

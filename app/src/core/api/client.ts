@@ -30,22 +30,26 @@ export function readConfig(): ApiConfig | null {
   return { url: url.replace(/\/+$/, ''), publishableKey };
 }
 
-/* Ponte entre o cofre assíncrono e a interface síncrona que o supabase-js quer.
-   O cache em memória é preenchido no arranque (`primeSessionCache`), antes de o
-   cliente existir — sem isso o primeiro `getSession()` devolveria vazio e o app
-   pediria login a quem já estava dentro. */
+/* O SDK aceita armazenamento assíncrono. Isso é essencial para o PKCE: o
+   verificador precisa chegar ao cofre antes de abrir o navegador e continuar
+   disponível caso o sistema encerre o aplicativo durante o login. */
 const cache = new Map<string, string>();
 let priming: Promise<void> | null = null;
 
 const bridge = {
-  getItem: (key: string) => cache.get(key) ?? null,
-  setItem: (key: string, value: string) => {
-    cache.set(key, value);
-    void store().set(key, value);
+  getItem: async (key: string) => {
+    if (cache.has(key)) return cache.get(key)!;
+    const value = await store().get(key);
+    if (value !== null) cache.set(key, value);
+    return value;
   },
-  removeItem: (key: string) => {
+  setItem: async (key: string, value: string) => {
+    cache.set(key, value);
+    await store().set(key, value);
+  },
+  removeItem: async (key: string) => {
     cache.delete(key);
-    void store().remove(key);
+    await store().remove(key);
   },
 };
 
@@ -81,6 +85,10 @@ export async function api(): Promise<SupabaseClient | null> {
         storageKey: SESSION_KEY,
         persistSession: true,
         autoRefreshToken: true,
+        /* OAuth nativo volta com ?code=, que só pode ser trocado pelo mesmo
+           cliente que guardou o verificador PKCE. O fluxo implícito expunha
+           access_token e refresh_token no fragmento do navegador externo. */
+        flowType: 'pkce',
         /* no app instalado não existe redirecionamento de URL para ler: o fluxo
            OAuth volta por deep link e é tratado em core/auth */
         detectSessionInUrl: typeof location !== 'undefined' && location.protocol.startsWith('http'),

@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { setViewport } from '../test/setup';
 import { demoWorkspace } from '../domain/seed';
+import { todayYM } from '../domain/dates';
 import { getState, initialState, setState } from '../state/store';
 import { go, patchUI } from '../state/route';
 import { Shell } from './Shell';
@@ -55,6 +56,16 @@ describe('a faixa de largura escolhe a casca', () => {
 });
 
 describe('navegação', () => {
+  it('mostra a origem das receitas no Início sem trocar de tela', async () => {
+    setViewport(1280);
+    render(<Shell />);
+    await screen.findByRole('heading', { name: 'onde foi o mês' });
+    const tipo = screen.getByRole('radiogroup', { name: 'Tipo de movimento' });
+    await userEvent.click(within(tipo).getByRole('radio', { name: 'Receitas' }));
+    expect(screen.getByRole('heading', { name: 'de onde veio o mês' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Início/ })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('clicar troca a tela e marca a atual', async () => {
     setViewport(1280);
     render(<Shell />);
@@ -71,14 +82,28 @@ describe('navegação', () => {
     const nav = await screen.findByRole('navigation', { name: 'Navegação principal' });
     await userEvent.click(within(nav).getByRole('button', { name: /Configurações/ }));
     /* Settings é lazy: aparece depois do Suspense resolver */
-    expect(await screen.findByRole('heading', { name: /configurações/i }, { timeout: 4000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /configurações/i }, { timeout: 10000 })).toBeInTheDocument();
+  });
+
+  it('a agenda abre pelo menu Mais e mostra o calendário financeiro', async () => {
+    setViewport(375);
+    render(<Shell />);
+    const nav = await screen.findByRole('navigation', { name: 'Navegação principal' });
+    await userEvent.click(within(nav).getByRole('button', { name: /Mais/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Agenda/ }, { timeout: 10000 }));
+    expect(await screen.findByRole('heading', { name: 'agenda' }, { timeout: 10000 })).toBeInTheDocument();
+    expect(screen.getByRole('radiogroup', { name: 'Alcance do calendário' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /^20 de .*evento/ }));
+    await userEvent.click(screen.getByRole('button', { name: '+ lançamento neste dia' }));
+    const form = await screen.findByRole('dialog', { name: 'Novo lançamento' });
+    expect(within(form).getByLabelText('Outra data')).toHaveValue(`${todayYM()}-20`);
   });
 
   it('o hash acompanha a tela: o botão voltar do Android funciona', async () => {
     setViewport(375);
     render(<Shell />);
     await screen.findByRole('navigation', { name: 'Navegação principal' });
-    go('carteira');
+    act(() => go('carteira'));
     await waitFor(() => expect(location.hash).toBe('#/carteira'));
   });
 });

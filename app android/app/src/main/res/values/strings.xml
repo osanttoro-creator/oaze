@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OAZE</string>
+    <string name="title_activity_main">OAZE</string>
+    <string name="package_name">site.oaze.app</string>
+    <string name="custom_url_scheme">site.oaze.app</string>
+    <string name="oaze_widget_descricao">Saldo e próximos vencimentos do OAZE</string>
+    <string name="oaze_widget_atalhos_descricao">Atalhos: despesa, receita, recibo e OAZE</string>
+    <string name="oaze_widget_lancar_descricao">Um toque para lançar no OAZE</string>
+</resources>

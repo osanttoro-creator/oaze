@@ -1,14 +1,18 @@
-# Pacotes de teste: APK instalável no Android e compilação iOS sem assinatura.
-# O iPhone exige TestFlight/assinatura Apple para instalar em aparelho real.
-name: App · teste mobile
+# Pacote de teste Android. O projeto iOS permanece no repositório, fora desta rodada.
+name: App · Android
 
+# 12/11/2026: sem gatilho em pull_request. O repositório é privado e os
+# 2.000 minutos grátis do mês acabaram em 5/11, quase todos em compilações
+# repetidas a cada atualização do PR. Rodar à mão (Run workflow) ou pela tag.
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
       - "app/**"
+      - "app android/**"
       - ".github/workflows/app-mobile-test.yml"
+      - ".github/workflows/app-ci.yml"
 
 permissions:
   contents: read
@@ -23,6 +27,8 @@ jobs:
 
   android:
     needs: verifica
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -53,49 +59,40 @@ jobs:
             exit 1
           fi
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:published
       - run: npm run verificar:seguranca
       - run: npx cap sync android
       - name: Gera APK de teste
-        working-directory: app/android
+        working-directory: app android
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug
+          ./gradlew --no-daemon assembleDebug -PoazeVersionCode=${{ github.run_number }}
       - uses: actions/upload-artifact@v4
+        if: github.head_ref != 'codex/oaze-multiplatform-foundation'
         with:
           name: oaze-android-teste-${{ github.run_number }}
-          path: app/android/app/build/outputs/apk/debug/app-debug.apk
+          path: app android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
-      - name: Verifica AAB sem assinatura de loja
-        working-directory: app/android
-        run: ./gradlew --no-daemon bundleRelease
-
-  ios:
-    needs: verifica
-    runs-on: macos-26
-    timeout-minutes: 60
-    defaults:
-      run:
-        working-directory: app
-    env:
-      VITE_SUPABASE_URL: ${{ vars.OAZE_SUPABASE_URL }}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OAZE_SUPABASE_PUBLISHABLE_KEY }}
-      VITE_OAZE_ENV: staging
-      VITE_OAZE_SYNC_ENABLED: "false"
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: app/package-lock.json
-      - run: xcodebuild -version
-      - run: npm ci
-      - run: npm run build
-      - run: npx cap sync ios
-      - name: Compila para iPhone sem assinatura
+      - name: Disponibiliza APK em release de teste
+        if: github.head_ref == 'codex/oaze-multiplatform-foundation'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
         run: |
-          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
-            -sdk iphoneos -destination 'generic/platform=iOS' \
-            CODE_SIGNING_ALLOWED=NO build
+          set -euo pipefail
+          version=$(node -p "require('./package.json').version")
+          tag="app-v${version}-android-test"
+          apk="../app android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$apk"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$apk" --clobber
+          else
+            gh release create "$tag" "$apk" --draft --prerelease --target "$RELEASE_SHA" --title "OAZE ${version} Android - teste" --notes "APK de teste da versão ${version}. Ainda não é pacote assinado para Google Play."
+          fi
+          gh release edit "$tag" --draft=false
+          echo "Prévia publicada: $tag"
+      - name: Verifica AAB sem assinatura de loja
+        working-directory: app android
+        run: ./gradlew --no-daemon bundleRelease -PoazeVersionCode=${{ github.run_number }}

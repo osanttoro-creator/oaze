@@ -1,0 +1,27 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Só o que o OAZE usa de verdade. Nenhuma permissão de sistema de arquivos ou de shell: o cofre grava por comando próprio (vault.rs), que decide o caminho e sanitiza o nome — permissão de FS genérica deixaria o lado web escolher onde escrever.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "notification:default",
+    "deep-link:default",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        { "url": "https://*.supabase.co/auth/v1/authorize*" },
+        { "url": "https://checkout.stripe.com/*" },
+        { "url": "https://billing.stripe.com/*" },
+        { "url": "https://oaze.site/*" },
+        { "url": "https://www.flaticon.com/*" },
+        { "url": "https://www.openstreetmap.org/*" },
+        { "url": "mailto:info@oaze.site" }
+      ]
+    },
+    "dialog:allow-save",
+    "dialog:allow-open",
+    "clipboard-manager:allow-write-text",
+    "clipboard-manager:allow-read-text"
+  ]
+}

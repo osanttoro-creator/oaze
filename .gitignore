@@ -1,5 +1,7 @@
 node_modules/
 dist/
+app/dist-live/
+app/dist-bridge/
 builds/
 .DS_Store
 *.tsbuildinfo
@@ -12,15 +14,15 @@ app/.impeccable/
 !.env.example
 
 # Rust (Tauri)
-app/src-tauri/target/
-app/src-tauri/gen/
+app desktop/target/
+app desktop/gen/
 
-# Nativos gerados a cada build
-app/android/app/build/
-app/android/.gradle/
+# Nativos gerados a cada build (16/11/2026: android e desktop moram na raiz)
+app android/app/build/
+app android/.gradle/
 app/ios/App/Pods/
 app/ios/App/App/public/
-app/android/app/src/main/assets/public/
+app android/app/src/main/assets/public/
 
 # Nunca: material de assinatura de loja
 *.jks
@@ -28,3 +30,8 @@ app/android/app/src/main/assets/public/
 *.p8
 *.p12
 *.mobileprovision
+
+# 12/11/2026: o site tem repositório próprio (osanttoro-creator/dashboard) e o
+# marketing são arquivos de mídia; os dois moram aqui só por organização.
+site institucional/
+marketing/

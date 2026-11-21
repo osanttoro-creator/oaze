@@ -174,7 +174,9 @@ export function Welcome() {
               {hasAccountBackend() && auth.status !== 'signed-in' && (
                 <button type="button" className="btn btn-ghost btn-block" onClick={() => setStep('entrar')}>Já tenho conta OAZE</button>
               )}
-              <button type="button" className="btn btn-ghost btn-block" onClick={startDemo}>Ver com dados de exemplo</button>
+              {import.meta.env.DEV && (
+                <button type="button" className="btn btn-ghost btn-block" onClick={startDemo}>Ver com dados de exemplo</button>
+              )}
             </div>
             <p className="small muted" style={{ marginTop: 18 }}>Nesta versão, seus dados ficam só neste aparelho.</p>
           </>

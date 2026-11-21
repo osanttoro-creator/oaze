@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Esquema próprio: é por aqui que o login com Google e com a Apple
+                 volta para o app depois de passar pelo navegador do sistema. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="oaze" />
+            </intent-filter>
+
+            <!-- App Links: https://oaze.site/app/... abre o app instalado em vez
+                 do navegador. `autoVerify` exige o assetlinks.json publicado em
+                 https://oaze.site/.well-known/ — sem ele o Android ignora a
+                 verificação e cai no seletor de aplicativo. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="oaze.site" android:pathPrefix="/app" />
+            </intent-filter>
+
+        </activity>
+
+        <!-- AdMob: anúncio premiado do plano Semente. O valor vem de
+             build.gradle (oazeAdmobAppId); sem ele, o ID de teste do Google. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
+        <!-- Avisos dos apps de banco viram sugestão de lançamento (01/11/2026).
+             Só funciona se a pessoa ativar o OAZE em "Acesso a notificações". -->
+        <service
+            android:name=".OazeBancoListener"
+            android:label="OAZE: avisos do banco"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Widget da tela inicial: mostra só o resumo que o painel enviou. -->
+        <receiver
+            android:name=".OazeWidgetProvider"
+            android:label="OAZE"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/oaze_widget_info" />
+        </receiver>
+
+        <!-- Widgets rápidos (01/11/2026): atalhos 4x1 e lançar 1x1. -->
+        <receiver android:name=".OazeAtalhosWidget" android:label="OAZE · atalhos" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/oaze_widget_atalhos_info" />
+        </receiver>
+        <receiver android:name=".OazeLancarWidget" android:label="OAZE · lançar" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/oaze_widget_lancar_info" />
+        </receiver>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+    </application>
+
+    <!-- Permissions -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Biometria: desbloqueia a chave local, nunca substitui o PIN. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Lembretes de fatura e de lançamento fixo. Pedida em tempo de execução,
+         e só quando a pessoa liga um lembrete — nunca no primeiro arranque. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Voz da Coco. Pedida só quando a pessoa toca no microfone; o Android
+         pergunta na hora e o OAZE encerra o microfone ao fim da conversa. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Foto de recibo para a Coco ler. Só ao tocar em anexar foto. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Local da compra (opcional, por lançamento, arredondado a ~100 m).
+         A pessoa pode conceder só a localização aproximada. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- O app funciona em aparelho sem leitor biométrico: a pessoa usa o PIN. -->
+    <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+</manifest>

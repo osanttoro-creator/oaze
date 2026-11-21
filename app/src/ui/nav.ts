@@ -30,6 +30,7 @@ export const MORE_ITEMS: readonly NavDef[] = [
   { id: 'investimentos', label: 'Investimentos', short: 'Investir', icon: 'trending-up' },
   { id: 'categorias', label: 'Categorias', short: 'Categorias', icon: 'shapes' },
   { id: 'metas', label: 'Metas e orçamentos', short: 'Metas', icon: 'target' },
+  { id: 'agenda', label: 'Agenda', short: 'Agenda', icon: 'calendar-clock' },
   { id: 'lembretes', label: 'Lembretes', short: 'Lembretes', icon: 'bell' },
   { id: 'relatorios', label: 'Relatórios', short: 'Relatórios', icon: 'chart-column' },
   { id: 'configuracoes', label: 'Configurações', short: 'Ajustes', icon: 'settings' },

@@ -62,12 +62,19 @@ function varrer(dir, rotulo) {
   for (const file of walk(dir)) {
     if (!/\.(ts|tsx|js|mjs|cjs|json|html|css|env|yml|yaml)$/.test(extname(file) ? file : '')) continue;
     const texto = readFileSync(file, 'utf8');
+    const semComentarios = texto
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/<!--([\s\S]*?)-->/g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
     const onde = relative(ROOT, file);
     /* o próprio verificador contém os padrões; ignorá-lo não é exceção, é não
        procurar o espelho dentro do espelho */
     if (onde.includes('verificar-seguranca')) continue;
     for (const [re, nome] of PADROES) {
-      if (re.test(texto)) problemas.push(`${rotulo}: ${nome} em ${onde}`);
+      // O termo service_role em uma explicação não é uma chave. Mantemos a
+      // detecção no código ativo; JWTs de serviço são examinados no texto todo.
+      if (re.test(nome === 'menção a service_role' ? semComentarios : texto))
+        problemas.push(`${rotulo}: ${nome} em ${onde}`);
     }
     const papel = jwtDeServico(texto);
     if (papel) problemas.push(`${rotulo}: JWT com papel "${papel}" em ${onde} — só "anon" pode ir ao cliente`);
@@ -76,6 +83,17 @@ function varrer(dir, rotulo) {
 
 varrer(join(ROOT, 'src'), 'código');
 varrer(join(ROOT, 'dist'), 'pacote');
+varrer(join(ROOT, 'dist-live'), 'pacote publicado');
+
+const publishedIndex = join(ROOT, 'dist-live', 'index.html');
+if (existsSync(publishedIndex)) {
+  const publishedHtml = readFileSync(publishedIndex, 'utf8');
+  const publishedCsp = publishedHtml.match(/Content-Security-Policy"\s+content="([^"]+)"/)?.[1] ?? '';
+  if (!/script-src[^;]*'self'/.test(publishedCsp) || /script-src[^;]*'unsafe-inline'/.test(publishedCsp))
+    problemas.push('pacote publicado: CSP de scripts ausente ou permissiva');
+  if (/<script(?![^>]*\bsrc=)[^>]*>/i.test(publishedHtml))
+    problemas.push('pacote publicado: script inline no index.html');
+}
 
 /* ------------------------------------------------- 2. a CSP cobre o que é usado */
 
@@ -135,6 +153,16 @@ if (existsSync(dist)) {
   }
 } else {
   avisos.push('pacote: dist/ não existe — rode `npm run build` antes para a verificação valer');
+}
+const published = join(ROOT, 'dist-live');
+if (existsSync(published)) {
+  for (const file of walk(published)) {
+    const onde = relative(ROOT, file);
+    if (/\.map$/.test(file)) problemas.push(`pacote publicado: source map em ${onde}`);
+    if (/\.env/.test(onde)) problemas.push(`pacote publicado: arquivo de ambiente em ${onde}`);
+  }
+} else {
+  avisos.push('pacote publicado: dist-live/ não existe — rode `npm run build:published` antes');
 }
 
 /* ------------------------------------------------------------------ resultado */

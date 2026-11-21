@@ -1,0 +1,834 @@
+/* Ponte da V3 para a conta existente. Não lê nem grava o cache global
+   financas.v1: em navegador compartilhado ele pode pertencer a outra conta. */
+(function (global) {
+  'use strict';
+
+  const V3Backend = {};
+  let client = null;
+  let user = null;
+  let revisions = {};
+  let saving = false;
+  let refreshPending = false;
+  let channel = null;
+  let accountProfile = null;
+  let activeShareId = null;
+  let activeSharePermission = 'read';
+
+  const loginUrl = '/entrar?destino=' + encodeURIComponent(
+    (global.location.pathname.startsWith('/app/') ? global.location.pathname : '/app') +
+    (/(?:^|[?&])convite=/.test(String(global.location.search || '')) ? global.location.search : '')
+  );
+  const ownerName = () => String(user?.name || user?.email?.split('@')[0] || 'Seu OAZE').slice(0, 40);
+  const stamp = (p) => Math.max(0, Number(p?.updatedAt) || 0);
+  const bounded = (operation) => {
+    let timer;
+    return Promise.race([
+      operation,
+      new Promise((_, reject) => { timer = global.setTimeout(() => reject(new Error('Tempo esgotado ao conectar sua conta.')), 12000); })
+    ]).finally(() => global.clearTimeout(timer));
+  };
+
+  V3Backend.user = () => user;
+  V3Backend.client = () => client;
+  V3Backend.saving = () => saving;
+  V3Backend.activeSharePermission = () => activeSharePermission;
+  V3Backend.accountProfile = () => accountProfile;
+  V3Backend.withTimeout = bounded;
+  const receiptBucket = 'oaze-receipts';
+  const receiptTypes = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' };
+  const ownReceipt = (path) => !!user && typeof path === 'string'
+    && path.startsWith(user.id + '/') && !path.includes('..') && !path.includes('\\');
+  V3Backend.uploadReceipt = async function (file, txId) {
+    if (!client || !user) throw new Error('Entre na sua conta antes de anexar um comprovante.');
+    if (activeShareId) throw new Error('Anexos ainda não estão disponíveis em espaços compartilhados.');
+    if (!file || !receiptTypes[file.type] || file.size <= 0 || file.size > 5 * 1024 * 1024)
+      throw new Error('Use JPG, PNG, WebP ou PDF de até 5 MB.');
+    if (!/^tx[_-][\w-]{1,100}$/.test(String(txId || ''))) throw new Error('Lançamento inválido para anexo.');
+    const profileId = String(Store.profile()?.id || '');
+    if (!/^[\w-]{1,100}$/.test(profileId)) throw new Error('Espaço inválido para anexo.');
+    const path = `${user.id}/${profileId}/${txId}/${global.crypto.randomUUID()}.${receiptTypes[file.type]}`;
+    const { error } = await client.storage.from(receiptBucket).upload(path, file,
+      { upsert: false, contentType: file.type, cacheControl: '0' });
+    if (error) throw new Error('Não consegui enviar o comprovante. Confira o lançamento e tente novamente.');
+    return { path };
+  };
+  V3Backend.receiptUrl = async function (path) {
+    if (!client || !ownReceipt(path)) throw new Error('Comprovante indisponível nesta conta.');
+    const { data, error } = await client.storage.from(receiptBucket).createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) throw new Error('Não consegui abrir o comprovante.');
+    return data.signedUrl;
+  };
+  V3Backend.removeReceipt = async function (path) {
+    if (!client || !ownReceipt(path)) throw new Error('Comprovante indisponível nesta conta.');
+    const { error } = await client.storage.from(receiptBucket).remove([path]);
+    if (error) throw new Error('Não consegui excluir o comprovante.');
+  };
+  const receiptQueue = (profile) => [...new Set(
+    (Array.isArray(profile?.pendingReceiptDeletes) ? profile.pendingReceiptDeletes : []).filter(ownReceipt)
+  )];
+  // A fila viaja no mesmo JSONB do perfil e no mesmo RPC que apaga o lançamento.
+  // Um erro de Storage deixa um trabalho recuperável mesmo após fechar a página.
+  V3Backend.receiptCleanupStatus = () => ({ pending: (Store.state()?.profiles || [])
+    .reduce((total, profile) => total + receiptQueue(profile).length, 0) });
+  async function cleanupProfileReceipts(id) {
+    const index = Store.state().profiles.findIndex((profile) => profile.id === id);
+    if (index < 0) return 0;
+    const profile = Store.state().profiles[index];
+    const queue = receiptQueue(profile);
+    if (!queue.length) return 0;
+    const referenced = new Set((Store.state().profiles || []).flatMap((current) =>
+      (current.transactions || []).map((tx) => tx.receiptPath).filter(Boolean)));
+    const cleared = [];
+    let removed = 0;
+    for (const path of queue) {
+      if (referenced.has(path)) { cleared.push(path); continue; }
+      try {
+        await bounded(V3Backend.removeReceipt(path));
+        cleared.push(path);
+        removed++;
+      } catch (error) {
+        console.warn('V3/comprovante pendente de exclusão:', error);
+      }
+    }
+    if (!cleared.length) return 0;
+    const payload = JSON.parse(JSON.stringify(profile));
+    payload.pendingReceiptDeletes = queue.filter((path) => !cleared.includes(path));
+    try {
+      const { data, error } = await bounded(client.rpc('v3_salvar_perfil', {
+        p_profile: payload, p_expected_updated_at: revisions[id] || 0
+      }));
+      if (error) throw error;
+      const saved = Store.normalizeProfile(data);
+      Store.state().profiles[index] = saved;
+      revisions[id] = stamp(saved);
+      Store.commit('sync-apply');
+    } catch (error) {
+      // Storage pode já ter excluído bytes. A fila fica no servidor; remover
+      // novamente é idempotente e a próxima abertura poderá concluir o RPC.
+      if (error.code === '40001') refreshPending = true;
+      console.warn('V3/fila de comprovantes pendente de confirmação:', error);
+    }
+    return removed;
+  }
+  V3Backend.retryReceiptCleanup = async function () {
+    if (saving) throw new Error('Espere a gravação anterior terminar.');
+    if (!client || !user) throw new Error('Entre na conta para excluir comprovantes pendentes.');
+    saving = true;
+    let removed = 0;
+    try {
+      for (const profile of [...(Store.state()?.profiles || [])]) {
+        try { removed += await cleanupProfileReceipts(profile.id); }
+        catch (error) { console.warn('V3/comprovantes pendentes:', error); }
+      }
+    } finally {
+      saving = false;
+      if (refreshPending) {
+        refreshPending = false;
+        await V3Backend.reload().catch((error) => console.error('V3/atualização remota:', error));
+      }
+    }
+    return { removed, pending: V3Backend.receiptCleanupStatus().pending };
+  };
+  V3Backend.investmentMarket = async function (body) {
+    if (!client || !user) throw new Error('Entre na conta para consultar dados de mercado.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    if (!/^https:\/\//.test(base) || !publicKey) throw new Error('Dados de mercado indisponíveis.');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+    const response = await bounded(fetch(base + '/functions/v1/oaze-invest-data', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'content-type': 'application/json', apikey: publicKey,
+        authorization: 'Bearer ' + data.session.access_token },
+      body: JSON.stringify(body)
+    }));
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.erro) throw new Error(result.erro || 'Consulta de mercado indisponível.');
+    return result;
+  };
+  V3Backend.setActiveShare = (id, profile, permission) => {
+    activeShareId = id || null;
+    activeSharePermission = activeShareId && permission === 'edit' ? 'edit' : 'read';
+    Store.setProfileOverride(activeShareId ? profile : null);
+  };
+  V3Backend.share = async function (body) {
+    if (!client || !user) throw new Error('Entre na conta para compartilhar um perfil.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    if (!/^https:\/\//.test(base) || !publicKey) throw new Error('Compartilhamento indisponível.');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+    const response = await bounded(fetch(base + '/functions/v1/oaze-perfis', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'content-type': 'application/json', apikey: publicKey,
+        authorization: 'Bearer ' + data.session.access_token },
+      body: JSON.stringify(body)
+    }));
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.erro) throw new Error(result.erro || 'Compartilhamento indisponível.');
+    return result;
+  };
+  V3Backend.subscription = async function () {
+    if (!client || !user) throw new Error('Entre na sua conta para consultar a assinatura.');
+    const { data, error } = await bounded(client.from('subscriptions')
+      .select('plan_id,status,billing_cycle,current_period_end,cancel_at_period_end,stripe_subscription_id,asaas_subscription_id,origem,play_produto')
+      .eq('user_id', user.id).maybeSingle());
+    if (error) throw error;
+    return data || { plan_id: 'free', status: 'free', cancel_at_period_end: false };
+  };
+  V3Backend.payment = async function (body) {
+    if (!client || !user) throw new Error('Entre na sua conta para gerenciar a assinatura.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    if (!/^https:\/\//.test(base) || !publicKey) throw new Error('Pagamento indisponível: conexão não configurada.');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+    const response = await bounded(fetch(base + '/functions/v1/oaze-pagamento', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', apikey: publicKey,
+        authorization: 'Bearer ' + data.session.access_token },
+      body: JSON.stringify(body)
+    }));
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.erro) throw new Error(result.mensagem || 'Pagamento indisponível agora. Nada foi cobrado.');
+    return result;
+  };
+  V3Backend.billingPortal = async function () {
+    if (!client || !user) throw new Error('Entre na sua conta para consultar a cobrança.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    if (!/^https:\/\//.test(base) || !publicKey) throw new Error('Cobrança indisponível: conexão não configurada.');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+    const response = await bounded(fetch(base + '/functions/v1/oaze-billing-portal', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'content-type': 'application/json', apikey: publicKey,
+        authorization: 'Bearer ' + data.session.access_token },
+      body: JSON.stringify(global.OAZE_NATIVE_DESKTOP ? { canal: 'windows' } : {})
+    }));
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.url) throw new Error(result.mensagem || 'Não foi possível abrir suas cobranças.');
+    return result;
+  };
+  V3Backend.vault = async function (body) {
+    if (!client || !user) throw new Error('Entre na conta para acessar o cofre.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    if (!/^https:\/\//.test(base) || !publicKey) throw new Error('Cofre indisponível.');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+    const response = await bounded(fetch(base + '/functions/v1/oaze-cofre', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'content-type': 'application/json', apikey: publicKey,
+        authorization: 'Bearer ' + data.session.access_token },
+      body: JSON.stringify(body)
+    }));
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.erro) throw new Error(result.erro || 'Cofre indisponível.');
+    return result;
+  };
+  V3Backend.saveAccountProfile = async function (values) {
+    if (!client || !user) throw new Error('Entre na sua conta para editar o perfil.');
+    const name = String(values.name || '').trim().slice(0, 40);
+    if (!name) throw new Error('Escreva seu nome.');
+    const record = { user_id: user.id, nome: name, moeda: values.currency, pais: values.country,
+      fuso: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo' };
+    const { error } = await bounded(client.from('profiles').upsert(record, { onConflict: 'user_id' }));
+    if (error) throw error;
+    accountProfile = record;
+    user.name = name;
+    Store.setOwnerName(name);
+    return record;
+  };
+  V3Backend.signOut = async function (everywhere = false) {
+    if (!client) throw new Error('Sessão indisponível.');
+    if (global.OAZE_NATIVE_NOTIFICATIONS) {
+      try { await global.OAZE_NATIVE_NOTIFICATIONS.cancel(); }
+      catch (error) { console.warn('V3/avisos pendentes:', error); }
+    }
+    const { error } = await bounded(client.auth.signOut({ scope: everywhere ? 'global' : 'local' }));
+    if (error) throw error;
+    global.location.replace(loginUrl);
+  };
+  V3Backend.deleteAccount = async function (confirmation) {
+    if (!client || !user || String(confirmation || '').toLowerCase() !== user.email.toLowerCase())
+      throw new Error('O e-mail não confere.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token || !/^https:\/\//.test(base) || !publicKey)
+      throw new Error('Sua sessão expirou. Nada foi apagado.');
+    const response = await fetch(base + '/functions/v1/oaze-conta', {
+      method: 'POST', headers: { 'content-type': 'application/json', apikey: publicKey,
+        authorization: 'Bearer ' + data.session.access_token },
+      body: JSON.stringify({ acao: 'excluir', confirmacao: confirmation })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.ok !== true) throw new Error(result.mensagem || 'O servidor não confirmou a exclusão. Confira sua conta antes de tentar novamente.');
+    await client.auth.signOut().catch(() => {});
+    global.location.replace('/');
+  };
+  V3Backend.cocoSettings = async function () {
+    if (!client || !user) throw new Error('Entre na sua conta para usar a OAZE.');
+    const { data, error } = await bounded(client.from('coco_settings')
+      .select('consented_at,analysis_consented_at,revoked_at,learning_paused').eq('user_id', user.id).maybeSingle());
+    if (error) throw error;
+    return data || { consented_at: null, analysis_consented_at: null, revoked_at: null, learning_paused: false };
+  };
+  V3Backend.cocoConsent = async function (accepted) {
+    if (!client || !user) throw new Error('Entre na sua conta para configurar a OAZE.');
+    const now = new Date().toISOString();
+    const current = await V3Backend.cocoSettings();
+    const { error } = await bounded(client.from('coco_settings').upsert({
+      user_id: user.id,
+      consented_at: accepted ? now : current.consented_at,
+      analysis_consented_at: accepted ? now : current.analysis_consented_at,
+      revoked_at: accepted ? null : now,
+      learning_paused: accepted ? !!current.learning_paused : true,
+      updated_at: now
+    }, { onConflict: 'user_id' }));
+    if (error) throw error;
+  };
+  V3Backend.cocoPauseLearning = async function (paused) {
+    const settings = await V3Backend.cocoSettings();
+    if (!settings.consented_at || settings.revoked_at) throw new Error('Autorize a OAZE antes de configurar a memória.');
+    const { error } = await bounded(client.from('coco_settings')
+      .update({ learning_paused: !!paused, updated_at: new Date().toISOString() }).eq('user_id', user.id));
+    if (error) throw error;
+  };
+  V3Backend.cocoMemories = async function (profileId) {
+    if (!client || !user) throw new Error('Entre na sua conta para consultar a memória.');
+    const { data, error } = await bounded(client.from('coco_memories')
+      .select('id,kind,label,value,source,created_at').eq('user_id', user.id)
+      .eq('profile_id', profileId).order('created_at', { ascending: false }).limit(50));
+    if (error) throw error;
+    return data || [];
+  };
+  V3Backend.cocoRemember = async function (profileId, memory) {
+    if (!client || !user) throw new Error('Entre na sua conta para salvar a memória.');
+    const settings = await V3Backend.cocoSettings();
+    if (!settings.consented_at || settings.revoked_at || settings.learning_paused) throw new Error('O aprendizado da OAZE está desligado.');
+    const { data, error } = await bounded(client.from('coco_memories').insert({
+      user_id: user.id, profile_id: profileId,
+      kind: memory.kind, label: memory.label, value: memory.value,
+      source: 'confirmado_pelo_usuario'
+    }).select('id,kind,label,value,source,created_at').single());
+    if (error) throw error;
+    return data;
+  };
+  V3Backend.cocoForget = async function (id) {
+    if (!client || !user) throw new Error('Entre na sua conta para apagar a memória.');
+    const { error } = await bounded(client.from('coco_memories').delete()
+      .eq('id', id).eq('user_id', user.id));
+    if (error) throw error;
+  };
+  V3Backend.cocoAnalyses = async function (profileId) {
+    if (!client || !user) throw new Error('Entre na sua conta para consultar as análises.');
+    const { data, error } = await bounded(client.from('coco_analyses')
+      .select('period,summary,forgotten_hash,updated_at').eq('user_id', user.id).eq('profile_id', profileId)
+      .order('period', { ascending: false }).limit(12));
+    if (error) throw error;
+    return data || [];
+  };
+  V3Backend.cocoSaveAnalysis = async function (profileId, period, summary) {
+    if (!client || !user) throw new Error('Entre na sua conta para guardar a análise.');
+    const settings = await V3Backend.cocoSettings();
+    if (!settings.consented_at || !settings.analysis_consented_at || settings.revoked_at || settings.learning_paused)
+      throw new Error('A memória da OAZE está desligada.');
+    const { error } = await bounded(client.from('coco_analyses').upsert({
+      user_id: user.id, profile_id: profileId, period, summary, forgotten_hash: null,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,profile_id,period' }));
+    if (error) throw error;
+  };
+  V3Backend.cocoForgetAnalysis = async function (profileId, period, hash) {
+    if (!client || !user) throw new Error('Entre na sua conta para apagar a análise.');
+    const { error } = await bounded(client.from('coco_analyses').update({
+      summary: null, forgotten_hash: hash, updated_at: new Date().toISOString()
+    })
+      .eq('user_id', user.id).eq('profile_id', profileId).eq('period', period));
+    if (error) throw error;
+  };
+  V3Backend.cocoReadMedia = async function (file, profileId, mode) {
+    if (!client || !user) throw new Error('Entre na sua conta para enviar mídia.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token || !/^https:\/\//.test(base) || !publicKey) throw new Error('Sessão ou conexão indisponível.');
+    const body = new FormData();
+    if (typeof file === 'string') body.append('sheet_url', file);
+    else body.append('file', file, file.name || 'captura');
+    body.append('profile_id', profileId);
+    body.append('media_consent', 'true');
+    if (mode === 'registros') body.append('modo', 'registros');
+    const controller = new AbortController();
+    const timer = global.setTimeout(() => controller.abort(), 45000);
+    try {
+      const response = await fetch(base + '/functions/v1/oaze-coco-media', {
+        method: 'POST', signal: controller.signal,
+        headers: { apikey: publicKey, authorization: 'Bearer ' + data.session.access_token },
+        body
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.erro) throw new Error(result.mensagem || 'Não consegui ler o arquivo.');
+      return result;
+    } finally { global.clearTimeout(timer); }
+  };
+  V3Backend.cocoSpeak = async function (text) {
+    if (!client || !user) throw new Error('Entre na sua conta para ouvir a OAZE.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token || !/^https:\/\//.test(base) || !publicKey) throw new Error('Sessão ou conexão indisponível.');
+    const controller = new AbortController();
+    const timer = global.setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(base + '/functions/v1/oaze-coco-voz', {
+        method: 'POST', signal: controller.signal,
+        headers: { apikey: publicKey, authorization: 'Bearer ' + data.session.access_token,
+          'content-type': 'application/json' },
+        body: JSON.stringify({ text: String(text || '').slice(0, 1200) })
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.mensagem || 'Não consegui reproduzir a resposta.');
+      }
+      return response.blob();
+    } finally { global.clearTimeout(timer); }
+  };
+  V3Backend.cocoLiveSession = async function (sdp, history, options = {}) {
+    if (!client || !user) throw new Error('Entre na sua conta para falar com a OAZE.');
+    const config = global.SupabaseConfig || {};
+    const base = String(config.url || '').replace(/\/+$/, '');
+    const publicKey = String(config.publishableKey || config.anonKey || '');
+    const { data, error } = await bounded(client.auth.getSession());
+    if (error || !data?.session?.access_token || !/^https:\/\//.test(base) || !publicKey)
+      throw new Error('Sua sessão expirou. Entre novamente.');
+    const controller = new AbortController();
+    const parentSignal = options?.signal;
+    const cancel = () => controller.abort();
+    if (parentSignal?.aborted) cancel();
+    else parentSignal?.addEventListener('abort', cancel, { once: true });
+    const timer = global.setTimeout(cancel, 12000);
+    try {
+      const response = await fetch(base + '/functions/v1/oaze-coco-realtime', {
+        method: 'POST', cache: 'no-store', signal: controller.signal,
+        headers: { apikey: publicKey, authorization: 'Bearer ' + data.session.access_token,
+          'content-type': 'application/json' }, body: JSON.stringify({
+            sdp: String(sdp || '').slice(0, 48000),
+            history: Array.isArray(history) ? history.slice(-6) : []
+          })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.sdp) throw new Error(result.mensagem || 'Voz em tempo real indisponível.');
+      return { sdp: result.sdp, sessionId: result.session_id || null };
+    } catch (error) {
+      if (controller.signal.aborted) throw new Error(parentSignal?.aborted ? 'Conexão por voz cancelada.' : 'A conexão por voz demorou demais. Tente novamente.');
+      throw error;
+    } finally {
+      global.clearTimeout(timer);
+      parentSignal?.removeEventListener('abort', cancel);
+    }
+  };
+  /* =============================================================
+     UMA AUTORIZAÇÃO SÓ, E ELA É A DA ENTRADA
+     -------------------------------------------------------------
+     Eram três perguntas em momentos diferentes: a privacidade logo
+     depois de entrar, a OAZE na primeira conversa, e os avisos
+     soltos pelo caminho. Três paredes seguidas não protegem mais
+     do que uma — ensinam a clicar em "aceitar" sem ler, que é o
+     contrário de consentir.
+
+     A pergunta agora é feita em /entrar e /cadastro, antes de a
+     sessão existir, e atravessa até aqui marcada em
+     SiteAuth.aceitePendente(). Esta função só GRAVA o que já foi
+     respondido. A tela abaixo é o resgate de quem entrou antes
+     desta mudança ou perdeu a marca pelo caminho — e ela também
+     pergunta uma vez só, pelas duas coisas.
+
+     O que NÃO muda: sem registro gravado no banco, nenhum documento
+     financeiro é lido. Marca de navegador não é prova de aceite; é
+     intenção que ainda precisa virar linha no servidor. */
+  async function gravarPrivacidade(source) {
+    const result = await bounded(client.from('privacy_acceptances').insert({
+      user_id: user.id,
+      policy_version: '2026-10-01',
+      accepted_at: new Date().toISOString(),
+      source: String(source || 'app').slice(0, 40)
+    }));
+    if (result.error && result.error.code !== '23505') throw result.error;
+  }
+  /* A OAZE faz parte da mesma autorização, mas não pode derrubar a
+     entrada: se a gravação dela falhar, o app abre mesmo assim e ela
+     volta a pedir quando for usada. */
+  async function gravarCoco() {
+    try { await V3Backend.cocoConsent(true); return true; }
+    catch (error) { console.error('V3/consentimento OAZE:', error); return false; }
+  }
+  async function requireConsent() {
+    const [privacidade, coco] = await Promise.all([
+      bounded(client.from('privacy_acceptances').select('policy_version')
+        .eq('user_id', user.id).eq('policy_version', '2026-10-01').maybeSingle()),
+      V3Backend.cocoSettings().catch(() => null)
+    ]);
+    if (privacidade.error) throw privacidade.error;
+    let temPrivacidade = !!privacidade.data;
+    const temCoco = !!(coco && coco.consented_at && !coco.revoked_at);
+    if (temPrivacidade && temCoco) return;
+
+    const pendente = (global.SiteAuth && global.SiteAuth.aceitePendente) ? global.SiteAuth.aceitePendente() : null;
+    if (pendente) {
+      try {
+        if (!temPrivacidade) { await gravarPrivacidade(pendente.source); temPrivacidade = true; }
+        if (!temCoco && pendente.coco) await gravarCoco();
+        if (global.SiteAuth && global.SiteAuth.limparAceitePendente) global.SiteAuth.limparAceitePendente();
+      } catch (error) { console.error('V3/aceite pendente:', error); }
+    }
+
+    /* QUEM TRANCA O APP É A PRIVACIDADE, NÃO A COCO
+       O aceite da privacidade é a condição para ler qualquer
+       documento financeiro — sem ele não há o que mostrar. A OAZE é
+       autorização de uso de um recurso: faltando só ela, o app abre
+       e ela mesma pede quando for aberta. Trancar a entrada por
+       causa da OAZE transformaria quem já estava dentro em refém de
+       uma pergunta que ele pode querer responder 'não'. */
+    if (temPrivacidade) return;
+
+    const view = document.getElementById('v3-view');
+    view.innerHTML = '<section class="v3-panel v3-consent"><span class="v3-label">ANTES DE ENTRAR</span><h2>Seus dados, suas regras.</h2><p>Esta é a única autorização que o OAZE pede. Sem ela, o aplicativo não carrega seus dados financeiros.</p><p><a href="/privacidade" target="_blank" rel="noopener noreferrer">Política de privacidade</a> · <a href="/termos" target="_blank" rel="noopener noreferrer">Termos de uso</a></p><form id="v3-privacy-form"><label><input type="checkbox" name="accept" required> Li e aceito a Política de privacidade (versão 01/10/2026) e os Termos de uso, e autorizo a OAZE a usar meus dados financeiros para me responder.</label><button type="submit" class="v3-primary">Autorizar e entrar</button><button type="button" class="v3-secondary" id="v3-privacy-decline">Não aceitar</button><p class="v3-muted">A OAZE pode ser revogada depois em Configurações.</p><p role="alert" id="v3-privacy-error" hidden></p></form></section>';
+    await new Promise((resolve) => {
+      document.getElementById('v3-privacy-decline').addEventListener('click', async () => {
+        await client.auth.signOut().catch(() => {});
+        global.location.replace('/');
+      });
+      document.getElementById('v3-privacy-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        if (!form.elements.accept.checked) return;
+        const button = form.querySelector('[type="submit"]');
+        const status = document.getElementById('v3-privacy-error');
+        button.disabled = true;
+        try {
+          if (!temPrivacidade) await gravarPrivacidade('app_bloqueio');
+          await gravarCoco();
+          resolve();
+        } catch (error) {
+          status.textContent = 'Não consegui registrar a autorização. Tente novamente; seus dados não foram carregados.';
+          status.hidden = false;
+          button.disabled = false;
+        }
+      });
+    });
+  }
+
+  /* PIN NA CRIAÇÃO DA CONTA (01/11/2026)
+     Antes só era pedido a quem tinha a marca oaze_pin_required. Agora toda
+     conta sem PIN cria o seu na entrada — quem já existia, na próxima vez.
+     Servidor fora do ar (status null) não tranca a entrada: pede depois.
+     No app instalado, logo em seguida, oferece destravar com o bloqueio
+     do aparelho (digital, rosto, PIN do Windows). */
+  async function oferecerBloqueioDoAparelho() {
+    const bio = global.OAZE_NATIVE_BIOMETRICS;
+    if (!bio || bio.isEnabled()) return;
+    try { if (localStorage.getItem('oaze.native.biometric-offered')) return; } catch { /* segue */ }
+    if (!(await bio.available().catch(() => false))) return;
+    const windows = !!global.OAZE_NATIVE_DESKTOP;
+    const nome = windows ? 'Windows Hello (rosto, digital ou PIN do Windows)' : 'digital, rosto ou a senha do celular';
+    const view = document.getElementById('v3-view');
+    view.innerHTML = '<section class="v3-panel v3-consent"><span class="v3-label">DESBLOQUEIO RÁPIDO</span><h2>Abrir o OAZE com o bloqueio do aparelho?</h2><p>Quando o app ficar um tempo fechado, ele pede ' + nome + ' antes de mostrar seus dados. O PIN continua valendo para as áreas sensíveis.</p><div class="v3-form"><button type="button" class="v3-primary" id="v3-bio-sim">Usar bloqueio do aparelho</button><button type="button" class="v3-secondary" id="v3-bio-nao">Agora não</button><p role="alert" id="v3-bio-erro" hidden></p></div></section>';
+    await new Promise((resolve) => {
+      const fim = () => { try { localStorage.setItem('oaze.native.biometric-offered', '1'); } catch { /* segue */ } resolve(); };
+      document.getElementById('v3-bio-nao').addEventListener('click', fim);
+      document.getElementById('v3-bio-sim').addEventListener('click', async (event) => {
+        event.currentTarget.disabled = true;
+        if (await bio.setEnabled(true).catch(() => false)) { fim(); return; }
+        const erro = document.getElementById('v3-bio-erro');
+        erro.textContent = 'Não foi possível confirmar. Você pode ligar depois em Configurações › Segurança.';
+        erro.hidden = false;
+        setTimeout(fim, 2200);
+      });
+    });
+  }
+
+  async function requirePinSetup(status) {
+    if (!status) return;
+    if (status.configured) { await oferecerBloqueioDoAparelho(); return; }
+    const view = document.getElementById('v3-view');
+    view.innerHTML = '<section class="v3-panel v3-consent"><span class="v3-label">PROTEÇÃO DA CONTA</span><h2>Crie seu PIN de seis dígitos.</h2><p>Com ele e o seu e-mail você entra nas próximas vezes, e é ele que destrava os dados sensíveis: números de conta, cofre e exclusões. Evite datas, sequências e números iguais. Depois de 5 erros o PIN fica bloqueado por 15 minutos. Esqueceu? Entre com Google e crie outro.</p><form id="v3-pin-first-form" class="v3-form"><label>PIN<input name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" required></label><label>CONFIRME O PIN<input name="confirm" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" required></label><button type="submit" class="v3-primary">Criar PIN e continuar</button><p role="alert" id="v3-pin-first-error" hidden></p></form></section>';
+    await new Promise((resolve) => {
+      document.getElementById('v3-pin-first-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const pin = String(form.elements.pin.value || '');
+        const status = document.getElementById('v3-pin-first-error');
+        if (pin !== form.elements.confirm.value) {
+          status.textContent = 'Os PINs não são iguais.'; status.hidden = false; return;
+        }
+        const button = form.querySelector('[type="submit"]');
+        button.disabled = true;
+        try {
+          await V3Backend.vault({ action: 'setup', pin });
+          form.elements.pin.value = '';
+          form.elements.confirm.value = '';
+          resolve();
+        } catch (error) {
+          status.textContent = error.message || 'Não foi possível criar o PIN.';
+          status.hidden = false;
+          form.elements.pin.value = '';
+          form.elements.confirm.value = '';
+          button.disabled = false;
+        }
+      });
+    });
+    await oferecerBloqueioDoAparelho();
+  }
+
+  const loadRemoteData = async function () {
+    const { data, error } = await bounded(client.from('dados')
+      .select('profiles,removidos').eq('user_id', user.id).maybeSingle());
+    if (error) throw error;
+    const map = data?.profiles && typeof data.profiles === 'object' ? data.profiles : {};
+    const removed = data?.removidos && typeof data.removidos === 'object' ? data.removidos : {};
+    const valid = Object.fromEntries(Object.entries(map).filter(([id, profile]) =>
+      profile && typeof profile === 'object' && stamp(profile) > (Number(removed[id]) || 0)));
+    const active = Store.state()?.activeProfileId;
+    revisions = Object.fromEntries(Object.entries(valid).map(([id, profile]) => [id, stamp(profile)]));
+    Store.loadRemoteMap(valid, ownerName(), active);
+    return true;
+  };
+  V3Backend.reload = async function () {
+    if (saving) { refreshPending = true; return false; }
+    const verified = await bounded(SiteAuth.quemEsta());
+    if (!verified || verified.id !== user?.id) {
+      global.location.replace(loginUrl);
+      return false;
+    }
+    return loadRemoteData();
+  };
+
+  V3Backend.mutate = async function (change) {
+    if (activeShareId && activeSharePermission !== 'edit') throw new Error('Este perfil compartilhado é somente leitura.');
+    if (saving) throw new Error('Espere a gravação anterior terminar.');
+    if (!user || !client) throw new Error('Entre na sua conta antes de alterar dados.');
+    const profile = Store.profile();
+    const id = profile.id;
+    const shareId = activeShareId;
+    const expected = shareId ? stamp(profile) : (revisions[id] || 0);
+    const before = JSON.parse(JSON.stringify(profile));
+    const oldReceipts = new Set((before.transactions || []).map((tx) => tx.receiptPath).filter(Boolean));
+    const queuedBefore = receiptQueue(before);
+    saving = true;
+    try {
+      change();
+      const payload = JSON.parse(JSON.stringify(Store.profile()));
+      const keptReceipts = new Set((payload.transactions || []).map((tx) => tx.receiptPath).filter(Boolean));
+      const removedReceipts = [...oldReceipts].filter((path) => !keptReceipts.has(path));
+      if (shareId && removedReceipts.length)
+        throw new Error('Abra este espaço como titular para excluir comprovantes.');
+      if (removedReceipts.some((path) => !ownReceipt(path)))
+        throw new Error('Este comprovante só pode ser excluído pelo dono da conta.');
+      if (!shareId) payload.pendingReceiptDeletes = [...new Set([...queuedBefore, ...removedReceipts])]
+        .filter((path) => !keptReceipts.has(path));
+      const { data, error } = await client.rpc(shareId ? 'v3_salvar_perfil_compartilhado' : 'v3_salvar_perfil',
+        shareId ? { p_share_id: shareId, p_profile: payload, p_expected_updated_at: expected }
+          : { p_profile: payload, p_expected_updated_at: expected });
+      if (error) throw error;
+      const saved = Store.normalizeProfile(data);
+      if (shareId) {
+        if (activeShareId === shareId) {
+          Object.keys(profile).forEach((key) => { delete profile[key]; });
+          Object.assign(profile, saved);
+        }
+      } else {
+        const index = Store.state().profiles.findIndex((p) => p.id === id);
+        if (index >= 0) Store.state().profiles[index] = saved;
+        revisions[id] = stamp(saved);
+      }
+      Store.commit('sync-apply');
+      if (!shareId && receiptQueue(saved).length) {
+        try { await cleanupProfileReceipts(id); }
+        catch (error) { console.warn('V3/comprovantes pendentes:', error); }
+      }
+      const result = shareId ? saved : (Store.state().profiles.find((p) => p.id === id) || saved);
+      Object.defineProperty(result, 'receiptCleanupPending', {
+        value: V3Backend.receiptCleanupStatus().pending,
+        enumerable: false, configurable: true, writable: true
+      });
+      return result;
+    } catch (error) {
+      if (shareId) {
+        if (activeShareId === shareId) {
+          Object.keys(profile).forEach((key) => { delete profile[key]; });
+          Object.assign(profile, Store.normalizeProfile(before));
+        }
+      } else {
+        const index = Store.state().profiles.findIndex((p) => p.id === id);
+        if (index >= 0) Store.state().profiles[index] = Store.normalizeProfile(before);
+      }
+      Store.commit('sync-apply');
+      if (error.code === '40001') {
+        if (shareId) {
+          try {
+            const latest = await V3Backend.share({ action: 'read', id: shareId });
+            if (activeShareId === shareId) {
+              Object.keys(profile).forEach((key) => { delete profile[key]; });
+              Object.assign(profile, Store.normalizeProfile(latest.profile));
+              activeSharePermission = latest.permission === 'edit' ? 'edit' : 'read';
+              Store.commit('sync-apply');
+            }
+          } catch { activeSharePermission = 'read'; }
+        } else refreshPending = true;
+        throw new Error('Este espaço mudou em outro aparelho. Atualizei a tela; confira e tente novamente.');
+      }
+      if (shareId && error.code === '42501') { activeSharePermission = 'read'; Store.commit('sync-apply'); }
+      throw error;
+    } finally {
+      saving = false;
+      if (refreshPending) {
+        refreshPending = false;
+        await V3Backend.reload().catch((e) => console.error('V3/atualização remota:', e));
+      }
+    }
+  };
+
+  V3Backend.createProfile = async function (name) {
+    if (activeShareId) throw new Error('Volte a um perfil seu antes de criar outro.');
+    if (saving) throw new Error('Espere a gravação anterior terminar.');
+    if (!user || !client) throw new Error('Entre na sua conta antes de criar um espaço.');
+    const cleanName = String(name || '').trim().slice(0, 60);
+    if (!cleanName) throw new Error('Dê um nome ao novo espaço.');
+    const profile = Store.normalizeProfile({ id: U.uid('profile'), name: cleanName });
+    saving = true;
+    try {
+      const { data, error } = await bounded(client.rpc('v3_salvar_perfil', {
+        p_profile: profile,
+        p_expected_updated_at: 0
+      }));
+      if (error) throw error;
+      const saved = Store.normalizeProfile(data);
+      revisions[saved.id] = stamp(saved);
+      Store.state().profiles.push(saved);
+      Store.setActiveProfile(saved.id);
+      return saved;
+    } finally {
+      saving = false;
+      if (refreshPending) {
+        refreshPending = false;
+        await V3Backend.reload().catch((error) => console.error('V3/atualização remota:', error));
+      }
+    }
+  };
+
+  V3Backend.renameProfile = async function (id, name) {
+    if (activeShareId || saving) throw new Error('Espere a gravação anterior terminar.');
+    const current = Store.state().profiles.find((p) => p.id === id);
+    if (!current) throw new Error('Perfil não encontrado.');
+    const clean = String(name || '').trim();
+    if (!clean || clean.length > 60) throw new Error('Nome inválido.');
+    saving = true;
+    try {
+      const payload = JSON.parse(JSON.stringify({ ...current, name: clean }));
+      const { data, error } = await bounded(client.rpc('v3_salvar_perfil', {
+        p_profile: payload, p_expected_updated_at: revisions[id] || 0
+      }));
+      if (error) throw error;
+      const saved = Store.normalizeProfile(data);
+      const index = Store.state().profiles.findIndex((p) => p.id === id);
+      if (index >= 0) Store.state().profiles[index] = saved;
+      revisions[id] = stamp(saved);
+      Store.commit('sync-apply');
+      return saved;
+    } finally {
+      saving = false;
+      if (refreshPending) { refreshPending = false; await V3Backend.reload().catch((error) => console.error('V3/atualização remota:', error)); }
+    }
+  };
+
+  V3Backend.deleteProfile = async function (id) {
+    if (saving || activeShareId) throw new Error('Não é possível excluir este perfil agora.');
+    if (Store.state().profiles.length <= 1) throw new Error('Mantenha pelo menos um perfil na conta.');
+    const found = Store.state().profiles.find((p) => p.id === id);
+    if (!found) throw new Error('Perfil não encontrado.');
+    if ((found.transactions || []).some((tx) => tx.receiptPath) || receiptQueue(found).length)
+      throw new Error('Remova os comprovantes deste espaço antes de excluí-lo.');
+    saving = true;
+    try {
+      const { data, error } = await bounded(client.rpc('v3_excluir_perfil', {
+        p_id: id, p_expected_updated_at: revisions[id] || 0
+      }));
+      if (error) throw error;
+      if (!data) throw new Error('Não foi possível excluir o perfil.');
+      delete revisions[id];
+      Store.deleteProfile(id);
+    } finally { saving = false; }
+    await V3Backend.reload().catch((error) => console.error('V3/atualização remota:', error));
+    return true;
+  };
+
+  V3Backend.start = async function () {
+    client = SiteAuth.cliente();
+    if (!client) throw new Error('A conexão com o Supabase não está configurada.');
+    /* ENTRADA EM TRÊS IDAS AO SERVIDOR, NÃO SEIS
+       Antes: conferência do token, usuário, aceite, perfil e dados, uma
+       depois da outra (≈ 6 viagens; no Windows com rede comum, 3–5 s de
+       tela vazia). Agora o que não depende de nada sai junto. O que NÃO
+       muda: dados financeiros só são lidos depois do aceite. */
+    const [verified, userResult] = await Promise.all([
+      bounded(SiteAuth.quemEsta()),
+      bounded(client.auth.getUser()).catch((error) => ({ data: null, error }))
+    ]);
+    if (!verified) { global.location.replace(loginUrl); return false; }
+    const { data: authData, error: authError } = userResult;
+    if (authError) throw authError;
+    if (!authData?.user || authData.user.id !== verified.id) {
+      global.location.replace(loginUrl);
+      return false;
+    }
+    const authUser = authData.user;
+    user = {
+      id: verified.id,
+      email: verified.email || authUser.email || '',
+      name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || '',
+      photo: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || ''
+    };
+    // Nome, moeda e fuso não são documento financeiro: vêm junto com o aceite.
+    const perfilPromessa = bounded(client.from('profiles')
+      .select('nome,moeda,pais,fuso').eq('user_id', user.id).maybeSingle())
+      .catch((error) => ({ data: null, error }));
+    const cofrePromessa = V3Backend.vault({ action: 'status' }).catch(() => null);
+    // Nenhum documento financeiro é lido antes do aceite obrigatório.
+    await requireConsent();
+    await requirePinSetup(await cofrePromessa);
+    const { data: profileRow, error: profileError } = await perfilPromessa;
+    if (profileError) throw profileError;
+    accountProfile = profileRow || {};
+    if (accountProfile.nome) user.name = accountProfile.nome;
+    /* Compatibilidade somente de leitura para Limites e OAZE. A V3 não
+       inicializa o Sync antigo nem sua cópia local compartilhada. */
+    global.Sync = { currentUser: () => ({ uid: user.id, email: user.email, displayName: ownerName() }) };
+    global.SupabaseBackend = { cliente: () => client };
+    await loadRemoteData();
+    if (V3Backend.receiptCleanupStatus().pending) await V3Backend.retryReceiptCleanup();
+    channel = client.channel('oaze-v3-dados-' + user.id)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dados', filter: 'user_id=eq.' + user.id },
+        () => V3Backend.reload().catch((e) => console.error('V3/tempo real:', e)))
+      .subscribe();
+    client.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') global.location.replace(loginUrl);
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) V3Backend.reload().catch((e) => console.error('V3/retomada:', e));
+    });
+    return true;
+  };
+
+  global.V3Backend = V3Backend;
+})(window);

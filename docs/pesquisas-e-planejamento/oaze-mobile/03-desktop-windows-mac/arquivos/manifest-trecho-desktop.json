@@ -1,0 +1,62 @@
+{
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "shortcuts": [
+    {
+      "name": "Nova despesa",
+      "short_name": "Despesa",
+      "url": "/app?novo=despesa",
+      "icons": [{ "src": "/assets/img/oaze-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Nova receita",
+      "short_name": "Receita",
+      "url": "/app?novo=receita",
+      "icons": [{ "src": "/assets/img/oaze-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Perguntar à UGLEZ",
+      "short_name": "UGLEZ",
+      "url": "/app/uglez",
+      "icons": [{ "src": "/assets/img/oaze-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/img/telas/tablet-financeiro.webp",
+      "sizes": "1180x820",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Receitas e despesas, com dados de demonstração"
+    },
+    {
+      "src": "/assets/img/telas/tablet-calendario.webp",
+      "sizes": "1180x820",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Calendário do mês, com dados de demonstração"
+    },
+    {
+      "src": "/assets/img/telas/celular-inicio.webp",
+      "sizes": "780x1688",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Início no celular, com dados de demonstração"
+    },
+    {
+      "src": "/assets/img/telas/celular-carteira.webp",
+      "sizes": "780x1688",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Carteira no celular, com dados de demonstração"
+    },
+    {
+      "src": "/assets/img/telas/celular-uglez.webp",
+      "sizes": "780x1688",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "UGLEZ no celular, com dados de demonstração"
+    }
+  ]
+}

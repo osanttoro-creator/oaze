@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
 /*
@@ -10,6 +11,7 @@ import { afterEach, vi } from 'vitest';
 */
 
 if (typeof window !== 'undefined') {
+  configure({ asyncUtilTimeout: 10000 });
   /* O jsdom não implementa matchMedia, e o app inteiro decide casca, tema e
      "reduzir movimento" por ele. Sem esta ponte, nada renderiza. */
   if (!window.matchMedia) {
@@ -47,9 +49,7 @@ if (typeof window !== 'undefined') {
 
   /* `getContext` devolve null no jsdom; o campo de partículas já trata isso e
      simplesmente não desenha. Declarado aqui para a intenção ficar visível. */
-  if (!HTMLCanvasElement.prototype.getContext) {
-    HTMLCanvasElement.prototype.getContext = (() => null) as unknown as typeof HTMLCanvasElement.prototype.getContext;
-  }
+  HTMLCanvasElement.prototype.getContext = (() => null) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
   afterEach(() => {
     localStorage.clear();
