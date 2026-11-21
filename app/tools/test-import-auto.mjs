@@ -55,7 +55,10 @@ const existing = [{
   kind: 'expense', amount: 1, description: 'Já existe'
 }];
 const basic = scenario(rows, { existing });
-await basic.save(true);
+await basic.save();
+assert.equal(basic.saved.length, 0, 'nenhum movimento é salvo sem seleção explícita');
+basic.state.importSelection = { 0: true, 1: true, 2: true, 3: false, 4: true };
+await basic.save();
 assert.deepEqual(basic.saved.map((item) => item.date), ['2026-09-30', '2026-10-01']);
 assert.ok(basic.saved.every((item) => item.confirmed && item.source === 'import'));
 assert.equal(basic.state.importRemoved[2], undefined, 'cartão de crédito não é gravado');
@@ -68,15 +71,17 @@ const same = [
   { cents: -1000, description: 'Duas compras iguais', date: '2026-10-02' }
 ];
 const repeated = scenario(same);
-await repeated.save(true);
+repeated.state.importSelection = { 0: true, 1: true };
+await repeated.save();
 assert.equal(repeated.saved.length, 1);
 assert.equal(repeated.state.importRemoved[1], undefined, 'linhas iguais no mesmo arquivo exigem conferência');
 
 const offline = scenario([rows[0]], { fail: true });
-await offline.save(true);
+offline.state.importSelection = { 0: true };
+await offline.save();
 assert.equal(offline.saved.length, 0);
 assert.ok(offline.state.importPreview, 'falha de sincronização preserva o arquivo para tentar novamente');
 assert.equal(offline.state.importSaving, false);
 assert.ok(offline.messages.some((message) => message.includes('Não consegui salvar')));
 
-console.log('Importação automática: datas, duplicatas, cartão e falha de sincronização conferidos.');
+console.log('Importação confirmada: seleção, datas, duplicatas, cartão e falha de sincronização conferidos.');

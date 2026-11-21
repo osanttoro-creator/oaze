@@ -31,6 +31,7 @@ jobs:
       - run: node tools/test-import-auto.mjs
       - run: node tools/test-invest-market.mjs
       - run: node tools/test-invest-daily.cjs
+      - run: node tools/test-comprovante.mjs
       - run: npm run build
       - run: npm run build:published
       # Varre segredo no código e no pacote, e confere que a CSP cobre o que o
