@@ -1266,7 +1266,7 @@
   let investmentMarketTimer = null;
   let investmentMarketData = { cdi: [], quotes: {} };
   async function refreshInvestmentMarket(force) {
-    if (demo || state.sharedId || !global.V3Backend?.investmentMarket) return;
+    if (demo || !global.V3Backend?.investmentMarket) return;
     const list = profile().investments || [];
     const floor = new Date(); floor.setUTCFullYear(floor.getUTCFullYear() - 9);
     const floorISO = floor.toISOString().slice(0, 10);
@@ -1286,8 +1286,11 @@
         symbols.length ? V3Backend.investmentMarket({ action: 'quotes', symbols }) : Promise.resolve(null)];
       const results = await Promise.allSettled(jobs);
       if (results[0].status === 'fulfilled') {
-        if (results[0].value?.cdiAnnual || results[0].value?.cdiDaily) state.market.indices = results[0].value;
-        else state.market.error = 'O Banco Central não retornou CDI. Tente atualizar novamente.';
+        const indices = results[0].value || {};
+        state.market.indices = indices;
+        const missing = [['cdiAnnual','CDI anual'],['cdiDaily','CDI diário'],['selicTarget','meta Selic']]
+          .filter(([key]) => !Number.isFinite(indices[key]?.value)).map(([,label]) => label);
+        if (missing.length) state.market.error = `Sem ${missing.join(', ')} nesta consulta. Atualize novamente; os valores ausentes não entram nas estimativas.`;
       } else state.market.error = results[0].reason?.message || 'Índices indisponíveis.';
       if (cdiStart && results[1].status === 'fulfilled') {
         const observations = results[1].value?.observations || [];
@@ -1309,9 +1312,9 @@
       state.market.cdiStart = cdiStart; state.market.quoteKey = quoteKey;
       Calc.setInvestmentMarket({ cdiStart, cdi: investmentMarketData.cdi, cdiAnnual: state.market.indices?.cdiAnnual?.value, quotes: investmentMarketData.quotes });
       state.market.loadedAt = Date.now();
-      /* Falha ou resposta vazia: nova tentativa automática em 1 minuto.
+      /* Falha ou resposta vazia: nova tentativa automática em 5 minutos.
          Sucesso: evita consultas repetidas por 15 minutos. */
-      state.market.retryAt = state.market.loadedAt + (state.market.error || state.market.historyError || state.market.quoteError ? 60 * 1000 : 15 * 60 * 1000);
+      state.market.retryAt = state.market.loadedAt + (state.market.error || state.market.historyError || state.market.quoteError ? 5 * 60 * 1000 : 15 * 60 * 1000);
       state.market.loading = false;
       if (state.page === 'investments' || state.page === 'home') render();
       if (typeof document !== 'undefined' && !document.hidden) {
@@ -1335,7 +1338,7 @@
     const m = state.market, i = m.indices;
     const datum = (entry, digits) => entry && Number.isFinite(entry.value)
       ? `<strong>${Number(entry.value).toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits })}%</strong><small>${esc(shortDate(entry.date))}</small>`
-      : '<strong>—</strong><small>sem dado</small>';
+      : `<strong>—</strong><small>${m.loading?'consultando…':'sem dado'}</small>`;
     return `<section class="v3-panel v3-market-panel" aria-live="polite"><div class="v3-row"><h2>referências de mercado</h2><button type="button" class="v3-link" data-action="refresh-invest-market" ${m.loading?'disabled':''}>${m.loading?'Atualizando…':'Atualizar'}</button></div><div class="v3-market-grid"><div><span>CDI · ao ano</span>${datum(i?.cdiAnnual, 2)}</div><div><span>CDI · ao dia</span>${datum(i?.cdiDaily, 6)}</div><div><span>Meta Selic · ao ano</span>${datum(i?.selicTarget, 2)}</div></div>${linhaCotacoes()}${m.error?`<p class="v3-market-warning">${esc(m.error)}</p>`:''}${m.historyError?`<p class="v3-market-warning">CDI: ${esc(m.historyError)}</p>`:''}${m.quoteError?`<p class="v3-market-warning">Cotações: ${esc(m.quoteError)}</p>`:''}</section>`;
   }
   /* Quantas cotações estão carregadas e a mais recente delas. Sem
@@ -4560,10 +4563,10 @@
       toast('Não consegui salvar a importação. Confira sua conexão e tente novamente.');
     } finally { state.importSaving=false; syncImportSelectionUI(); }
   }
-  async function readCocoMedia(file, sendRecording=false) {
+  async function readCocoMedia(file, sendRecording=false, source='coco') {
     if (!file) return;
-    const statement=/\.(ofx|qfx)$/i.test(file.name)
-      || (state.cocoTab==='Extratos' && (/\.(pdf|csv)$/i.test(file.name) || ['application/pdf','text/csv'].includes(file.type)));
+    const statement=source!=='comprovante' && (/\.(ofx|qfx)$/i.test(file.name)
+      || (state.cocoTab==='Extratos' && (/\.(pdf|csv)$/i.test(file.name) || ['application/pdf','text/csv'].includes(file.type))));
     if (statement) {
       toast('Lendo o extrato neste aparelho…');
       try {
@@ -4575,10 +4578,15 @@
       } catch (error) { toast(error.message || 'Não consegui ler este extrato. Nada foi salvo.'); }
       return;
     }
-    if (demo || !cocoAllowed()) { toast('Autorize a OAZE antes de enviar arquivos.'); return; }
+    if (state.sharedId) { toast('Volte a um perfil seu para ler este arquivo com a OAZE.'); return; }
+    if (demo || !cocoAllowed()) {
+      state.cocoTab='Conversa';go('coco');
+      toast('Autorize a OAZE antes de enviar arquivos. Depois, escolha o comprovante novamente.');
+      return;
+    }
     const image=['image/jpeg','image/png','image/webp'].includes(file.type);
     const audio=['audio/webm','audio/mpeg','audio/mp4','audio/x-m4a','audio/wav','audio/wave'].includes(file.type);
-    const document=/\.(pdf|csv|xlsx|xls|xml)$/i.test(file.name);
+    const document=/\.(pdf|csv|xlsx|xls|xml|ofx|qfx)$/i.test(file.name);
     const localText=/\.(txt|md|json|log)$/i.test(file.name) || ['text/plain','text/markdown','application/json'].includes(file.type);
     if(localText){
       if(file.size>1_000_000){toast('Texto acima de 1 MB. Envie um arquivo menor.');return;}
@@ -4594,7 +4602,7 @@
     if (!await ask('coco-midia',`Enviar ${document?'este documento':image?'esta foto':'este áudio'} à OAZE? O conteúdo pode incluir dados sensíveis e será processado pela OpenAI. O arquivo não ficará guardado no OAZE.`,'Enviar')) return;
     toast('Lendo arquivo…');
     try {
-      const captura=image && global.__ozCapturaRecibo;global.__ozCapturaRecibo=false;
+      const captura=image && (source==='comprovante' || global.__ozCapturaRecibo);global.__ozCapturaRecibo=false;
       const registros=document||captura;
       const result=await V3Backend.cocoReadMedia(file,profile().id,registros?'registros':'resumo');
       if(registros){
@@ -5428,6 +5436,10 @@
       const file=event.target.files?.[0];
       event.target.value='';
       if (file) readCocoMedia(file);
+    });
+    document.addEventListener('oaze:comprovante',(event)=>{
+      const file=event.detail?.file;
+      if (file) readCocoMedia(file,false,'comprovante');
     });
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && ['home', 'investments'].includes(state.page)) refreshInvestmentMarket(false);

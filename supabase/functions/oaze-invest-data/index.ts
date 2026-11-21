@@ -12,7 +12,7 @@ const reply = (origin: string | null, status: number, body: unknown) => new Resp
   status, headers: { ...cors(origin), 'content-type': 'application/json; charset=utf-8' }
 });
 const cache = new Map<string, { expires: number; value: unknown }>();
-async function cached<T>(key: string, ttl: number, load: () => Promise<T>): Promise<T> {
+async function cached<T>(key: string, ttl: number | ((value: T) => number), load: () => Promise<T>): Promise<T> {
   const hit = cache.get(key);
   if (hit && hit.expires > Date.now()) return hit.value as T;
   const value = await load();
@@ -20,7 +20,7 @@ async function cached<T>(key: string, ttl: number, load: () => Promise<T>): Prom
     const oldest = cache.keys().next().value;
     if (oldest) cache.delete(oldest);
   }
-  cache.set(key, { expires: Date.now() + ttl, value });
+  cache.set(key, { expires: Date.now() + (typeof ttl === 'function' ? ttl(value) : ttl), value });
   return value;
 }
 async function jsonFrom(url: string, headers: Record<string, string> = {}) {
@@ -124,7 +124,8 @@ Deno.serve(async (req: Request) => {
       }
     }
     if (body.action === 'indices') {
-      const data = await cached('indices', 60 * 60 * 1000, async () => {
+      const data = await cached('indices', (value: Record<string, unknown>) =>
+        value.cdiDaily && value.cdiAnnual && value.selicTarget ? 60 * 60 * 1000 : 60 * 1000, async () => {
         const today = new Date().toISOString().slice(0, 10);
         const monthAgo = new Date(); monthAgo.setUTCDate(monthAgo.getUTCDate() - 35);
         const tenDaysAgo = new Date(); tenDaysAgo.setUTCDate(tenDaysAgo.getUTCDate() - 10);

@@ -22,13 +22,14 @@ const marketApi = async (body) => {
     return { quotes: [] };
   }
   if (phase === 1) {
-    if (body.action === 'indices') return { cdiDaily: { date: '2026-11-02', value: 0.05 } };
+    if (body.action === 'indices') return { cdiDaily: { date: '2026-11-02', value: 0.05 },
+      cdiAnnual: { date: '2026-11-02', value: 13.65 }, selicTarget: { date: '2026-11-02', value: 13.75 } };
     if (body.action === 'cdi_history') return { observations: [{ date: '2026-11-02', value: 0.05 }] };
     return { quotes: [{ requestedSymbol: 'PETR4', price: 50, currency: 'BRL', marketTime: '2026-11-03T14:30:00Z' }] };
   }
   throw new Error('Fonte temporariamente indisponível');
 };
-const state = { sharedId: null, page: 'investments', market: {
+const state = { sharedId: 'perfil-compartilhado', page: 'investments', market: {
   indices: null, error: '', historyError: '', quoteError: '', loading: false,
   loadedAt: 0, retryAt: 0, cdiStart: '', quoteKey: ''
 } };
@@ -40,9 +41,11 @@ const refresh = new Function('demo', 'state', 'profile', 'global', 'V3Backend', 
 );
 
 await refresh(false);
+assert.equal(calls.length, 3, 'referências também carregam em perfil compartilhado');
+assert.match(state.market.error, /CDI anual.*meta Selic/, 'resposta parcial indica quais taxas faltaram');
 assert.match(state.market.historyError, /CDI temporariamente/);
 assert.match(state.market.quoteError, /Sem cotação para PETR4/);
-assert.ok(state.market.retryAt - Date.now() <= 60_000);
+assert.ok(state.market.retryAt - Date.now() <= 5 * 60_000);
 const before = calls.length;
 await refresh(false);
 assert.equal(calls.length, before, 'evita repetição imediata');
@@ -50,6 +53,7 @@ phase = 1;
 await refresh(true);
 assert.equal(state.market.historyError, '');
 assert.equal(state.market.quoteError, '');
+assert.equal(state.market.error, '');
 assert.equal(lastMarket.cdi.length, 1);
 assert.equal(lastMarket.quotes.PETR4.price, 50);
 assert.ok(state.market.retryAt - Date.now() > 14 * 60_000);
@@ -57,5 +61,5 @@ phase = 2;
 await refresh(true);
 assert.equal(lastMarket.cdi.length, 1, 'falha temporária preserva CDI válido');
 assert.equal(lastMarket.quotes.PETR4.price, 50, 'falha temporária preserva cotação válida');
-assert.ok(state.market.retryAt - Date.now() <= 60_000);
+assert.ok(state.market.retryAt - Date.now() <= 5 * 60_000);
 console.log('Mercado: resposta vazia, repetição e últimos dados válidos OK');

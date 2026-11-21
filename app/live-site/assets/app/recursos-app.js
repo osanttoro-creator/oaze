@@ -778,17 +778,11 @@
   }
   /* Importar comprovante (31/10/2026, inspiração Kontto): galeria,
      câmera ou PDF. Foto vai à OAZE e volta como proposta para revisar;
-     PDF, CSV e OFX são lidos neste aparelho pelo leitor de extratos.
-     O arquivo entra pelo mesmo caminho do anexo da OAZE: um campo
-     temporário com o id que o painel já escuta. */
+     PDF, CSV e OFX entram na leitura de registros da OAZE.
+     Entregamos o File diretamente ao painel, sem depender de um input
+     temporário nem de DataTransfer no WebView. */
   function entregarArquivo(arquivo) {
-    const temp = document.createElement('input');
-    temp.type = 'file'; temp.id = 'v3-coco-file'; temp.hidden = true;
-    const dt = new DataTransfer(); dt.items.add(arquivo); temp.files = dt.files;
-    global.__ozCapturaRecibo = /^image\//.test(arquivo.type);
-    document.body.appendChild(temp);
-    temp.dispatchEvent(new Event('change', { bubbles: true }));
-    temp.remove();
+    document.dispatchEvent(new CustomEvent('oaze:comprovante', { detail: { file: arquivo } }));
   }
   function abrirComprovante() {
     const c = contexto();
